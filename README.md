@@ -9,24 +9,68 @@ I started the project as a model within a RoR (Ruby on Rails) application, and a
 I fell in love with the project, even if it is still young and in the raw.
 
 It is very simple to parse pdfs - from files:
-
+```ruby
 pdf = MergePDF.new "file_name.pdf"
-
+```
 or from data:
-
+```ruby
 pdf = MergePDF.parse "%PDF-1.4 .... [data]"
-
+```
 It's also easy to start an empty pdf:
-
+```ruby
 pdf = MergePDF.new
-
+```
 Merging is a breeze:
-
+```ruby
 pdf << MergePDF.new "another_file_name.pdf"
-
+```ruby
 and saving the final PDF is a one-liner:
-
+```ruby
 pdf.save "output_file_name.pdf"
+```
+
+Also, as a side effect, we can get all sorts of info about our pdf... such as the page count:
+```ruby
+pdf.pages.length
+```
+
+
+# Stamp PDF files
+
+*buggy, I'm still working on this one. On some PDF files (especially encrypted or compressed), the stamp might be corrupted.*
+
+You can use PDF files as stamps.
+
+For instance, lets say you have this wonderful PDF (maybe one you created with prawn), and you want to stump the company header and footer on every page.
+
+So you created your Prawn PDF file (Amazing library and hard work there, I totally recommend to have a look):
+```ruby
+prawn_pdf = Prawn::Document.new
+...(fill your new PDF with goodies)...
+```
+Stamping every page is a breeze.
+
+We start by moving the PDF created by prawn into a MergePDF object.
+```ruby
+pdf = MergePDF.parse prawn_pdf.render
+```
+
+Next we extract the stamp from our stamp pdf template:
+```ruby
+pdf_stamp = MergePDF.new "stamp_file_name.pdf"
+stamp_page = pdf_stamp.pages[0]
+```
+
+And off we stamp each page:
+```ruby
+pdf.pages.each {|page| pages << stamp_page}
+```
+
+Of cource, we can save the stamped output:
+```ruby
+pdf.save "output_file_name.pdf"
+```
+
 
 Decryption & Filters
 ====================
