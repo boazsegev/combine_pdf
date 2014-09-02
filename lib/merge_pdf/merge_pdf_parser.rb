@@ -76,7 +76,7 @@ module MergePDF
 					object_streams.each do |o|
 						warn "Attempting #{o.select {|k,v| k != :raw_stream_content}}"
 						## un-encode (using the correct filter) the object streams
-						PDFFilter.deflate_object o 
+						PDFFilter.inflate_object o 
 						## extract objects from stream to top level arry @parsed
 						@scanner = StringScanner.new o[:raw_stream_content]
 						stream_data = _parse_

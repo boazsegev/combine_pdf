@@ -162,10 +162,10 @@ module MergePDF
 			# now that we have replaced the names in the resources dictionaries,
 			# it is time to replace the names inside the stream
 			# we will need to make sure we have access to the stream injected
-			# we will user PDFFilter.deflate_object
+			# we will user PDFFilter.inflate_object
 			(new_page[:Contents].is_a?(Array) ? new_page[:Contents] : [new_page[:Contents] ]).each do |c|
 				stream = c[:referenced_object]
-				PDFFilter.deflate_object stream
+				PDFFilter.inflate_object stream
 				names_dictionary.each do |old_key, new_key|
 					stream[:raw_stream_content].gsub! _object_to_pdf(old_key), _object_to_pdf(new_key)  ##### PRAY(!) that the parsed datawill be correctly reproduced! 
 				end
