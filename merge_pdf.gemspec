@@ -13,6 +13,6 @@ Gem::Specification.new do |s|
 	s.authors = ["Boaz Segev", "Masters of the open source community"]
 	s.email = 'bsegev@gmail.com'
 	s.files = ["lib/merge_pdf.rb", "lib/merge_pdf/merge_pdf_pdf.rb", "lib/merge_pdf/merge_pdf_parser.rb" , "lib/merge_pdf/merge_pdf_decrypt.rb" , "lib/merge_pdf/merge_pdf_filter.rb" ]
-	s.homepage = 'http://rubygems.org'
+	s.homepage = 'https://github.com/boazsegev/merge_pdf'
 	s.license = 'GPLv3'
 end
