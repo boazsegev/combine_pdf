@@ -23,7 +23,7 @@ pdf = MergePDF.new
 Merging is a breeze:
 ```ruby
 pdf << MergePDF.new "another_file_name.pdf"
-```ruby
+```
 and saving the final PDF is a one-liner:
 ```ruby
 pdf.save "output_file_name.pdf"
