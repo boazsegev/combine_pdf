@@ -10,10 +10,11 @@ module MergePDF
 	module PDFFilter
 		module_function
 		
-		def inflate_object object = nil
+		def deflate_object object = nil
+			false
 		end
 
-		def deflate_object object = nil, filter = :none
+		def inflate_object object = nil, filter = :none
 			filter_array = object[:Filter]
 			if filter_array.is_a?(Hash) && filter_array[:is_reference_only]
 				filter_array = filter_array[:referenced_object]
