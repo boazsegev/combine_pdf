@@ -21,6 +21,11 @@ require 'merge_pdf/merge_pdf_decrypt'
 require 'merge_pdf/merge_pdf_filter'
 require 'merge_pdf/merge_pdf_parser'
 module MergePDF
+	module_function
+	################################################################
+	## These are the "gateway" functions for the model.
+	## These functions are open to the public.
+	################################################################
 	# PDF object types cross reference:
 	# Indirect objects, references, dictionaries and streams are Hash
 	# arrays are Array
@@ -28,6 +33,23 @@ module MergePDF
 	# names are Symbols (String.to_sym)
 	# numbers are Fixnum or Float
 	# boolean are TrueClass or FalseClass
+
+	def new(file_name = "")
+		raise TypeError, "couldn't parse and data, expecting type String" unless file_name.is_a? String
+		return PDF.new() if file_name == ''
+		PDF.new( PDFParser.new(  IO.read(file_name).force_encoding(Encoding::ASCII_8BIT) ) )
+	end
+	def parse(data)
+		raise TypeError, "couldn't parse and data, expecting type String" unless data.is_a? String
+		PDF.new( PDFParser.new(data) )
+	end
+end
+
+module MergePDF
+	################################################################
+	## These are common functions, used within the different classes
+	## These functions aren't open to the public.
+	################################################################
 	PRIVATE_HASH_KEYS = [:indirect_reference_id, :indirect_generation_number, :raw_stream_content, :is_reference_only, :referenced_object, :indirect_without_dictionary]
 	LITERAL_STRING_REPLACEMENT_HASH = {
 		110 => 10, # "\\n".bytes = [92, 110]  "\n".ord = 10
@@ -39,15 +61,14 @@ module MergePDF
 		41 => 41, #)
 		92 => 92 #\
 		}
-	################################################################
-	## These are common functions, used within the different classes
-	## These functions aren't open to the public.
-	################################################################
 	module PDFOperations
 		module_function
 		def inject_to_page page = {Type: :Page, MediaBox: [0,0,612.0,792.0], Resources: {}, Contents: []}, stream = nil, top = true
+			# make sure both the page reciving the new data and the injected page are of the correct data type.
 			return false unless page.is_a?(Hash) && stream.is_a?(Hash)
 
+			# following the reference chain and assigning a pointer to the correct Resouces object.
+			# (assignments of Strings, Arrays and Hashes are pointers in Ruby, unless the .dup method is called)
 			original_resources = page[:Resources]
 			if original_resources[:is_reference_only]
 				original_resources = original_resources[:referenced_object]
@@ -64,30 +85,36 @@ module MergePDF
 			stream_contents = stream[:Contents]
 			stream_contents = [stream_contents] unless stream_contents.is_a? Array
 			
+			# injecting each of the values in the injected Page
 			stream_resources.each do |key, new_val|
-				unless PRIVATE_HASH_KEYS.include? key
+				unless PRIVATE_HASH_KEYS.include? key # keep MergePDF structual data intact.
 					if original_resources[key].nil?
 						original_resources[key] = new_val
 					elsif original_resources[key].is_a?(Hash) && new_val.is_a?(Hash)
-						new_val.update original_resources[key]
-						original_resources[key].update new_val
+						new_val.update original_resources[key] # make sure the old values are respected
+						original_resources[key].update new_val # transfer old and new values to the injected page
 					elsif original_resources[key].is_a?(Array) && new_val.is_a?(Array)
 						true #Do nothing if array - ot is the PROC array, which is an issue
 					end
 				end
 			end
-			original_resources[:ProcSet] = [:PDF, :Text, :ImageB, :ImageC, :ImageI]
+			original_resources[:ProcSet] = [:PDF, :Text, :ImageB, :ImageC, :ImageI] # this was recommended by the ISO. 32000-1:2008
 
-			if top
+			if top # if this is a stamp (overlay)
 				page[:Contents] = original_contents
 				page[:Contents].push *stream_contents
-			else
+			else #if this was a watermark (underlay? would be lost if the page was scanned, as white might not be transparent)
 				page[:Contents] = stream_contents
 				page[:Contents].push *original_contents
 			end
 
 			page
 		end
+		# copy_and_secure_for_injection(page)
+		# - page is a page in the pages array, i.e. pdf.pages[0]
+		# takes a page object and:
+		# makes a deep copy of the page (Ruby defaults to pointers, so this will copy the memory).
+		# then it will rewrite the content stream with renamed resources, so as to avoid name conflicts.
 		def copy_and_secure_for_injection(page)
 			# copy page
 			new_page = create_deep_copy page
@@ -124,7 +151,7 @@ module MergePDF
 				if v.is_a?(Hash)
 					new_dictionary = {}
 					v.each do |old_key, value|
-						new_key = ("MergePDF" + SecureRandom.urlsafe_base64(7)).to_sym
+						new_key = ("MergePDF" + SecureRandom.urlsafe_base64(9)).to_sym
 						names_dictionary[old_key] = new_key
 						new_dictionary[new_key] = value
 					end
@@ -146,6 +173,15 @@ module MergePDF
 
 			new_page
 		end
+		# Ruby normally assigns pointes.
+		# noramlly:
+		#   a = [1,2,3] # => [1,2,3]
+		#   b = a # => [1,2,3]
+		#   a << 4 # => [1,2,3,4]
+		#   b # => [1,2,3,4]
+		# This method makes sure that the memory is copied instead of a pointer assigned.
+		# this works using recursion, so that arrays and hashes within arrays and hashes are also copied and not pointed to.
+		# One needs to be careful of infinit loops using this function.
 		def create_deep_copy object
 			if object.is_a?(Array)
 				return object.map { |e|  create_deep_copy e  }
@@ -154,7 +190,7 @@ module MergePDF
 			elsif object.is_a?(String)
 				return object.dup
 			else
-				return object
+				return object # objects that aren't Strings, Arrays or Hashes (such as Symbols and Fixnums) aren't pointers in Ruby and are always copied.
 			end
 		end
 		def get_refernced_object(objects_array = [], reference_hash = {})
@@ -244,6 +280,8 @@ module MergePDF
 				end					
 			end
 		end
+
+
 
 		def _object_to_pdf object
 			case
@@ -359,23 +397,6 @@ module MergePDF
 
 
 
-	end
-
-
-	module_function
-	################################################################
-	## These are the "gateway" functions for the model.
-	## These functions are open to the public.
-	################################################################
-
-	def new(file_name = "")
-		raise TypeError, "couldn't parse and data, expecting type String" unless file_name.is_a? String
-		return PDF.new() if file_name == ''
-		PDF.new( PDFParser.new(  IO.read(file_name).force_encoding(Encoding::ASCII_8BIT) ) )
-	end
-	def parse(data)
-		raise TypeError, "couldn't parse and data, expecting type String" unless data.is_a? String
-		PDF.new( PDFParser.new(data) )
 	end
 end
 

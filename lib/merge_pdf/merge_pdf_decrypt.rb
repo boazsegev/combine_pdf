@@ -152,7 +152,7 @@ end
 ## This was the code for the RC4 Gem,
 ## ... I had a bad internet connection so I ended up
 ## copying it from the web page I had in my cache.
-## This wonderful work was done by someone else.
+## This wonderful work was done by Caige Nichols.
 #####################################################
 
 class RC4
