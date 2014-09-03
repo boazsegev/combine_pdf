@@ -11,18 +11,18 @@ module MergePDF
 	## PDF file data, including version etc'.
 	########################################################
 	class PDF
-		attr_reader :objects, :info_object
+		attr_reader :objects, :info
 		attr_accessor :string_output
 		attr_accessor :version
 		def initialize (*args)
 			# default before setting
 			@objects = []
 			@version = 0 
-			@info_object = {}
+			@info = {}
 			if args[0].is_a? PDFParser
 				@objects = args[0].parse
 				@version = args[0].version if args[0].version.is_a? Float
-				@info_object = args[0].info_object
+				@info = args[0].info_object || {}
 			elsif args[0].is_a? Array
 				# object initialization
 				@objects = args[0]
@@ -36,6 +36,9 @@ module MergePDF
 			@string_output = :literal
 			@need_to_rebuild_resources = false
 			@set_start_id = 1
+			@info[:Producer] = "Ruby MergePDF Library by Boaz Segev"
+			@info.delete :CreationDate
+			@info.delete :ModDate
 			warn "finished to initialize PDF object."
 		end
 
@@ -45,6 +48,8 @@ module MergePDF
 		def to_pdf
 			#reset version if not specified
 			@version = 1.3 if @version == 0
+			#set creation date for merged file
+			@info[:CreationDate] = Time.now.strftime "D:%Y%m%d%H%M%S%:::z'00"
 			#rebuild resources if needed
 			if @need_to_rebuild_resources
 				rebuild_resources
@@ -76,7 +81,12 @@ module MergePDF
 			out << "xref\n\r0 #{(indirect_object_count).to_s}\n\r0000000000 65535 f \n\r"
 			xref.each {|offset| out << ( out.pop + ("%010d 00000 n \n\r" % offset) ) }
 			out << out.pop + "trailer"
-			out << "<<\n/Root #{false || "#{catalog[:indirect_reference_id]} #{catalog[:indirect_generation_number]} R"}\n/Size #{indirect_object_count.to_s}\n>>\nstartxref\n#{xref_location.to_s}\n%%EOF"
+			out << "<<\n/Root #{false || "#{catalog[:indirect_reference_id]} #{catalog[:indirect_generation_number]} R"}"
+			out << "/Size #{indirect_object_count.to_s}"
+			if @info.is_a?(Hash)
+				out << "/Info #{PDFOperations._object_to_pdf @info}"
+			end
+			out << ">>\nstartxref\n#{xref_location.to_s}\n%%EOF"
 			out.join("\n").force_encoding(Encoding::ASCII_8BIT)
 		end
 

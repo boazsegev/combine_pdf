@@ -99,6 +99,11 @@ module MergePDF
 			end
 			PDFOperations.change_references_to_actual_values @parsed, @root_object
 			@info_object = @root_object[:Info]
+			if @info_object && @info_object.is_a?(Hash)
+				PRIVATE_HASH_KEYS.each {|key| @info_object.delete key}
+			else
+				@info_object = {}
+			end
 			warn "setting parsed collection and returning collection."
 			@parsed
 		end
