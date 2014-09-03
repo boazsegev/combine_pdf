@@ -31,7 +31,10 @@ pdf.save "output_file_name.pdf"
 
 Also, as a side effect, we can get all sorts of info about our pdf... such as the page count:
 ```ruby
-pdf.pages.length
+pdf.version # will tell you the PDF version (if discovered). you can also reset this manually.
+pdf.pages.length # will tell you how much pages are actually displayed
+pdf.all_pages.length # will tell you how many page objects actually exist (can be more or less then the pages displayed)
+pdf.info_object # a hash with the Info dictionary from the PDF file (if discovered).
 ```
 
 
