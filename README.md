@@ -40,7 +40,7 @@ pdf.info_object # a hash with the Info dictionary from the PDF file (if discover
 
 # Stamp PDF files
 
-*buggy, I'm still working on this one. On some PDF files (especially encrypted or compressed), the stamp might be corrupted.*
+** has issues with specific PDF files - please see the issues: https://github.com/boazsegev/merge_pdf/issues/2 **
 
 You can use PDF files as stamps.
 
