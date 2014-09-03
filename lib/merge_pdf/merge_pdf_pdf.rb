@@ -84,6 +84,7 @@ module MergePDF
 			out << "<<\n/Root #{false || "#{catalog[:indirect_reference_id]} #{catalog[:indirect_generation_number]} R"}"
 			out << "/Size #{indirect_object_count.to_s}"
 			if @info.is_a?(Hash)
+				PRIVATE_HASH_KEYS.each {|key| @info.delete key} # make sure the dictionary is rendered inline, without stream
 				out << "/Info #{PDFOperations._object_to_pdf @info}"
 			end
 			out << ">>\nstartxref\n#{xref_location.to_s}\n%%EOF"

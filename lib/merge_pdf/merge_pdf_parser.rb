@@ -99,7 +99,10 @@ module MergePDF
 			end
 			PDFOperations.change_references_to_actual_values @parsed, @root_object
 			@info_object = @root_object[:Info]
+			@info_object = @info_object[:referenced_object] if @info_object[:referenced_object]
 			if @info_object && @info_object.is_a?(Hash)
+				@parsed.delete @info_object
+				PDFOperations.change_references_to_actual_values @parsed, @info_object
 				PRIVATE_HASH_KEYS.each {|key| @info_object.delete key}
 			else
 				@info_object = {}
