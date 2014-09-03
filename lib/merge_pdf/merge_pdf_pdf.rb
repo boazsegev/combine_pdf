@@ -11,7 +11,7 @@ module MergePDF
 	## PDF file data, including version etc'.
 	########################################################
 	class PDF
-		attr_reader :objects
+		attr_reader :objects, :info_object
 		attr_accessor :string_output
 		attr_accessor :version
 		def initialize (*args)
@@ -39,6 +39,9 @@ module MergePDF
 			warn "finished to initialize PDF object."
 		end
 
+		# Formats the data to PDF formats and returns a binary string that represents the PDF file content.
+		# This method is used by the save(file_name) method to save the content to a file.
+		# use this to export the PDF file without saving to disk (such as sending through HTTP ect').
 		def to_pdf
 			#reset version if not specified
 			@version = 1.3 if @version == 0
@@ -77,8 +80,97 @@ module MergePDF
 			out.join("\n").force_encoding(Encoding::ASCII_8BIT)
 		end
 
+		# Seve the PDF to file.
+		# save(file_name)
+		# - file_name is a string or path object for the output.
+		# Notice! if the file exists, it WILL be overwritten.
 		def save(file_name)
 			IO.binwrite file_name, to_pdf
+		end
+		# this function returns all the pages cataloged in the catalog.
+		# if no catalog is passed, it seeks the existing catalog(s) and searches
+		# for any registered Page objects.
+		def pages(catalogs = nil)
+			page_list = []
+			if catalogs == nil
+				catalogs = @objects.select {|obj| obj.is_a?(Hash) && obj[:Type] == :Catalog}
+				catalogs ||= []
+			end
+			case 
+			when catalogs.is_a?(Array)
+				catalogs.each {|c| page_list.push *(pages(c)) unless c.nil?}
+			when catalogs.is_a?(Hash)
+				if catalogs[:is_reference_only]
+					catalogs[:referenced_object] = pages(PDFOperations.get_refernced_object @objects, catalogs) unless catalogs[:referenced_object]
+					if catalogs[:referenced_object]
+						page_list.push *( pages(catalogs[:referenced_object]) )
+					else
+						warn "couldn't follow reference!!! #{catalogs} not found!"
+					end
+				else
+					case catalogs[:Type]
+					when :Page
+						holder = self
+						catalogs.define_singleton_method("<<".to_sym) do |obj|
+							obj = PDFOperations.copy_and_secure_for_injection obj
+							PDFOperations.inject_to_page self, obj
+							holder.add_referenced obj
+						end
+						page_list << catalogs
+					when :Pages
+						page_list.push *(pages(catalogs[:Kids])) unless catalogs[:Kids].nil?
+					when :Catalog
+						page_list.push *(pages(catalogs[:Pages])) unless catalogs[:Pages].nil?
+					end
+				end
+			end
+			page_list
+		end
+
+		# this function returns all the Page objects - regardless of order and even if not cataloged
+		# could be used for finding "lost" pages... but actually rather useless. 
+		def all_pages
+			#########
+			## Only return the page item, but make sure all references are connected so that
+			## referenced items and be reached through the connections.
+			[].tap {|out|  each_object {|obj| out << obj  if obj.is_a?(Hash) && obj[:Type] == :Page }  }
+		end
+
+		# this function adds pages or MergePDF objects at the end of the file (merge)
+		# for example:
+		#   pdf = MergePDF.new "first_file.pdf"
+		#   pdf << MergePDF.new "second_file.pdf"
+		#   pdf.save "both_files_merged.pdf"		
+		def << (obj)
+			#########
+			## how should we add data to PDF?
+			## and how to handles imported pages?
+			case
+			 when (obj.is_a?(PDF))
+		 		@version = [@version, obj.version].max
+
+		 		obj.renumber_object_ids @set_start_id + @objects.length
+
+		 		@objects.push(*obj.objects)
+				# rebuild_catalog
+				@need_to_rebuild_resources = true
+			 when (obj.is_a?(Hash) && obj[:Type] == :Page), (obj.is_a?(Array) && (obj.reject {|i| i.is_a?(Hash) && i[:Type] == :Page}).empty?)
+			 	# set obj paramater to array if it's only one page
+			 	obj = [obj] if obj.is_a?(Hash)
+				# add page(s) to objects
+				@objects.push(*obj)
+				# add page dependencies to objects
+				add_referenced(obj)
+				# add page(s) to Catalog(s)
+				rebuild_catalog obj
+				@need_to_rebuild_resources = true
+			when (obj.is_a?(Hash) && obj[:indirect_reference_id] && obj[:referenced_object].nil?)
+				#only let top level indirect objects into the PDF tree.
+				@objects << obj
+				@need_to_rebuild_resources = true
+			else
+				warn "Shouldn't add objects to the file if they are not top-level indirect PDF objects."
+			end
 		end
 
 		def serialize_objects_and_references(object = nil)
@@ -160,84 +252,6 @@ module MergePDF
 			end
 		end
 
-		# this function returns all the pages cataloged in the catalog.
-		# if no catalog is passed, it seeks the existing catalog(s) and searches
-		# for any registered Page objects.
-		def pages(catalogs = nil)
-			page_list = []
-			if catalogs == nil
-				catalogs = @objects.select {|obj| obj.is_a?(Hash) && obj[:Type] == :Catalog}
-				catalogs ||= []
-			end
-			case 
-			when catalogs.is_a?(Array)
-				catalogs.each {|c| page_list.push *(pages(c)) unless c.nil?}
-			when catalogs.is_a?(Hash)
-				if catalogs[:is_reference_only]
-					catalogs[:referenced_object] = pages(PDFOperations.get_refernced_object @objects, catalogs) unless catalogs[:referenced_object]
-					if catalogs[:referenced_object]
-						page_list.push *( pages(catalogs[:referenced_object]) )
-					else
-						warn "couldn't follow reference!!! #{catalogs} not found!"
-					end
-				else
-					case catalogs[:Type]
-					when :Page
-						holder = self
-						catalogs.define_singleton_method("<<".to_sym) do |obj|
-							obj = PDFOperations.copy_and_secure_for_injection obj
-							PDFOperations.inject_to_page self, obj
-							holder.add_referenced obj
-						end
-						page_list << catalogs
-					when :Pages
-						page_list.push *(pages(catalogs[:Kids])) unless catalogs[:Kids].nil?
-					when :Catalog
-						page_list.push *(pages(catalogs[:Pages])) unless catalogs[:Pages].nil?
-					end
-				end
-			end
-			page_list
-		end
-
-		# this function returns all the Page objects - regardless of order and even if not cataloged
-		def all_pages
-			#########
-			## Only return the page item, but make sure all references are connected so that
-			## referenced items and be reached through the connections.
-			[].tap {|out|  each_object {|obj| out << obj  if obj.is_a?(Hash) && obj[:Type] == :Page }  }
-		end
-		def << (obj)
-			#########
-			## how should we add data to PDF?
-			## and how to handles imported pages?
-			case
-			 when (obj.is_a?(PDF))
-		 		@version = [@version, obj.version].max
-
-		 		obj.renumber_object_ids @set_start_id + @objects.length
-
-		 		@objects.push(*obj.objects)
-				# rebuild_catalog
-				@need_to_rebuild_resources = true
-			 when (obj.is_a?(Hash) && obj[:Type] == :Page), (obj.is_a?(Array) && (obj.reject {|i| i.is_a?(Hash) && i[:Type] == :Page}).empty?)
-			 	# set obj paramater to array if it's only one page
-			 	obj = [obj] if obj.is_a?(Hash)
-				# add page(s) to objects
-				@objects.push(*obj)
-				# add page dependencies to objects
-				add_referenced(obj)
-				# add page(s) to Catalog(s)
-				rebuild_catalog obj
-				@need_to_rebuild_resources = true
-			when (obj.is_a?(Hash) && obj[:indirect_reference_id] && obj[:referenced_object].nil?)
-				#only let top level indirect objects into the PDF tree.
-				@objects << obj
-				@need_to_rebuild_resources = true
-			else
-				warn "Shouldn't add objects to the file if they are not top-level indirect PDF objects."
-			end
-		end
 		def add_referenced(object)
 			# add references but not root
 			case 
