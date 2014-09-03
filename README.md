@@ -46,7 +46,7 @@ You can use PDF files as stamps.
 
 For instance, lets say you have this wonderful PDF (maybe one you created with prawn), and you want to stump the company header and footer on every page.
 
-So you created your Prawn PDF file (Amazing library and hard work there, I totally recommend to have a look):
+So you created your Prawn PDF file (Amazing library and hard work there, I totally recommend to have a look @ https://github.com/prawnpdf/prawn ):
 ```ruby
 prawn_pdf = Prawn::Document.new
 ...(fill your new PDF with goodies)...
