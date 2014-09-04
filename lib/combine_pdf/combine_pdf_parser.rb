@@ -4,7 +4,11 @@
 ## this file is part of the CombinePDF library and the code
 ## is subject to the same license.
 ########################################################
-module CombinePDF #:nodoc: all
+
+
+
+
+module CombinePDF
 
 	########################################################
 	## This is the Parser class.
@@ -15,6 +19,8 @@ module CombinePDF #:nodoc: all
 	## file version.
 	########################################################
 
+	#@private
+	#:nodoc: all
 	class PDFParser
 		# LITERAL_STRING_REPLACEMENT_HASH = {
 		# 	110 => 10, # "\\n".bytes = [92, 110]  "\n".ord = 10

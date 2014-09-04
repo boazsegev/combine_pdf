@@ -1,0 +1,7 @@
+--protected
+--no-private
+--embed-mixin ClassMethods
+--exclude ./lib/combine_pdf/combine_pdf_basic_writer.rb
+--exclude ./lib/combine_pdf/combine_pdf_basic_decrypt.rb
+--exclude ./lib/combine_pdf/combine_pdf_basic_filter.rb
+--exclude ./lib/combine_pdf/combine_pdf_basic_parser.rb

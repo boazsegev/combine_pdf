@@ -1,25 +1,11 @@
 # -*- encoding : utf-8 -*-
-
-# this file is part of the CombinePDF library and the code
-# is subject to the same license (GPLv3).
-#########################################################
-
-
-
-# PDF object types cross reference:
-# Indirect objects, references, dictionaries and streams are Hash
-# arrays are Array
-# strings are String
-# names are Symbols (String.to_sym)
-# numbers are Fixnum or Float
-# boolean are TrueClass or FalseClass
-
 require 'zlib'
 require 'strscan'
 require 'combine_pdf/combine_pdf_pdf'
 require 'combine_pdf/combine_pdf_decrypt'
 require 'combine_pdf/combine_pdf_filter'
 require 'combine_pdf/combine_pdf_parser'
+
 
 # This is a pure ruby library to merge PDF files.
 # In the future, this library will also allow stamping and watermarking PDFs (it allows this now, only with some issues).
@@ -88,12 +74,16 @@ module CombinePDF
 	end
 end
 
-module CombinePDF #:nodoc: all
+module CombinePDF
+
+	#:nodoc: all
 	################################################################
 	## These are common functions, used within the different classes
 	## These functions aren't open to the public.
 	################################################################
+	#@private
 	PRIVATE_HASH_KEYS = [:indirect_reference_id, :indirect_generation_number, :raw_stream_content, :is_reference_only, :referenced_object, :indirect_without_dictionary]
+	#@private
 	LITERAL_STRING_REPLACEMENT_HASH = {
 		110 => 10, # "\\n".bytes = [92, 110]  "\n".ord = 10
 		114 => 13, #r
@@ -104,7 +94,9 @@ module CombinePDF #:nodoc: all
 		41 => 41, #)
 		92 => 92 #\
 		}
-	module PDFOperations #:nodoc: all
+	#@private
+	#:nodoc: all	
+	module PDFOperations
 		module_function
 		def inject_to_page page = {Type: :Page, MediaBox: [0,0,612.0,792.0], Resources: {}, Contents: []}, stream = nil, top = true
 			# make sure both the page reciving the new data and the injected page are of the correct data type.
@@ -455,6 +447,17 @@ module CombinePDF #:nodoc: all
 	end
 end
 
+#########################################################
+# this file is part of the CombinePDF library and the code
+# is subject to the same license (GPLv3).
+#########################################################
+# PDF object types cross reference:
+# Indirect objects, references, dictionaries and streams are Hash
+# arrays are Array
+# strings are String
+# names are Symbols (String.to_sym)
+# numbers are Fixnum or Float
+# boolean are TrueClass or FalseClass
 
 ## You can test performance with:
 ## puts Benchmark.measure { pdf = CombinePDF.new(file_name); pdf.save "test.pdf" } # PDFEditor.new_pdf

@@ -4,6 +4,11 @@
 ## this file is part of the CombinePDF library and the code
 ## is subject to the same license.
 ########################################################
+
+
+
+
+
 module CombinePDF
 	#######################################################
 	# PDF class is the PDF object that can save itself to
@@ -26,8 +31,19 @@ module CombinePDF
 	#   pdf.pages.each {|page| page << stamp_page} # notice the << operator is on a page and not a PDF object.
 	#######################################################
 	class PDF
-		attr_reader :objects, :info
+		# the objects attribute is an Array containing all the PDF sub-objects for te class.
+		attr_reader :objects
+		# the info attribute is a Hash that sets the Info data for the PDF.
+		# use, for example:
+		#   pdf.info[:Title] = "title"
+		attr_reader :info
+		# sets the string output format (PDF files store strings in to type of formats).
+		#
+		# Accepts:
+		# - :literal
+		# - :hex
 		attr_accessor :string_output
+		# A Float attrinute, setting and returning the PDF version of the file (1.1-1.7).
 		attr_accessor :version
 		def initialize (*args)
 			# default before setting
@@ -167,7 +183,8 @@ module CombinePDF
 		#
 		#   pdf << CombinePDF.new "second_file.pdf"
 		#
-		#   pdf.save "both_files_merged.pdf"		
+		#   pdf.save "both_files_merged.pdf"
+		# @params obj is Hash, PDF or Array of parsed PDF data.
 		def << (obj)
 			#########
 			## how should we add data to PDF?
@@ -201,6 +218,8 @@ module CombinePDF
 		end
 	end
 	class PDF #:nodoc: all
+
+		# @private
 		# this function returns all the Page objects - regardless of order and even if not cataloged
 		# could be used for finding "lost" pages... but actually rather useless. 
 		def all_pages
@@ -209,6 +228,7 @@ module CombinePDF
 			## referenced items and be reached through the connections.
 			[].tap {|out|  each_object {|obj| out << obj  if obj.is_a?(Hash) && obj[:Type] == :Page }  }
 		end
+		# @private
 		def serialize_objects_and_references(object = nil)
 			warn "connecting objects with their references (serialize_objects_and_references)."
 
@@ -250,6 +270,7 @@ module CombinePDF
 			# end
 
 		end
+		# @private
 		def renumber_object_ids(start = nil)
 			warn "Resetting Object Reference IDs"
 			@set_start_id ||= start
@@ -262,6 +283,7 @@ module CombinePDF
 			warn "Finished serializing IDs"
 		end
 
+		# @private
 		def references(indirect_reference_id = nil, indirect_generation_number = nil)
 			ref = {indirect_reference_id: indirect_reference_id, indirect_generation_number: indirect_generation_number}
 			out = []
@@ -276,9 +298,11 @@ module CombinePDF
 			end
 			out
 		end
+		# @private
 		def all_indirect_object
 			[].tap {|out| @objects.each {|obj| out << obj if (obj.is_a?(Hash) && obj[:is_reference_only].nil?) } }
 		end
+		# @private
 		def sort_objects_by_id
 			@objects.sort! do |a,b|
 				if a.is_a?(Hash) && a[:indirect_reference_id] && a[:is_reference_only].nil? && b.is_a?(Hash) && b[:indirect_reference_id] && b[:is_reference_only].nil?
@@ -288,6 +312,7 @@ module CombinePDF
 			end
 		end
 
+		# @private
 		def add_referenced(object)
 			# add references but not root
 			case 
@@ -308,6 +333,7 @@ module CombinePDF
 				end
 			end
 		end
+		# @private
 		def rebuild_catalog(*with_pages)
 			##########################
 			## Test-Run - How is that done?
@@ -348,6 +374,8 @@ module CombinePDF
 
 			catalog_object
 		end
+
+		# @private
 		# this is an alternative to the rebuild_catalog catalog method
 		# this method is used by the to_pdf method, for streamlining the PDF output.
 		# there is no point is calling the method before preparing the output.
@@ -360,6 +388,7 @@ module CombinePDF
 			catalog
 		end
 
+		# @private
 		# disabled, don't use. simpley returns true.
 		def rebuild_resources
 
@@ -402,10 +431,13 @@ module CombinePDF
 			# rebuild stream lengths?
 		end
 
+		# @private
 		# run block of code on evey object (Hash)
 		def each_object(&block)
 			PDFOperations._each_object(@objects, &block)
 		end
+
+		# @private
 		# the function rerturns true if the reference belongs to the object
 		def compare_reference_values(obj, ref)
 			if obj[:referenced_object] && ref[:referenced_object]

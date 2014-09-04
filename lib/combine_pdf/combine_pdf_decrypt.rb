@@ -5,7 +5,11 @@
 ## is subject to the same license.
 ########################################################
 
-module CombinePDF #:nodoc: all
+
+
+module CombinePDF
+	#@private
+	#:nodoc: all
 	class PDFDecrypt
 		
 		def initialize objects=[], root_doctionary = {}

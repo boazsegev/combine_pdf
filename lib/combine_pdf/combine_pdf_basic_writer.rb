@@ -5,8 +5,12 @@
 ## is subject to the same license.
 ########################################################
 
-module CombinePDF #:nodoc: all
 
+
+module CombinePDF
+
+	#@private
+	#:nodoc: all
 	class PDFWriter
 
 		def initialize(media_box = [0.0, 0.0, 612.0, 792.0])
