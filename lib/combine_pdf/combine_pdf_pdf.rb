@@ -1,10 +1,10 @@
 # -*- encoding : utf-8 -*-
 ########################################################
 ## Thoughts from reading the ISO 32000-1:2008
-## this file is part of the MergePDF library and the code
+## this file is part of the CombinePDF library and the code
 ## is subject to the same license.
 ########################################################
-module MergePDF
+module CombinePDF
 	########################################################
 	## PDF class is the PDF object that can save itself to
 	## a file and that can be used as a container for a full
@@ -36,7 +36,7 @@ module MergePDF
 			@string_output = :literal
 			@need_to_rebuild_resources = false
 			@set_start_id = 1
-			@info[:Producer] = "Ruby MergePDF Library by Boaz Segev"
+			@info[:Producer] = "Ruby CombinePDF Library by Boaz Segev"
 			@info.delete :CreationDate
 			@info.delete :ModDate
 			warn "finished to initialize PDF object."
@@ -145,10 +145,10 @@ module MergePDF
 			[].tap {|out|  each_object {|obj| out << obj  if obj.is_a?(Hash) && obj[:Type] == :Page }  }
 		end
 
-		# this function adds pages or MergePDF objects at the end of the file (merge)
+		# this function adds pages or CombinePDF objects at the end of the file (merge)
 		# for example:
-		#   pdf = MergePDF.new "first_file.pdf"
-		#   pdf << MergePDF.new "second_file.pdf"
+		#   pdf = CombinePDF.new "first_file.pdf"
+		#   pdf << CombinePDF.new "second_file.pdf"
 		#   pdf.save "both_files_merged.pdf"		
 		def << (obj)
 			#########
@@ -186,7 +186,7 @@ module MergePDF
 			warn "connecting objects with their references (serialize_objects_and_references)."
 
 			# # Version 3.5 injects indirect objects if they arn't dictionaries.
-			# # benchmark 1000.times was 3.568246 sec for pdf = MergePDF.new "/Users/2Be/Desktop/מוצגים/20121002\ הודעת\ הערעור.pdf" }
+			# # benchmark 1000.times was 3.568246 sec for pdf = CombinePDF.new "/Users/2Be/Desktop/מוצגים/20121002\ הודעת\ הערעור.pdf" }
 			# # puts Benchmark.measure { 1000.times {pdf.serialize_objects_and_references} }
 			# # ######### Intreduces a BUG with catalogging pages... why? I don't know... mybey doesn't catch all.
 			# each_object do |obj|
@@ -201,7 +201,7 @@ module MergePDF
 
 			# Version 4
 			# benchmark 1000.times was 0.980651 sec for:
-			# pdf = MergePDF.new "/Users/2Be/Desktop/מוצגים/20121002\ הודעת\ הערעור.pdf"
+			# pdf = CombinePDF.new "/Users/2Be/Desktop/מוצגים/20121002\ הודעת\ הערעור.pdf"
 			# puts Benchmark.measure { 1000.times {pdf.serialize_objects_and_references} }
 			objects_reference_hash = {}
 			@objects.each {|o| objects_reference_hash[ [o[:indirect_reference_id], o[:indirect_generation_number] ] ] = o }
@@ -213,7 +213,7 @@ module MergePDF
 			end
 
 			# # Version 3
-			# # benchmark 1000.times was 3.568246 sec for pdf = MergePDF.new "/Users/2Be/Desktop/מוצגים/20121002\ הודעת\ הערעור.pdf" }
+			# # benchmark 1000.times was 3.568246 sec for pdf = CombinePDF.new "/Users/2Be/Desktop/מוצגים/20121002\ הודעת\ הערעור.pdf" }
 			# # puts Benchmark.measure { 1000.times {pdf.serialize_objects_and_references} }
 			# each_object do |obj|
 			# 	if obj[:is_reference_only]

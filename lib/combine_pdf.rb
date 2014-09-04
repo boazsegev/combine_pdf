@@ -1,26 +1,69 @@
 # -*- encoding : utf-8 -*-
 ########################################################
 ## Thoughts from reading the ISO 32000-1:2008
-## this file is part of the MergePDF library and the code
-## is subject to the same license.
+## this file is part of the CombinePDF library and the code
+## is subject to the same license (GPLv3).
 ##
-## You can test performance with:
-## puts Benchmark.measure { pdf = MergePDF.new(file_name); pdf.save "test.pdf" } # PDFEditor.new_pdf
-## demo: file_name = "/Users/2Be/Ruby/pdfs/encrypted.pdf"; pdf=0; puts Benchmark.measure { pdf = MergePDF.new(file_name); pdf.save "test.pdf" }
-## at the moment... my code it terribly slow for larger files... :(
-## The file saving is solved (I hope)... but file loading is an issue.
-##  pdf.each_object {|obj| puts "Stream length: #{obj[:raw_stream_content].length} was registered as #{obj[:Length].is_a?(Hash)? obj[:Length][:referenced_object][:indirect_without_dictionary] : obj[:Length]}" if obj[:raw_stream_content] }
-##  pdf.objects.each {|obj| puts "#{obj.class.name}: #{obj[:indirect_reference_id]}, #{obj[:indirect_generation_number]} is: #{obj[:Type] || obj[:indirect_without_dictionary]}" }
-##  puts Benchmark.measure { 1000.times { (MergePDF::PDFOperations.get_refernced_object pdf.objects, {indirect_reference_id: 100, indirect_generation_number:0}).object_id } }
-##  puts Benchmark.measure { 1000.times { (pdf.objects.select {|o| o[:indirect_reference_id]== 100 && o[:indirect_generation_number] == 0})[0].object_id } }
-## puts Benchmark.measure { {}.tap {|out| pdf.objects.each {|o| out[ [o[:indirect_reference_id], o[:indirect_generation_number] ] ] = o }} }
+##
+## === Merge PDFs!
+## This is a pure ruby library to merge PDF files.
+## In the future, this library will also allow stamping and watermarking PDFs (it allows this now, only with some issues).
+##
+## I started the project as a model within a RoR (Ruby on Rails) application, and as it grew I moved it to a local gem.
+## I fell in love with the project, even if it is still young and in the raw.
+## It is very simple to parse pdfs - from files:
+##   >> pdf = CombinePDF.new "file_name.pdf"
+## or from data:
+##   >> pdf = CombinePDF.parse "%PDF-1.4 .... [data]"
+## It's also easy to start an empty pdf:
+##   >> pdf = CombinePDF.new
+## Merging is a breeze:
+##   >> pdf << CombinePDF.new "another_file_name.pdf"
+## and saving the final PDF is a one-liner:
+##   >> pdf.save "output_file_name.pdf"
+## Also, as a side effect, we can get all sorts of info about our pdf... such as the page count:
+##   >> pdf.version # will tell you the PDF version (if discovered). you can also reset this manually.
+##   >> pdf.pages.length # will tell you how much pages are actually displayed
+##   >> pdf.all_pages.length # will tell you how many page objects actually exist (can be more or less then the pages displayed)
+##   >> pdf.info # a hash with the Info dictionary from the PDF file (if discovered).
+## === Stamp PDF files
+## <b>has issues with specific PDF files - please see the issues</b>: https://github.com/boazsegev/combine_pdf/issues/2 
+## You can use PDF files as stamps.
+## For instance, lets say you have this wonderful PDF (maybe one you created with prawn), and you want to stump the company header and footer on every page.
+## So you created your Prawn PDF file (Amazing library and hard work there, I totally recommend to have a look @ https://github.com/prawnpdf/prawn ):
+##   >> prawn_pdf = Prawn::Document.new
+##   >> ...(fill your new PDF with goodies)...
+## Stamping every page is a breeze.
+## We start by moving the PDF created by prawn into a CombinePDF object.
+##   >> pdf = CombinePDF.parse prawn_pdf.render
+## Next we extract the stamp from our stamp pdf template:
+##   >> pdf_stamp = CombinePDF.new "stamp_file_name.pdf"
+##   >> stamp_page = pdf_stamp.pages[0]
+## And off we stamp each page:
+##   >> pdf.pages.each {|page| pages << stamp_page}
+## Of cource, we can save the stamped output:
+##   >> pdf.save "output_file_name.pdf"
+## === Decryption & Filters
+## Some PDF files are encrypted and some are compressed (the use of filters)...
+## There is very little support for encrypted files and very very basic and limited support for compressed files.
+## I need help with that.
+## === Comments and file structure
+## If you want to help with the code, please be aware:
+## I'm a self learned hobbiest at heart. The documentation is lacking and the comments in the code are poor guidlines.
+## The code itself should be very straight forward, but feel free to ask whatever you want.
+## === Credit
+## Caige Nichols wrote an amazing RC4 gem which I used in my code.
+## I wanted to install the gem, but I had issues with the internet and ended up copying the code itself into the combine_pdf_decrypt class file.
+## Credit to his wonderful is given here. Please respect his license and copyright... and mine.
+## === License
+## GPLv3
 ########################################################
 require 'strscan'
-require 'merge_pdf/merge_pdf_pdf'
-require 'merge_pdf/merge_pdf_decrypt'
-require 'merge_pdf/merge_pdf_filter'
-require 'merge_pdf/merge_pdf_parser'
-module MergePDF
+require 'combine_pdf/combine_pdf_pdf'
+require 'combine_pdf/combine_pdf_decrypt'
+require 'combine_pdf/combine_pdf_filter'
+require 'combine_pdf/combine_pdf_parser'
+module CombinePDF
 	module_function
 	################################################################
 	## These are the "gateway" functions for the model.
@@ -45,7 +88,7 @@ module MergePDF
 	end
 end
 
-module MergePDF
+module CombinePDF
 	################################################################
 	## These are common functions, used within the different classes
 	## These functions aren't open to the public.
@@ -92,7 +135,7 @@ module MergePDF
 
 			# injecting each of the values in the injected Page
 			stream_resources.each do |key, new_val|
-				unless PRIVATE_HASH_KEYS.include? key # keep MergePDF structual data intact.
+				unless PRIVATE_HASH_KEYS.include? key # keep CombinePDF structual data intact.
 					if original_resources[key].nil?
 						original_resources[key] = new_val
 					elsif original_resources[key].is_a?(Hash) && new_val.is_a?(Hash)
@@ -144,7 +187,7 @@ module MergePDF
 				if v.is_a?(Hash)
 					new_dictionary = {}
 					v.each do |old_key, value|
-						new_key = ("MergePDF" + SecureRandom.urlsafe_base64(9)).to_sym
+						new_key = ("CombinePDF" + SecureRandom.urlsafe_base64(9)).to_sym
 						names_dictionary[old_key] = new_key
 						new_dictionary[new_key] = value
 					end
@@ -407,5 +450,17 @@ module MergePDF
 
 	end
 end
+
+
+## You can test performance with:
+## puts Benchmark.measure { pdf = CombinePDF.new(file_name); pdf.save "test.pdf" } # PDFEditor.new_pdf
+## demo: file_name = "/Users/2Be/Ruby/pdfs/encrypted.pdf"; pdf=0; puts Benchmark.measure { pdf = CombinePDF.new(file_name); pdf.save "test.pdf" }
+## at the moment... my code it terribly slow for larger files... :(
+## The file saving is solved (I hope)... but file loading is an issue.
+##  pdf.each_object {|obj| puts "Stream length: #{obj[:raw_stream_content].length} was registered as #{obj[:Length].is_a?(Hash)? obj[:Length][:referenced_object][:indirect_without_dictionary] : obj[:Length]}" if obj[:raw_stream_content] }
+##  pdf.objects.each {|obj| puts "#{obj.class.name}: #{obj[:indirect_reference_id]}, #{obj[:indirect_generation_number]} is: #{obj[:Type] || obj[:indirect_without_dictionary]}" }
+##  puts Benchmark.measure { 1000.times { (CombinePDF::PDFOperations.get_refernced_object pdf.objects, {indirect_reference_id: 100, indirect_generation_number:0}).object_id } }
+##  puts Benchmark.measure { 1000.times { (pdf.objects.select {|o| o[:indirect_reference_id]== 100 && o[:indirect_generation_number] == 0})[0].object_id } }
+## puts Benchmark.measure { {}.tap {|out| pdf.objects.each {|o| out[ [o[:indirect_reference_id], o[:indirect_generation_number] ] ] = o }} }
 
 

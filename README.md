@@ -10,19 +10,19 @@ I fell in love with the project, even if it is still young and in the raw.
 
 It is very simple to parse pdfs - from files:
 ```ruby
-pdf = MergePDF.new "file_name.pdf"
+pdf = CombinePDF.new "file_name.pdf"
 ```
 or from data:
 ```ruby
-pdf = MergePDF.parse "%PDF-1.4 .... [data]"
+pdf = CombinePDF.parse "%PDF-1.4 .... [data]"
 ```
 It's also easy to start an empty pdf:
 ```ruby
-pdf = MergePDF.new
+pdf = CombinePDF.new
 ```
 Merging is a breeze:
 ```ruby
-pdf << MergePDF.new "another_file_name.pdf"
+pdf << CombinePDF.new "another_file_name.pdf"
 ```
 and saving the final PDF is a one-liner:
 ```ruby
@@ -40,7 +40,7 @@ pdf.info # a hash with the Info dictionary from the PDF file (if discovered).
 
 # Stamp PDF files
 
-**has issues with specific PDF files - please see the issues**: https://github.com/boazsegev/merge_pdf/issues/2 
+**has issues with specific PDF files - please see the issues**: https://github.com/boazsegev/combine_pdf/issues/2 
 
 You can use PDF files as stamps.
 
@@ -53,14 +53,14 @@ prawn_pdf = Prawn::Document.new
 ```
 Stamping every page is a breeze.
 
-We start by moving the PDF created by prawn into a MergePDF object.
+We start by moving the PDF created by prawn into a CombinePDF object.
 ```ruby
-pdf = MergePDF.parse prawn_pdf.render
+pdf = CombinePDF.parse prawn_pdf.render
 ```
 
 Next we extract the stamp from our stamp pdf template:
 ```ruby
-pdf_stamp = MergePDF.new "stamp_file_name.pdf"
+pdf_stamp = CombinePDF.new "stamp_file_name.pdf"
 stamp_page = pdf_stamp.pages[0]
 ```
 
@@ -98,7 +98,7 @@ Credit
 
 Caige Nichols wrote an amazing RC4 gem which I used in my code.
 
-I wanted to install the gem, but I had issues with the internet and ended up copying the code itself into the merge_pdf_decrypt class file.
+I wanted to install the gem, but I had issues with the internet and ended up copying the code itself into the combine_pdf_decrypt class file.
 
 Credit to his wonderful is given here. Please respect his license and copyright... and mine.
 

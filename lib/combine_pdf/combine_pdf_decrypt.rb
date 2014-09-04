@@ -1,11 +1,11 @@
 # -*- encoding : utf-8 -*-
 ########################################################
 ## Thoughts from reading the ISO 32000-1:2008
-## this file is part of the MergePDF library and the code
+## this file is part of the CombinePDF library and the code
 ## is subject to the same license.
 ########################################################
 
-module MergePDF
+module CombinePDF
 	class PDFDecrypt
 		
 		def initialize objects=[], root_doctionary = {}
