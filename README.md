@@ -12,11 +12,11 @@ gem install combine_pdf
 
 Combining PDF files s very straight forward.
 
-First you create the PDF object that will contain all the combined data.
+First we create the PDF object that will contain all the combined data.
 
-Then you "inject", using the << operator, the data - either page by page (which is slower) or file by file (which is faster).
+Then we "inject" the data, using the << operator. We either do this page by page (which is slower) or file by file (which is faster).
 
-Last, you render or save the data.
+Last, we render or save the data.
 
 For Example:
 ```ruby
@@ -35,7 +35,7 @@ pdf.save "combined.pdf"
 pdf.to_pdf
 ```
 
-The page by page is great if you want to mix things up, but since the "Catalog" dictionary of the PDF file  must be updated (the Catalog is an internal PDF dictionary that contains references to all the pages and the order in which they are displayed), it is slower.
+The page by page is great if we want to mix things up, but since the "Catalog" dictionary of the PDF file must be updated for every page seperately, it is much slower (the Catalog is an internal PDF dictionary that contains references to all the pages and the order in which they are displayed).
 
 ## Stamp / Watermark
 
@@ -43,7 +43,7 @@ The page by page is great if you want to mix things up, but since the "Catalog" 
 
 To stamp PDF files (or data), first create the stamp from an existing PDF file.
 
-After the stamp was created, inject to existing PDF pages.
+After the stamp was created, we inject the stamp onto existing PDF pages.
 ```ruby
 # load the stamp
 stamp_pdf_file = CombinePDF.new "stamp_pdf_file.pdf"
