@@ -1,6 +1,12 @@
 I almost finished writing a long and wonderful readme... and then my browser decided the backspace was to go back in the page history and I lost it all!
 
 Damn, I'm too tired to write now...
+# Install
+
+Install with ruby gems:
+```
+gem install combine_pdf
+```
 
 # Merge PDFs!
 
