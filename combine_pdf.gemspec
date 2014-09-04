@@ -6,9 +6,9 @@
 ########################################################
 Gem::Specification.new do |s|
 	s.name = 'combine_pdf'
-	s.version = '0.0.3'
+	s.version = '0.0.4'
 	s.date = '2014-09-04'
-	s.add_runtime_dependency 'ruby-rc4'
+	s.add_runtime_dependency 'ruby-rc4', '>= 0.1.5'
 	s.required_ruby_version = '>= 1.9.2'
 	s.summary = "Combine, stamp and watermark PDF files in pure Ruby."
 	s.description = "A nifty gem, in pure Ruby, to parse PDF files and combine (merge) them with other PDF files, watermark them or stamp them (all using the PDF file format)."
