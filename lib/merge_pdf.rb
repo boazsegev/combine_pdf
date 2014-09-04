@@ -84,7 +84,12 @@ module MergePDF
 			end
 			stream_contents = stream[:Contents]
 			stream_contents = [stream_contents] unless stream_contents.is_a? Array
-			
+
+			# collect keys as objects - this is to make sure that
+			# we are working on the actual resource data, rather then references
+			flatten_resources_dictionaries stream_resources
+			flatten_resources_dictionaries original_resources
+
 			# injecting each of the values in the injected Page
 			stream_resources.each do |key, new_val|
 				unless PRIVATE_HASH_KEYS.include? key # keep MergePDF structual data intact.
@@ -93,9 +98,7 @@ module MergePDF
 					elsif original_resources[key].is_a?(Hash) && new_val.is_a?(Hash)
 						new_val.update original_resources[key] # make sure the old values are respected
 						original_resources[key].update new_val # transfer old and new values to the injected page
-					elsif original_resources[key].is_a?(Array) && new_val.is_a?(Array)
-						true #Do nothing if array - ot is the PROC array, which is an issue
-					end
+					end #Do nothing if array - ot is the PROC array, which is an issue
 				end
 			end
 			original_resources[:ProcSet] = [:PDF, :Text, :ImageB, :ImageC, :ImageI] # this was recommended by the ISO. 32000-1:2008
@@ -134,17 +137,7 @@ module MergePDF
 			end
 
 			# 2. establich direct access to dictionaries and remove reference values
-			resources.each do |k,v|
-				if v.is_a?(Hash) && v[:is_reference_only]
-					if v[:referenced_object]
-						resources[k] = resources[k][:referenced_object]
-						resources[k].delete(:indirect_reference_id)
-						resources[k].delete(:indirect_generation_number)
-					elsif v[:indirect_without_dictionary]
-						resources[k] = resources[k][:indirect_without_dictionary]
-					end
-				end
-			end
+			flatten_resources_dictionaries resources
 
 			# 3. travel every dictionary to pick up names (keys), change them and add them to the dictionary
 			resources.each do |k,v|
@@ -173,6 +166,21 @@ module MergePDF
 
 			new_page
 		end
+		def flatten_resources_dictionaries(resources)
+			resources.each do |k,v|
+				if v.is_a?(Hash) && v[:is_reference_only]
+					if v[:referenced_object]
+						resources[k] = resources[k][:referenced_object].dup
+						resources[k].delete(:indirect_reference_id)
+						resources[k].delete(:indirect_generation_number)
+					elsif v[:indirect_without_dictionary]
+						resources[k] = resources[k][:indirect_without_dictionary]
+					end
+				end
+			end
+		end
+
+
 		# Ruby normally assigns pointes.
 		# noramlly:
 		#   a = [1,2,3] # => [1,2,3]

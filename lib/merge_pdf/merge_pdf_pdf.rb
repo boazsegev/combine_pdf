@@ -54,14 +54,13 @@ module MergePDF
 			if @need_to_rebuild_resources
 				rebuild_resources
 			end
-			rebuild_catalog
+			catalog = rebuild_catalog_and_objects #rebuild_catalog
 
 			warn "Formatting PDF output"
 
 			out = []
 			xref = []
 			indirect_object_count = 1 #the first object is the null object
-			catalog = nil
 			#write head (version and binanry-code)
 			out << "%PDF-#{@version.to_s}\n%\x00\x00\x00\x00".force_encoding(Encoding::ASCII_8BIT)
 
@@ -70,7 +69,6 @@ module MergePDF
 			out.each {|line| loc += line.bytes.length + 1}
 			@objects.each do |o|
 				indirect_object_count += 1
-				catalog = o if o[:Type] == :Catalog
 				xref << loc
 				out << PDFOperations._object_to_pdf(o)
 				loc += out.last.length + 1
@@ -321,11 +319,17 @@ module MergePDF
 			@objects << pages_object
 			@objects << catalog_object
 
-			# give new catalog and pages objects ids
-			sort_objects_by_id
-			renumber_object_ids
-
 			catalog_object
+		end
+		# this is an alternative to the rebuild_catalog catalog method
+		# this method might eventually be used by the to_pdf method, for streamlining the PDF output.
+		def rebuild_catalog_and_objects
+			catalog = rebuild_catalog
+			@objects = []
+			@objects << catalog
+			add_referenced catalog
+			renumber_object_ids
+			catalog
 		end
 
 		def rebuild_resources
