@@ -11,6 +11,13 @@ module CombinePDF
 
 	#@private
 	#:nodoc: all
+	# 
+	# <b>This doesn't work yet!</b>
+	#
+	# in the future I wish to make a simple PDF page writer, that has only one functions - the text box.
+	# Once the simple writer is ready (creates a text box in a self contained Page element),
+	# I could add it to the << operators and add it as either a self contained page or as an overlay.
+	# if all goes well, maybe I will also create an add_image function.
 	class PDFWriter
 
 		def initialize(media_box = [0.0, 0.0, 612.0, 792.0])
