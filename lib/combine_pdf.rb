@@ -1,94 +1,94 @@
 # -*- encoding : utf-8 -*-
-########################################################
-## Thoughts from reading the ISO 32000-1:2008
-## this file is part of the CombinePDF library and the code
-## is subject to the same license (GPLv3).
-##
-##
-## === Merge PDFs!
-## This is a pure ruby library to merge PDF files.
-## In the future, this library will also allow stamping and watermarking PDFs (it allows this now, only with some issues).
-##
-## I started the project as a model within a RoR (Ruby on Rails) application, and as it grew I moved it to a local gem.
-## I fell in love with the project, even if it is still young and in the raw.
-## It is very simple to parse pdfs - from files:
-##   >> pdf = CombinePDF.new "file_name.pdf"
-## or from data:
-##   >> pdf = CombinePDF.parse "%PDF-1.4 .... [data]"
-## It's also easy to start an empty pdf:
-##   >> pdf = CombinePDF.new
-## Merging is a breeze:
-##   >> pdf << CombinePDF.new "another_file_name.pdf"
-## and saving the final PDF is a one-liner:
-##   >> pdf.save "output_file_name.pdf"
-## Also, as a side effect, we can get all sorts of info about our pdf... such as the page count:
-##   >> pdf.version # will tell you the PDF version (if discovered). you can also reset this manually.
-##   >> pdf.pages.length # will tell you how much pages are actually displayed
-##   >> pdf.all_pages.length # will tell you how many page objects actually exist (can be more or less then the pages displayed)
-##   >> pdf.info # a hash with the Info dictionary from the PDF file (if discovered).
-## === Stamp PDF files
-## <b>has issues with specific PDF files - please see the issues</b>: https://github.com/boazsegev/combine_pdf/issues/2 
-## You can use PDF files as stamps.
-## For instance, lets say you have this wonderful PDF (maybe one you created with prawn), and you want to stump the company header and footer on every page.
-## So you created your Prawn PDF file (Amazing library and hard work there, I totally recommend to have a look @ https://github.com/prawnpdf/prawn ):
-##   >> prawn_pdf = Prawn::Document.new
-##   >> ...(fill your new PDF with goodies)...
-## Stamping every page is a breeze.
-## We start by moving the PDF created by prawn into a CombinePDF object.
-##   >> pdf = CombinePDF.parse prawn_pdf.render
-## Next we extract the stamp from our stamp pdf template:
-##   >> pdf_stamp = CombinePDF.new "stamp_file_name.pdf"
-##   >> stamp_page = pdf_stamp.pages[0]
-## And off we stamp each page:
-##   >> pdf.pages.each {|page| pages << stamp_page}
-## Of cource, we can save the stamped output:
-##   >> pdf.save "output_file_name.pdf"
-## === Decryption & Filters
-## Some PDF files are encrypted and some are compressed (the use of filters)...
-## There is very little support for encrypted files and very very basic and limited support for compressed files.
-## I need help with that.
-## === Comments and file structure
-## If you want to help with the code, please be aware:
-## I'm a self learned hobbiest at heart. The documentation is lacking and the comments in the code are poor guidlines.
-## The code itself should be very straight forward, but feel free to ask whatever you want.
-## === Credit
-## Caige Nichols wrote an amazing RC4 gem which I used in my code.
-## I wanted to install the gem, but I had issues with the internet and ended up copying the code itself into the combine_pdf_decrypt class file.
-## Credit to his wonderful is given here. Please respect his license and copyright... and mine.
-## === License
-## GPLv3
-########################################################
+
+# this file is part of the CombinePDF library and the code
+# is subject to the same license (GPLv3).
+#########################################################
+
+
+
+# PDF object types cross reference:
+# Indirect objects, references, dictionaries and streams are Hash
+# arrays are Array
+# strings are String
+# names are Symbols (String.to_sym)
+# numbers are Fixnum or Float
+# boolean are TrueClass or FalseClass
+
+require 'zlib'
 require 'strscan'
 require 'combine_pdf/combine_pdf_pdf'
 require 'combine_pdf/combine_pdf_decrypt'
 require 'combine_pdf/combine_pdf_filter'
 require 'combine_pdf/combine_pdf_parser'
+
+# This is a pure ruby library to merge PDF files.
+# In the future, this library will also allow stamping and watermarking PDFs (it allows this now, only with some issues).
+#
+# PDF objects can be used to combine or to inject data.
+# == Combine / Merge
+# To combine PDF files (or data):
+#   pdf = CombinePDF.new
+#   pdf << CombinePDF.new "file1.pdf" # one way to combine, very fast.
+#   CombinePDF.new("file2.pdf").pages.each {|page| pdf << page} # different way to combine, slower.
+#   pdf.save "combined.pdf"
+# == Stamp / Watermark
+# <b>has issues with specific PDF files - please see the issues</b>: https://github.com/boazsegev/combine_pdf/issues/2 
+# To combine PDF files (or data), first create the stamp from a PDF file:
+#   stamp_pdf_file = CombinePDF.new "stamp_pdf_file.pdf"
+#   stamp_page = stamp_pdf_file.pages[0]
+# After the stamp was created, inject to PDF pages:
+#   pdf = CombinePDF.new "file1.pdf"
+#   pdf.pages.each {|page| page << stamp_page}
+# Notice the << operator is on a page and not a PDF object. The << operator acts differently on PDF objects and on Pages.
+#
+# Notice that page objects are Hash class objects and the << operator was added to the Page instances without altering the class.
+#
+# == Decryption & Filters
+#
+# Some PDF files are encrypted and some are compressed (the use of filters)...
+#
+# There is very little support for encrypted files and very very basic and limited support for compressed files.
+#
+# I need help with that.
+#
+# == Comments and file structure
+#
+# If you want to help with the code, please be aware:
+#
+# I'm a self learned hobbiest at heart. The documentation is lacking and the comments in the code are poor guidlines.
+#
+# The code itself should be very straight forward, but feel free to ask whatever you want.
+#
+# == Credit
+#
+# Caige Nichols wrote an amazing RC4 gem which I used in my code.
+#
+# I wanted to install the gem, but I had issues with the internet and ended up copying the code itself into the combine_pdf_decrypt class file.
+#
+# Credit to his wonderful is given here. Please respect his license and copyright... and mine.
+#
+# == License
+#
+# GPLv3
 module CombinePDF
 	module_function
-	################################################################
-	## These are the "gateway" functions for the model.
-	## These functions are open to the public.
-	################################################################
-	# PDF object types cross reference:
-	# Indirect objects, references, dictionaries and streams are Hash
-	# arrays are Array
-	# strings are String
-	# names are Symbols (String.to_sym)
-	# numbers are Fixnum or Float
-	# boolean are TrueClass or FalseClass
 
+	# Create an empty PDF object or create a PDF object from a file (parsing the file).
+	# file_name:: is the name of a file to be parsed.
 	def new(file_name = "")
 		raise TypeError, "couldn't parse and data, expecting type String" unless file_name.is_a? String
 		return PDF.new() if file_name == ''
 		PDF.new( PDFParser.new(  IO.read(file_name).force_encoding(Encoding::ASCII_8BIT) ) )
 	end
+	# Create a PDF object from a raw PDF data (parsing the data).
+	# data:: is a string that represents the content of a PDF file.
 	def parse(data)
 		raise TypeError, "couldn't parse and data, expecting type String" unless data.is_a? String
 		PDF.new( PDFParser.new(data) )
 	end
 end
 
-module CombinePDF
+module CombinePDF #:nodoc: all
 	################################################################
 	## These are common functions, used within the different classes
 	## These functions aren't open to the public.
@@ -104,7 +104,7 @@ module CombinePDF
 		41 => 41, #)
 		92 => 92 #\
 		}
-	module PDFOperations
+	module PDFOperations #:nodoc: all
 		module_function
 		def inject_to_page page = {Type: :Page, MediaBox: [0,0,612.0,792.0], Resources: {}, Contents: []}, stream = nil, top = true
 			# make sure both the page reciving the new data and the injected page are of the correct data type.
@@ -157,9 +157,12 @@ module CombinePDF
 			page
 		end
 		# copy_and_secure_for_injection(page)
-		# - page is a page in the pages array, i.e. pdf.pages[0]
+		# - page is a page in the pages array, i.e.
+		#   pdf.pages[0]
 		# takes a page object and:
+		#
 		# makes a deep copy of the page (Ruby defaults to pointers, so this will copy the memory).
+		#
 		# then it will rewrite the content stream with renamed resources, so as to avoid name conflicts.
 		def copy_and_secure_for_injection(page)
 			# copy page
@@ -334,6 +337,7 @@ module CombinePDF
 
 
 
+		# Formats an object into PDF format. This is used my the PDF object to format the PDF file and it is used in the secure injection which is still being developed.
 		def _object_to_pdf object
 			case
 			when object.nil?

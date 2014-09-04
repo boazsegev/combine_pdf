@@ -4,7 +4,7 @@
 ## this file is part of the CombinePDF library and the code
 ## is subject to the same license.
 ########################################################
-module CombinePDF
+module CombinePDF #:nodoc: all
 
 	########################################################
 	## This is the Parser class.
@@ -99,7 +99,6 @@ module CombinePDF
 			end
 			PDFOperations.change_references_to_actual_values @parsed, @root_object
 			@info_object = @root_object[:Info]
-			@info_object = @info_object[:referenced_object] if @info_object[:referenced_object]
 			if @info_object && @info_object.is_a?(Hash)
 				@parsed.delete @info_object
 				PDFOperations.change_references_to_actual_values @parsed, @info_object

@@ -5,11 +5,26 @@
 ## is subject to the same license.
 ########################################################
 module CombinePDF
-	########################################################
-	## PDF class is the PDF object that can save itself to
-	## a file and that can be used as a container for a full
-	## PDF file data, including version etc'.
-	########################################################
+	#######################################################
+	# PDF class is the PDF object that can save itself to
+	# a file and that can be used as a container for a full
+	# PDF file data, including version etc'.
+	#
+	# PDF objects can be used to combine or to inject data.
+	# == Combine
+	# To combine PDF files (or data):
+	#   pdf = CombinePDF.new
+	#   pdf << CombinePDF.new "file1.pdf" # one way to combine, very fast.
+	#   CombinePDF.new("file2.pdf").pages.each {|page| pdf << page} # different way to combine, slower.
+	#   pdf.save "combined.pdf"
+	# == Stamp / Watermark
+	# To combine PDF files (or data), first create the stamp from a PDF file:
+	#   stamp_pdf_file = CombinePDF.new "stamp_pdf_file.pdf"
+	#   stamp_page = stamp_pdf_file.pages[0]
+	# After the stamp was created, inject to PDF pages:
+	#   pdf = CombinePDF.new "file1.pdf"
+	#   pdf.pages.each {|page| page << stamp_page} # notice the << operator is on a page and not a PDF object.
+	#######################################################
 	class PDF
 		attr_reader :objects, :info
 		attr_accessor :string_output
@@ -43,7 +58,9 @@ module CombinePDF
 		end
 
 		# Formats the data to PDF formats and returns a binary string that represents the PDF file content.
+		#
 		# This method is used by the save(file_name) method to save the content to a file.
+		#
 		# use this to export the PDF file without saving to disk (such as sending through HTTP ect').
 		def to_pdf
 			#reset version if not specified
@@ -90,15 +107,22 @@ module CombinePDF
 		end
 
 		# Seve the PDF to file.
-		# save(file_name)
-		# - file_name is a string or path object for the output.
-		# Notice! if the file exists, it WILL be overwritten.
+		# 
+		# file_name:: is a string or path object for the output.
+		#
+		# <b>Notice!</b> if the file exists, it <b>WILL</b> be overwritten.
 		def save(file_name)
 			IO.binwrite file_name, to_pdf
 		end
-		# this function returns all the pages cataloged in the catalog.
+		# this method returns all the pages cataloged in the catalog.
+		#
 		# if no catalog is passed, it seeks the existing catalog(s) and searches
 		# for any registered Page objects.
+		#
+		# This method also adds the << operator to each page instance, so that content can be
+		# injected to the pages, as described above.
+		#
+		# (page objects are Hash class objects. the << operator is added to the specific instances without changing the class)
 		def pages(catalogs = nil)
 			page_list = []
 			if catalogs == nil
@@ -136,19 +160,13 @@ module CombinePDF
 			page_list
 		end
 
-		# this function returns all the Page objects - regardless of order and even if not cataloged
-		# could be used for finding "lost" pages... but actually rather useless. 
-		def all_pages
-			#########
-			## Only return the page item, but make sure all references are connected so that
-			## referenced items and be reached through the connections.
-			[].tap {|out|  each_object {|obj| out << obj  if obj.is_a?(Hash) && obj[:Type] == :Page }  }
-		end
-
 		# this function adds pages or CombinePDF objects at the end of the file (merge)
 		# for example:
+		#
 		#   pdf = CombinePDF.new "first_file.pdf"
+		#
 		#   pdf << CombinePDF.new "second_file.pdf"
+		#
 		#   pdf.save "both_files_merged.pdf"		
 		def << (obj)
 			#########
@@ -181,7 +199,16 @@ module CombinePDF
 				warn "Shouldn't add objects to the file if they are not top-level indirect PDF objects."
 			end
 		end
-
+	end
+	class PDF #:nodoc: all
+		# this function returns all the Page objects - regardless of order and even if not cataloged
+		# could be used for finding "lost" pages... but actually rather useless. 
+		def all_pages
+			#########
+			## Only return the page item, but make sure all references are connected so that
+			## referenced items and be reached through the connections.
+			[].tap {|out|  each_object {|obj| out << obj  if obj.is_a?(Hash) && obj[:Type] == :Page }  }
+		end
 		def serialize_objects_and_references(object = nil)
 			warn "connecting objects with their references (serialize_objects_and_references)."
 
@@ -322,7 +349,8 @@ module CombinePDF
 			catalog_object
 		end
 		# this is an alternative to the rebuild_catalog catalog method
-		# this method might eventually be used by the to_pdf method, for streamlining the PDF output.
+		# this method is used by the to_pdf method, for streamlining the PDF output.
+		# there is no point is calling the method before preparing the output.
 		def rebuild_catalog_and_objects
 			catalog = rebuild_catalog
 			@objects = []
@@ -332,6 +360,7 @@ module CombinePDF
 			catalog
 		end
 
+		# disabled, don't use. simpley returns true.
 		def rebuild_resources
 
 			warn "Resources re-building disabled as it isn't worth the price in peformance as of yet."

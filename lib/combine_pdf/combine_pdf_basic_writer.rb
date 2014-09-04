@@ -5,7 +5,7 @@
 ## is subject to the same license.
 ########################################################
 
-module CombinePDF
+module CombinePDF #:nodoc: all
 
 	class PDFWriter
 
