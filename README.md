@@ -1,6 +1,6 @@
-I almost finished writing a long and wonderful readme... and then my browser decided the backspace was to go back in the page history and I lost it all!
+# CombinePDF - the ruby way for merging PDF files
+CombinePDF is a nifty model, written in pure Ruby, to parse PDF files and combine (merge) them with other PDF files, watermark them or stamp them (all using the PDF file format and pure Ruby code).
 
-Damn, I'm too tired to write now...
 # Install
 
 Install with ruby gems:
@@ -8,78 +8,53 @@ Install with ruby gems:
 gem install combine_pdf
 ```
 
-# Merge PDFs!
+## Merge / Combine Pages
 
-I started the project as a model within a RoR (Ruby on Rails) application, and as it grew I moved it to a local gem.
+Combining PDF files s very straight forward.
 
-I fell in love with the project, even if it is still young and in the raw.
+First you create the PDF object that will contain all the combined data.
 
-It is very simple to parse pdfs - from files:
-```ruby
-pdf = CombinePDF.new "file_name.pdf"
-```
-or from data:
-```ruby
-pdf = CombinePDF.parse "%PDF-1.4 .... [data]"
-```
-It's also easy to start an empty pdf:
+Then you "inject", using the << operator, the data - either page by page (which is slower) or file by file (which is faster).
+
+Last, you render or save the data.
+
+For Example:
 ```ruby
 pdf = CombinePDF.new
+# one way to combine, very fast:
+pdf << CombinePDF.new "file1.pdf"
+# different way to combine, slower, but allows to mix things up:
+CombinePDF.new("file2.pdf").pages.each {|page| pdf << page}
+# you can also parse PDF files from memory.
+pdf_data = IO.read 'file3.pdf'
+# we will add just the first page:
+pdf << CombinePDF.parse(pdf_data).pages[0]
+# Save to file
+pdf.save "combined.pdf"
+# or render to memory
+pdf.to_pdf
 ```
-Merging is a breeze:
+
+The page by page is great if you want to mix things up, but since the "Catalog" dictionary of the PDF file  must be updated (the Catalog is an internal PDF dictionary that contains references to all the pages and the order in which they are displayed), it is slower.
+
+## Stamp / Watermark
+
+**has issues with specific PDF files - [please see the issue published here](https://github.com/boazsegev/combine_pdf/issues/2).**
+
+To stamp PDF files (or data), first create the stamp from an existing PDF file.
+
+After the stamp was created, inject to existing PDF pages.
 ```ruby
-pdf << CombinePDF.new "another_file_name.pdf"
+# load the stamp
+stamp_pdf_file = CombinePDF.new "stamp_pdf_file.pdf"
+stamp_page = stamp_pdf_file.pages[0]
+# load the file to stamp on
+pdf = CombinePDF.new "file1.pdf"
+#stamping each page with the << operator
+pdf.pages.each {|page| page << stamp_page}
 ```
-and saving the final PDF is a one-liner:
-```ruby
-pdf.save "output_file_name.pdf"
-```
-
-Also, as a side effect, we can get all sorts of info about our pdf... such as the page count:
-```ruby
-pdf.version # will tell you the PDF version (if discovered). you can also reset this manually.
-pdf.pages.length # will tell you how much pages are actually displayed
-pdf.all_pages.length # will tell you how many page objects actually exist (can be more or less then the pages displayed)
-pdf.info # a hash with the Info dictionary from the PDF file (if discovered).
-```
-
-
-# Stamp PDF files
-
-**has issues with specific PDF files - please see the issues**: https://github.com/boazsegev/combine_pdf/issues/2 
-
-You can use PDF files as stamps.
-
-For instance, lets say you have this wonderful PDF (maybe one you created with prawn), and you want to stump the company header and footer on every page.
-
-So you created your Prawn PDF file (Amazing library and hard work there, I totally recommend to have a look @ https://github.com/prawnpdf/prawn ):
-```ruby
-prawn_pdf = Prawn::Document.new
-...(fill your new PDF with goodies)...
-```
-Stamping every page is a breeze.
-
-We start by moving the PDF created by prawn into a CombinePDF object.
-```ruby
-pdf = CombinePDF.parse prawn_pdf.render
-```
-
-Next we extract the stamp from our stamp pdf template:
-```ruby
-pdf_stamp = CombinePDF.new "stamp_file_name.pdf"
-stamp_page = pdf_stamp.pages[0]
-```
-
-And off we stamp each page:
-```ruby
-pdf.pages.each {|page| pages << stamp_page}
-```
-
-Of cource, we can save the stamped output:
-```ruby
-pdf.save "output_file_name.pdf"
-```
-
+ 
+Notice the << operator is on a page and not a PDF object. The << operator acts differently on PDF objects and on Pages. The Page objects are Hash class objects and the << operator was added to the Page instances without altering the class.
 
 Decryption & Filters
 ====================
