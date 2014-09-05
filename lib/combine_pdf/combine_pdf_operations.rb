@@ -8,18 +8,7 @@ module CombinePDF
 	#@private
 	PRIVATE_HASH_KEYS = [:indirect_reference_id, :indirect_generation_number, :raw_stream_content, :is_reference_only, :referenced_object, :indirect_without_dictionary]
 	#@private
-	LITERAL_STRING_REPLACEMENT_HASH = {
-		110 => 10, # "\\n".bytes = [92, 110]  "\n".ord = 10
-		114 => 13, #r
-		116 => 9, #t
-		98 => 8, #b 
-		102 => 255, #f
-		40 => 40, #(
-		41 => 41, #)
-		92 => 92 #\
-		}
-	#@private
-	#:nodoc: all	
+	#:nodoc: all
 	module PDFOperations
 		module_function
 		def inject_to_page page = {Type: :Page, MediaBox: [0,0,612.0,792.0], Resources: {}, Contents: []}, stream = nil, top = true
