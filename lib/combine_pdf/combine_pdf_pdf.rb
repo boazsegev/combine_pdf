@@ -164,6 +164,7 @@ module CombinePDF
 							obj = PDFOperations.copy_and_secure_for_injection obj
 							PDFOperations.inject_to_page self, obj
 							holder.add_referenced obj
+							self
 						end
 						page_list << catalogs
 					when :Pages

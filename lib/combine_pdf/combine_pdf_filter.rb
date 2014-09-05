@@ -50,7 +50,14 @@ module CombinePDF
 							# prepare PNG group
 						end
 					else
-						object[:raw_stream_content] = Zlib::Inflate.inflate object[:raw_stream_content]
+						inflator = Zlib::Inflate.new
+
+						object[:raw_stream_content] = inflator.inflate object[:raw_stream_content]
+						begin
+							inflator.finish
+						rescue
+						end
+						inflator.close
 						object[:Length] = object[:raw_stream_content].bytesize
 					end
 				when nil
