@@ -37,9 +37,12 @@ require "combine_pdf/font_metrics/metrics_dictionary.rb"
 # == Combine / Merge
 # To combine PDF files (or data):
 #   pdf = CombinePDF.new
-#   pdf << CombinePDF.new "file1.pdf" # one way to combine, very fast.
+#   pdf << CombinePDF.new("file1.pdf") # one way to combine, very fast.
 #   CombinePDF.new("file2.pdf").pages.each {|page| pdf << page} # different way to combine, slower.
 #   pdf.save "combined.pdf"
+#
+# Or, you can do it all in one line:
+#   ( CombinePDF.new("file1.pdf") << CombinePDF.new("file2.pdf") << CombinePDF.new("file3.pdf") ).save "combined.pdf"
 # == Stamp / Watermark
 # <b>has issues with specific PDF files - please see the issues</b>: https://github.com/boazsegev/combine_pdf/issues/2 
 # To combine PDF files (or data), first create the stamp from a PDF file:
@@ -49,6 +52,10 @@ require "combine_pdf/font_metrics/metrics_dictionary.rb"
 #   pdf = CombinePDF.new "file1.pdf"
 #   pdf.pages.each {|page| page << stamp_page}
 # Notice the << operator is on a page and not a PDF object. The << operator acts differently on PDF objects and on Pages.
+#
+# The << operator defaults to secure injection by renaming references to avoid conflics. For overlaying pages using compressed data that might not be editable (due to limited filter support), you can use:
+#   pdf.pages(nil, false).each {|page| page << stamp_page}
+#
 #
 # Notice that page objects are Hash class objects and the << operator was added to the Page instances without altering the class.
 #
