@@ -10,29 +10,26 @@
 
 module CombinePDF
 
-	########################################################
-	## This is the Parser class.
-	## It takes PDF data and parses it, returning an array
-	## of data.
-	## That array can be used to initialize a PDF object.
-	## The Parser class doesn't involve itself with the
-	## file version.
-	########################################################
 
+	#######################################################
 	#@private
 	#:nodoc: all
+	# This is the Parser class.
+	#
+	# It takes PDF data and parses it.
+	#
+	# The information is then used to initialize a PDF object.
+	#######################################################
 	class PDFParser
-		# LITERAL_STRING_REPLACEMENT_HASH = {
-		# 	110 => 10, # "\\n".bytes = [92, 110]  "\n".ord = 10
-		# 	114 => 13, #r
-		# 	116 => 9, #t
-		# 	98 => 8, #b 
-		# 	102 => 255, #f
-		# 	40 => 40, #(
-		# 	41 => 41, #)
-		# 	92 => 92 #\
-		# 	}
-		attr_reader :parsed, :version, :info_object, :root_object
+
+		# the array containing all the parsed data (PDF Objects)
+		attr_reader :parsed
+		# a Float representing the PDF version of the data parsed (if exists).
+		attr_reader :version
+		# the info and root objects, as found (if found) in the PDF file.
+		#
+		# they are mainly to used to know if the file is (was) encrypted and to get more details.
+		attr_reader :info_object, :root_object
 		def initialize (string)
 			raise TypeError, "couldn't parse and data, expecting type String" unless string.is_a? String
 			@string_to_parse = string.force_encoding(Encoding::ASCII_8BIT)
@@ -46,6 +43,7 @@ module CombinePDF
 			@scanner = nil
 		end
 
+		# parse the data in the parser (set in the initialize / new method)
 		def parse
 			return @parsed unless @parsed.empty?
 			@scanner = StringScanner.new @string_to_parse

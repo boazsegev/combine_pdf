@@ -15,7 +15,7 @@ module CombinePDF
 	# 
 	# <b>This doesn't work yet!</b>
 	#
-	# and alsom, for even when it will work, UNICODE SUPPORT IS MISSING!
+	# and also, even when it will work, UNICODE SUPPORT IS MISSING!
 	#
 	# in the future I wish to make a simple PDF page writer, that has only one functions - the text box.
 	# Once the simple writer is ready (creates a text box in a self contained Page element),
@@ -26,7 +26,9 @@ module CombinePDF
 	#
 	# Writing on this Page is done using the text_box function.
 	#
-	# the rest of the functions are for internal use.
+	# Setting the page dimentions can be either at the new or using the media_box method.
+	#
+	# the rest of the methods are for internal use.
 	#
 	# Once the Page is completed (the last text box was added),
 	# we can insert the page to a CombinePDF object.
@@ -53,16 +55,6 @@ module CombinePDF
 			self[:Contents] = { is_reference_only: true , referenced_object: {indirect_reference_id: 0, raw_stream_content: ""} }
 			self[:MediaBox] = media_box
 		end
-
-		# accessor (getter) for the :Resources element of the page
-		def resources
-			self[:Resources]
-		end
-		# accessor (getter) for the stream in the :Contents element of the page
-		# after getting the string object, you can operate on it but not replace it (use << or other String methods).
-		def contents
-			self[:Contents][:referenced_object][:raw_stream_content]
-		end
 		# accessor (getter) for the :MediaBox element of the page
 		def media_box
 			self[:MediaBox]
@@ -71,73 +63,6 @@ module CombinePDF
 		# dimentions:: an Array consisting of four numbers (can be floats) setting the size of the media box.
 		def media_box=(dimentions = [0.0, 0.0, 612.0, 792.0])
 			self[:MediaBox] = dimentions
-		end
-		# creates a font object and adds the font to the resources dictionary
-		# returns the name of the font for the content stream.
-		# font_name:: a Symbol of one of the 14 Type 1 fonts, known as the standard 14 fonts:
-		# - :"Times-Roman"
-		# - :"Times-Bold"
-		# - :"Times-Italic"
-		# - :"Times-BoldItalic"
-		# - :Helvetica
-		# - :"Helvetica-Bold"
-		# - :"Helvetica-BoldOblique"
-		# - :"Helvetica- Oblique"
-		# - :Courier
-		# - :"Courier-Bold"
-		# - :"Courier-Oblique"
-		# - :"Courier-BoldOblique"
-		# - :Symbol
-		# - :ZapfDingbats
-		def font(font_name = :Helvetica)
-			# refuse any other fonts that arn't basic standard fonts
-			allow_fonts = [ :"Times-Roman",
-					:"Times-Bold",
-					:"Times-Italic",
-					:"Times-BoldItalic",
-					:Helvetica,
-					:"Helvetica-Bold",
-					:"Helvetica-BoldOblique",
-					:"Helvetica-Oblique",
-					:Courier,
-					:"Courier-Bold",
-					:"Courier-Oblique",
-					:"Courier-BoldOblique",
-					:Symbol,
-					:ZapfDingbats ]
-			raise "add_font(font_name) accepts only one of the 14 standards fonts - wrong font_name!" unless allow_fonts.include? font_name
-			# if the font exists, return it's name
-			resources[:Font] ||= {}
-			resources[:Font].each do |k,v|
-				if v.is_a?(Hash) && v[:Type] == :Font && v[:BaseFont] == font_name
-					return k
-				end
-			end
-			# create font object
-			font_object = { Type: :Font, Subtype: :Type1, BaseFont: font_name}
-			# set a secure name for the font
-			name = (SecureRandom.urlsafe_base64(9)).to_sym
-			# add object to reasource
-			resources[:Font][name] = font_object
-			#return name
-			name
-		end
-		def graphic_state(graphic_state_dictionary = {})
-			# if the graphic state exists, return it's name
-			resources[:ExtGState] ||= {}
-			resources[:ExtGState].each do |k,v|
-				if v.is_a?(Hash) && v == graphic_state_dictionary
-					return k
-				end
-			end
-			# set graphic state type
-			graphic_state_dictionary[:Type] = :ExtGState
-			# set a secure name for the graphic state
-			name = (SecureRandom.urlsafe_base64(9)).to_sym
-			# add object to reasource
-			resources[:ExtGState][name] = graphic_state_dictionary
-			#return name
-			name
 		end
 
 		# <b>INCOMPLETE</b>
@@ -226,6 +151,84 @@ module CombinePDF
 			self
 		end
 
+		protected
+
+		# accessor (getter) for the :Resources element of the page
+		def resources
+			self[:Resources]
+		end
+		# accessor (getter) for the stream in the :Contents element of the page
+		# after getting the string object, you can operate on it but not replace it (use << or other String methods).
+		def contents
+			self[:Contents][:referenced_object][:raw_stream_content]
+		end
+		# creates a font object and adds the font to the resources dictionary
+		# returns the name of the font for the content stream.
+		# font_name:: a Symbol of one of the 14 Type 1 fonts, known as the standard 14 fonts:
+		# - :"Times-Roman"
+		# - :"Times-Bold"
+		# - :"Times-Italic"
+		# - :"Times-BoldItalic"
+		# - :Helvetica
+		# - :"Helvetica-Bold"
+		# - :"Helvetica-BoldOblique"
+		# - :"Helvetica- Oblique"
+		# - :Courier
+		# - :"Courier-Bold"
+		# - :"Courier-Oblique"
+		# - :"Courier-BoldOblique"
+		# - :Symbol
+		# - :ZapfDingbats
+		def font(font_name = :Helvetica)
+			# refuse any other fonts that arn't basic standard fonts
+			allow_fonts = [ :"Times-Roman",
+					:"Times-Bold",
+					:"Times-Italic",
+					:"Times-BoldItalic",
+					:Helvetica,
+					:"Helvetica-Bold",
+					:"Helvetica-BoldOblique",
+					:"Helvetica-Oblique",
+					:Courier,
+					:"Courier-Bold",
+					:"Courier-Oblique",
+					:"Courier-BoldOblique",
+					:Symbol,
+					:ZapfDingbats ]
+			raise "add_font(font_name) accepts only one of the 14 standards fonts - wrong font_name!" unless allow_fonts.include? font_name
+			# if the font exists, return it's name
+			resources[:Font] ||= {}
+			resources[:Font].each do |k,v|
+				if v.is_a?(Hash) && v[:Type] == :Font && v[:BaseFont] == font_name
+					return k
+				end
+			end
+			# create font object
+			font_object = { Type: :Font, Subtype: :Type1, BaseFont: font_name}
+			# set a secure name for the font
+			name = (SecureRandom.urlsafe_base64(9)).to_sym
+			# add object to reasource
+			resources[:Font][name] = font_object
+			#return name
+			name
+		end
+		def graphic_state(graphic_state_dictionary = {})
+			# if the graphic state exists, return it's name
+			resources[:ExtGState] ||= {}
+			resources[:ExtGState].each do |k,v|
+				if v.is_a?(Hash) && v == graphic_state_dictionary
+					return k
+				end
+			end
+			# set graphic state type
+			graphic_state_dictionary[:Type] = :ExtGState
+			# set a secure name for the graphic state
+			name = (SecureRandom.urlsafe_base64(9)).to_sym
+			# add object to reasource
+			resources[:ExtGState][name] = graphic_state_dictionary
+			#return name
+			name
+		end
 	end
 	
 end

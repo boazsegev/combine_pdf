@@ -1,5 +1,6 @@
 module CombinePDF
 	class PDFWriter < Hash
+		protected
 		# with thanks to Jan Krutisch, the creator of the afm gem.
 		ZAPFDINGBATS_METRICS = 
 			{"space"=>{:charcode=>32,

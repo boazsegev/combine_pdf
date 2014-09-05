@@ -1,5 +1,6 @@
 module CombinePDF
 	class PDFWriter < Hash
+		protected
 		METRICS_DICTIONARY = {
 			:"Times-Roman"			=>	TIMES_ROMAN_METRICS,
 			:"Times-Bold"			=>	TIMES_BOLD_METRICS,
