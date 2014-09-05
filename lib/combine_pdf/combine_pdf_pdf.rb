@@ -38,13 +38,13 @@ module CombinePDF
 		# use, for example:
 		#   pdf.info[:Title] = "title"
 		attr_reader :info
-		# sets the string output format (PDF files store strings in to type of formats).
+		# gets/sets the string output format (PDF files store strings in to type of formats).
 		#
 		# Accepts:
 		# - :literal
 		# - :hex
 		attr_accessor :string_output
-		# A Float attrinute, setting and returning the PDF version of the file (1.1-1.7).
+		# set/get the PDF version of the file (1.1-1.7) - shuold be type Float.
 		attr_accessor :version
 		def initialize (*args)
 			# default before setting
@@ -251,13 +251,14 @@ module CombinePDF
 		def title=(new_title = nil)
 			@info[:Title] = new_title
 		end
-		# get the author value for the pdf
+		# get the author value for the pdf.
 		# The author is stored in the information dictionary and isn't required
 		def author
 			return @info[:Author]
 		end
-		# set the author for the pdf
+		# set the author value for the pdf.
 		# The author is stored in the information dictionary and isn't required
+		#
 		# new_title:: a string that is the new author value.
 		def author=(new_author = nil)
 			@info[:Author] = new_author
@@ -391,8 +392,6 @@ module CombinePDF
 
 		# @private
 		def rebuild_catalog(*with_pages)
-			##########################
-			## Test-Run - How is that done?
 			warn "Re-Building Catalog"
 
 			# # build page list v.1 Slow but WORKS
@@ -402,7 +401,7 @@ module CombinePDF
 			# page_list = []
 			# PDFOperations._each_object(old_catalogs,false) { |p| page_list << p if p.is_a?(Hash) && p[:Type] == :Page }
 
-			# build page list v.2
+			# build page list v.2 faster, better, and works
 			# Benchmark testing value: 0.215114
 			page_list = pages
 
