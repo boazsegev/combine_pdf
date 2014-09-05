@@ -139,8 +139,18 @@ module CombinePDF
 		# This method also adds the << operator to each page instance, so that content can be
 		# injected to the pages, as described above.
 		#
+		# if the secure_injection is false, then the << operator will not alter the any of the information added to the page.
+		# this might cause conflicts in the added content, but is available for situations in which
+		# the content added is compressed using unsupported filters or options.
+		#
+		# the default is for the << operator to attempt a secure copy, by attempting to rename the content references and avoiding conflicts.
+		# because of not all PDF files are created equal (some might have formating errors or differences), it is imposiible to learn if the attempt wa successful.
+		#
 		# (page objects are Hash class objects. the << operator is added to the specific instances without changing the class)
-		def pages(catalogs = nil)
+		#
+		# catalogs:: a catalog, or an Array of catalog objects. defaults to the existing catalog.
+		# secure_injection:: a boolean (true / false) controling the behavior of the << operator.
+		def pages(catalogs = nil, secure_injection = true)
 			page_list = []
 			if catalogs == nil
 				catalogs = @objects.select {|obj| obj.is_a?(Hash) && obj[:Type] == :Catalog}
@@ -161,11 +171,20 @@ module CombinePDF
 					case catalogs[:Type]
 					when :Page
 						holder = self
-						catalogs.define_singleton_method("<<".to_sym) do |obj|
-							obj = PDFOperations.copy_and_secure_for_injection obj
-							PDFOperations.inject_to_page self, obj
-							holder.add_referenced self # add new referenced objects
-							self
+						if secure_injection
+							catalogs.define_singleton_method("<<".to_sym) do |obj|
+								obj = PDFOperations.copy_and_secure_for_injection obj
+								PDFOperations.inject_to_page self, obj
+								holder.add_referenced self # add new referenced objects
+								self
+							end
+						else
+							catalogs.define_singleton_method("<<".to_sym) do |obj|
+								obj = PDFOperations.create_deep_copy obj
+								PDFOperations.inject_to_page self, obj
+								holder.add_referenced self # add new referenced objects
+								self
+							end
 						end
 						page_list << catalogs
 					when :Pages
@@ -222,30 +241,61 @@ module CombinePDF
 		end
 
 		# get the title for the pdf
-		# The title is stored in the information dictionary and isn't requited
+		# The title is stored in the information dictionary and isn't required
 		def title
 			return @info[:Title]
 		end
 		# set the title for the pdf
-		# The title is stored in the information dictionary and isn't requited
+		# The title is stored in the information dictionary and isn't required
 		# new_title:: a string that is the new author value.
 		def title=(new_title = nil)
 			@info[:Title] = new_title
 		end
 		# get the author value for the pdf
-		# The author is stored in the information dictionary and isn't requited
+		# The author is stored in the information dictionary and isn't required
 		def author
 			return @info[:Author]
 		end
 		# set the author for the pdf
-		# The author is stored in the information dictionary and isn't requited
+		# The author is stored in the information dictionary and isn't required
 		# new_title:: a string that is the new author value.
 		def author=(new_author = nil)
 			@info[:Author] = new_author
 		end
 	end
 	class PDF #:nodoc: all
-
+		# @private
+		# Some PDF objects contain references to other PDF objects.
+		#
+		# this function adds the references contained in "object", but DOESN'T add the object itself.
+		#
+		# this is used for internal operations, such as injectng data using the << operator.
+		def add_referenced(object)
+			# add references but not root
+			case 
+			when object.is_a?(Array)
+				object.each {|it| add_referenced(it)}
+			when object.is_a?(Hash)
+				if object[:is_reference_only] && object[:referenced_object]
+					unless @objects.include? object[:referenced_object]
+						@objects << object[:referenced_object]
+						object[:referenced_object].each do |k, v|
+							add_referenced(v) unless k == :Parent
+						end						
+					end
+				else
+					object.each do |k, v|
+						add_referenced(v) unless k == :Parent 
+					end
+				end
+			end
+		end
+		# @private
+		# run block of code on evey object (Hash)
+		def each_object(&block)
+			PDFOperations._each_object(@objects, &block)
+		end
+		protected
 		# @private
 		# this function returns all the Page objects - regardless of order and even if not cataloged
 		# could be used for finding "lost" pages... but actually rather useless. 
@@ -339,27 +389,6 @@ module CombinePDF
 			end
 		end
 
-		# @private
-		def add_referenced(object)
-			# add references but not root
-			case 
-			when object.is_a?(Array)
-				object.each {|it| add_referenced(it)}
-			when object.is_a?(Hash)
-				if object[:is_reference_only] && object[:referenced_object]
-					unless @objects.include? object[:referenced_object]
-						@objects << object[:referenced_object]
-						object[:referenced_object].each do |k, v|
-							add_referenced(v) unless k == :Parent
-						end						
-					end
-				else
-					object.each do |k, v|
-						add_referenced(v) unless k == :Parent 
-					end
-				end
-			end
-		end
 		# @private
 		def rebuild_catalog(*with_pages)
 			##########################
@@ -456,12 +485,6 @@ module CombinePDF
 			# insert new resources
 			@objects.push *new_resources
 			# rebuild stream lengths?
-		end
-
-		# @private
-		# run block of code on evey object (Hash)
-		def each_object(&block)
-			PDFOperations._each_object(@objects, &block)
 		end
 
 		# @private
