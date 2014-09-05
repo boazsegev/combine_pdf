@@ -27,7 +27,7 @@ module CombinePDF
 		# text:: String containing the text for which the demantion box will be calculated.
 		# font_name:: the font name, from the 14 fonts possible. @see font
 		# size:: the size of the text, as it will be applied in the PDF.
-		def self.dimentions_of(text, font_name, size)
+		def dimentions_of(text, font_name, size = 1000)
 			metrics = METRICS_DICTIONARY[font_name]
 			metrics_array = []
 			# the following is only good for latin text - unicode support is missing!!!!
@@ -45,6 +45,25 @@ module CombinePDF
 			end
 			[width.to_f/1000*size, height.to_f/1000*size]
 		end
-		
+		# this method returns the size for which the text fits the requested metrices
+		# the size is type Float and is rather exact
+		# if the text cannot fit such a small place, returns zero (0).
+		# maximum font size possible is set to 100,000 - which should be big enough for anything
+		# text:: the text to fit
+		# font:: the font name. @see font
+		# length:: the length to fit
+		# height:: the height to fit (optional - normally length is the issue)
+		def fit_text(text, font, length, height = 10000000)
+			size = 100000
+			size_array = [size]
+			metrics = dimentions_of text, font, size
+			if metrics[0] > length
+				size_array << size * length/metrics[0]
+			end
+			if metrics[1] > height
+				size_array << size * height/metrics[1]
+			end
+			size_array.min
+		end
 	end
 end

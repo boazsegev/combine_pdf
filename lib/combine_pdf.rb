@@ -3,28 +3,28 @@ require 'zlib'
 require 'securerandom'
 require 'strscan'
 
-require "./combine_pdf/combine_pdf_basic_writer.rb"
-require "./combine_pdf/combine_pdf_decrypt.rb"
-require "./combine_pdf/combine_pdf_filter.rb"
-require "./combine_pdf/combine_pdf_parser.rb"
-require "./combine_pdf/combine_pdf_pdf.rb"
+require "combine_pdf/combine_pdf_basic_writer.rb"
+require "combine_pdf/combine_pdf_decrypt.rb"
+require "combine_pdf/combine_pdf_filter.rb"
+require "combine_pdf/combine_pdf_parser.rb"
+require "combine_pdf/combine_pdf_pdf.rb"
 
-require "./combine_pdf/font_metrics/courier-bold_metrics.rb"
-require "./combine_pdf/font_metrics/courier-boldoblique_metrics.rb"
-require "./combine_pdf/font_metrics/courier-oblique_metrics.rb"
-require "./combine_pdf/font_metrics/courier_metrics.rb"
-require "./combine_pdf/font_metrics/helvetica-bold_metrics.rb"
-require "./combine_pdf/font_metrics/helvetica-boldoblique_metrics.rb"
-require "./combine_pdf/font_metrics/helvetica-oblique_metrics.rb"
-require "./combine_pdf/font_metrics/helvetica_metrics.rb"
-require "./combine_pdf/font_metrics/symbol_metrics.rb"
-require "./combine_pdf/font_metrics/times-bold_metrics.rb"
-require "./combine_pdf/font_metrics/times-bolditalic_metrics.rb"
-require "./combine_pdf/font_metrics/times-italic_metrics.rb"
-require "./combine_pdf/font_metrics/times-roman_metrics.rb"
-require "./combine_pdf/font_metrics/zapfdingbats_metrics.rb"
+require "combine_pdf/font_metrics/courier-bold_metrics.rb"
+require "combine_pdf/font_metrics/courier-boldoblique_metrics.rb"
+require "combine_pdf/font_metrics/courier-oblique_metrics.rb"
+require "combine_pdf/font_metrics/courier_metrics.rb"
+require "combine_pdf/font_metrics/helvetica-bold_metrics.rb"
+require "combine_pdf/font_metrics/helvetica-boldoblique_metrics.rb"
+require "combine_pdf/font_metrics/helvetica-oblique_metrics.rb"
+require "combine_pdf/font_metrics/helvetica_metrics.rb"
+require "combine_pdf/font_metrics/symbol_metrics.rb"
+require "combine_pdf/font_metrics/times-bold_metrics.rb"
+require "combine_pdf/font_metrics/times-bolditalic_metrics.rb"
+require "combine_pdf/font_metrics/times-italic_metrics.rb"
+require "combine_pdf/font_metrics/times-roman_metrics.rb"
+require "combine_pdf/font_metrics/zapfdingbats_metrics.rb"
 
-require "./combine_pdf/font_metrics/metrics_dictionary.rb"
+require "combine_pdf/font_metrics/metrics_dictionary.rb"
 
 
 

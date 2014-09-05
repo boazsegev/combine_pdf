@@ -143,19 +143,28 @@ module CombinePDF
 		# <b>INCOMPLETE</b>
 		#
 		# This function, when completed, will add a simple text box to the Page represented by the PDFWriter class.
-		# font_name:: a Symbol representing one of the 14 standard fonts. @see add_font
+		# This function takes two values:
+		# text:: the text to potin the box.
+		# properties:: a Hash of box properties.
+		# the symbols and values in the properties Hash could be any or all of the following:
+		# x:: the left position of the box.
+		# y:: the BUTTOM position of the box.
+		# length:: the length of the box.
+		# height:: the height of the box.
+		# font_name:: a Symbol representing one of the 14 standard fonts. defaults to ":Helvetica" @see add_font
+		# font_size:: a Fixnum for the font size, or :fit_text to fit the text in the box. defaults to ":fit_text"
 		# text_color:: [R, G, B], an array with three floats, each in a value between 0 to 1 (gray will be "[0.5, 0.5, 0.5]").
-		def text_box(text, args = {})
+		def text_box(text, properties = {})
 			options = {
 				text_alignment: :center,
 				text_color: [0,0,0],
 				text_stroke_color: nil,
 				text_stroke_width: 0,
 				font_name: :Helvetica,
-				font_size: 12,
+				font_size: :fit_text,
 				border_color: [0.5,0.5,0.5],
 				border_width: 2,
-				border_radius: nil,
+				border_radius: 0,
 				background_color: [0.7,0.7,0.7],
 				opacity: 1,
 				x: 0,
@@ -163,7 +172,15 @@ module CombinePDF
 				length: -1,
 				height: -1,
 			}
-			options.update args
+			options.update properties
+			# reset the length and height to meaningful values, if negative
+			options[:length] = media_box[2] - options[:x] if options[:length] < 0
+			options[:height] = media_box[3] - options[:y] if options[:height] < 0
+			# fit text in box, if requested
+			if options[:font_size] == :fit_text
+				options[:font_size] = self.fit_text text, options[:font_name], options[:length], options[:height]
+			end
+
 
 			# create box stream
 
