@@ -9,6 +9,7 @@
 
 
 
+
 module CombinePDF
 	#######################################################
 	# PDF class is the PDF object that can save itself to
@@ -80,7 +81,7 @@ module CombinePDF
 		# use this to export the PDF file without saving to disk (such as sending through HTTP ect').
 		def to_pdf
 			#reset version if not specified
-			@version = 1.3 if @version == 0
+			@version = 1.5 if @version.to_f == 0.0
 			#set creation date for merged file
 			@info[:CreationDate] = Time.now.strftime "D:%Y%m%d%H%M%S%:::z'00"
 			#rebuild resources if needed
@@ -163,7 +164,7 @@ module CombinePDF
 						catalogs.define_singleton_method("<<".to_sym) do |obj|
 							obj = PDFOperations.copy_and_secure_for_injection obj
 							PDFOperations.inject_to_page self, obj
-							holder.add_referenced obj
+							holder.add_referenced self # add new referenced objects
 							self
 						end
 						page_list << catalogs
@@ -191,7 +192,7 @@ module CombinePDF
 			## how should we add data to PDF?
 			## and how to handles imported pages?
 			case
-			 when (obj.is_a?(PDF))
+			when (obj.is_a?(PDF))
 		 		@version = [@version, obj.version].max
 
 		 		obj.renumber_object_ids @set_start_id + @objects.length
@@ -199,7 +200,7 @@ module CombinePDF
 		 		@objects.push(*obj.objects)
 				# rebuild_catalog
 				@need_to_rebuild_resources = true
-			 when (obj.is_a?(Hash) && obj[:Type] == :Page), (obj.is_a?(Array) && (obj.reject {|i| i.is_a?(Hash) && i[:Type] == :Page}).empty?)
+			when (obj.is_a?(Hash) && obj[:Type] == :Page), (obj.is_a?(Array) && (obj.reject {|i| i.is_a?(Hash) && i[:Type] == :Page}).empty?)
 			 	# set obj paramater to array if it's only one page
 			 	obj = [obj] if obj.is_a?(Hash)
 				# add page(s) to objects
@@ -215,7 +216,32 @@ module CombinePDF
 				@need_to_rebuild_resources = true
 			else
 				warn "Shouldn't add objects to the file if they are not top-level indirect PDF objects."
+				retrun false # return false, which will also stop any chaining.
 			end
+			return self #return self object for injection chaining (pdf << page << page << page)
+		end
+
+		# get the title for the pdf
+		# The title is stored in the information dictionary and isn't requited
+		def title
+			return @info[:Title]
+		end
+		# set the title for the pdf
+		# The title is stored in the information dictionary and isn't requited
+		# new_title:: a string that is the new author value.
+		def title=(new_title = nil)
+			@info[:Title] = new_title
+		end
+		# get the author value for the pdf
+		# The author is stored in the information dictionary and isn't requited
+		def author
+			return @info[:Author]
+		end
+		# set the author for the pdf
+		# The author is stored in the information dictionary and isn't requited
+		# new_title:: a string that is the new author value.
+		def author=(new_author = nil)
+			@info[:Author] = new_author
 		end
 	end
 	class PDF #:nodoc: all
