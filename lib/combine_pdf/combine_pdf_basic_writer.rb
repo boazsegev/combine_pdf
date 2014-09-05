@@ -10,9 +10,8 @@
 
 module CombinePDF
 
-	#@private
 	#:nodoc: all
-	# 
+
 	# <b>This doesn't work yet!</b>
 	#
 	# and also, even when it will work, UNICODE SUPPORT IS MISSING!

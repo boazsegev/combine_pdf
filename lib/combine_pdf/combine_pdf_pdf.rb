@@ -11,10 +11,10 @@
 
 
 module CombinePDF
-	#######################################################
+
 	# PDF class is the PDF object that can save itself to
 	# a file and that can be used as a container for a full
-	# PDF file data, including version etc'.
+	# PDF file data, including version, information etc'.
 	#
 	# PDF objects can be used to combine or to inject data.
 	# == Combine
@@ -30,7 +30,6 @@ module CombinePDF
 	# After the stamp was created, inject to PDF pages:
 	#   pdf = CombinePDF.new "file1.pdf"
 	#   pdf.pages.each {|page| page << stamp_page} # notice the << operator is on a page and not a PDF object.
-	#######################################################
 	class PDF
 		# the objects attribute is an Array containing all the PDF sub-objects for te class.
 		attr_reader :objects
@@ -144,7 +143,8 @@ module CombinePDF
 		# the content added is compressed using unsupported filters or options.
 		#
 		# the default is for the << operator to attempt a secure copy, by attempting to rename the content references and avoiding conflicts.
-		# because of not all PDF files are created equal (some might have formating errors or differences), it is imposiible to learn if the attempt wa successful.
+		# because not all PDF files are created equal (some might have formating errors or variations),
+		# it is imposiible to learn if the attempt was successful.
 		#
 		# (page objects are Hash class objects. the << operator is added to the specific instances without changing the class)
 		#
@@ -264,7 +264,11 @@ module CombinePDF
 			@info[:Author] = new_author
 		end
 	end
-	class PDF #:nodoc: all
+
+	#:nodoc: all
+
+
+	class PDF
 		# @private
 		# Some PDF objects contain references to other PDF objects.
 		#
@@ -296,7 +300,9 @@ module CombinePDF
 		def each_object(&block)
 			PDFOperations._each_object(@objects, &block)
 		end
+
 		protected
+
 		# @private
 		# this function returns all the Page objects - regardless of order and even if not cataloged
 		# could be used for finding "lost" pages... but actually rather useless. 

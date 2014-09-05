@@ -11,15 +11,16 @@
 module CombinePDF
 
 
-	#######################################################
 	#@private
 	#:nodoc: all
+
 	# This is the Parser class.
 	#
 	# It takes PDF data and parses it.
 	#
 	# The information is then used to initialize a PDF object.
-	#######################################################
+	#
+	# This is an internal class. you don't need it.
 	class PDFParser
 
 		# the array containing all the parsed data (PDF Objects)

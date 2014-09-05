@@ -8,17 +8,27 @@
 
 
 module CombinePDF
-
 	#@private
 	#:nodoc: all
+
+	# This is an internal class. you don't need it.
 	module PDFFilter
 		module_function
 		
-		def deflate_object object = nil
+		# deflate / compress an object.
+		#
+		# <b>isn't supported yet!</b>
+		#
+		# object:: object to compress.
+		# filter:: filter to use.
+		def deflate_object object = nil, filter = :none
 			false
 		end
 
-		def inflate_object object = nil, filter = :none
+		# inflate / decompress an object
+		#
+		# object:: object to decompress.
+		def inflate_object object = nil
 			filter_array = object[:Filter]
 			if filter_array.is_a?(Hash) && filter_array[:is_reference_only]
 				filter_array = filter_array[:referenced_object]
@@ -71,6 +81,9 @@ module CombinePDF
 			object.delete(:Filter)
 			true
 		end
+		
+		protected
+
 		def raise_unsupported_error (object = {})
 			raise "Filter #{object} unsupported. couldn't deflate object"
 		end

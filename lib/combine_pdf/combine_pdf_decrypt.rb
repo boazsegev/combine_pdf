@@ -8,15 +8,20 @@
 
 
 module CombinePDF
-	#@private
 	#:nodoc: all
+
+	# @private
+	# This is an internal class. you don't need it.
 	class PDFDecrypt
 		
-		def initialize objects=[], root_doctionary = {}
+		# make a new Decrypt object. requires:
+		# objects:: an array containing the encrypted objects.
+		# root_dictionary:: the root PDF dictionary, containing the Encrypt dictionary.
+		def initialize objects=[], root_dictionary = {}
 			@objects = objects
-			@encryption_dictionary = root_doctionary[:Encrypt]
+			@encryption_dictionary = root_dictionary[:Encrypt]
 			raise "Cannot decrypt an encrypted file without an encryption dictionary!" unless @encryption_dictionary
-			@root_doctionary = root_doctionary
+			@root_dictionary = root_dictionary
 			@padding_key = [ 0x28, 0xBF, 0x4E, 0x5E, 0x4E, 0x75, 0x8A, 0x41,
 							0x64, 0x00, 0x4E, 0x56, 0xFF, 0xFA, 0x01, 0x08,
 							0x2E, 0x2E, 0x00, 0xB6, 0xD0, 0x68, 0x3E, 0x80,
@@ -25,6 +30,25 @@ module CombinePDF
 			@encryption_iv = nil
 			PDFOperations.change_references_to_actual_values @objects, @encryption_dictionary
 		end
+
+		# call this to start the decryption.
+		def decrypt
+			raise_encrypted_error @encryption_dictionary unless @encryption_dictionary[:Filter] == :Standard
+			@key = set_general_key
+			case @encryption_dictionary[:V]
+			when 1,2
+				warn "trying to decrypt with RC4."
+				# raise_encrypted_error
+				_perform_decrypt_proc_ @objects, self.method(:decrypt_RC4)
+			else
+				raise_encrypted_error
+			end
+			#rebuild stream lengths?
+			@objects
+		end
+
+		protected
+
 		def set_general_key(password = "")
 			# 1) make sure the initial key is 32 byte long (if no password, uses padding).
 			key = (password.bytes[0..32] + @padding_key)[0..31].pack('C*').force_encoding(Encoding::ASCII_8BIT)
@@ -35,7 +59,7 @@ module CombinePDF
 			key << [@encryption_dictionary[:P]].pack('i')
 			# 4) Pass the first element of the file’s file identifier array
 			# (the value of the ID entry in the document’s trailer dictionary
-			key << @root_doctionary[:ID][0]
+			key << @root_dictionary[:ID][0]
 			# # 4(a) (Security handlers of revision 4 or greater)
 			# # if document metadata is not being encrypted, add 4 bytes with the value 0xFFFFFFFF.
 			if @encryption_dictionary[:R] >= 4
@@ -67,20 +91,6 @@ module CombinePDF
 				@key = key[0..4]
 			end
 			@key
-		end
-		def decrypt
-			raise_encrypted_error @encryption_dictionary unless @encryption_dictionary[:Filter] == :Standard
-			@key = set_general_key
-			case @encryption_dictionary[:V]
-			when 1,2
-				warn "trying to decrypt with RC4."
-				# raise_encrypted_error
-				_perform_decrypt_proc_ @objects, self.method(:decrypt_RC4)
-			else
-				raise_encrypted_error
-			end
-			#rebuild stream lengths?
-			@objects
 		end
 		def decrypt_none(encrypted, encrypted_id, encrypted_generation, encrypted_filter)
 			"encrypted"
