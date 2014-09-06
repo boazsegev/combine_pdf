@@ -312,8 +312,8 @@ module CombinePDF
 				text_dimantions = stamp.dimentions_of( text, opt[:font], opt[:font_size] )
 				box_width = text_dimantions[0] * 1.2
 				box_height = text_dimantions[1] * 2
-				opt[:length] ||= box_width
-				opt[:height] ||= box_height
+				opt[:length] = box_width
+				opt[:height] = box_height
 				from_height = 45
 				from_side = 15
 				page_width = mediabox[2]
