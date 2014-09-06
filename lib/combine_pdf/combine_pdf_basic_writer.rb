@@ -100,7 +100,7 @@ module CombinePDF
 		# box_color:: box fill color in [R, G, B], an array with three floats, each in a value between 0 to 1 (gray will be "[0.5, 0.5, 0.5]"). defaults to nil (none).
 		# border_color:: box border color in [R, G, B], an array with three floats, each in a value between 0 to 1 (gray will be "[0.5, 0.5, 0.5]"). defaults to nil (none).
 		# border_width:: border width in PDF units. defaults to nil (none).
-		# border_radius:: border radius in PDF units. defaults to 0 (no corner rounding).
+		# box_radius:: border radius in PDF units. defaults to 0 (no corner rounding).
 		# opacity:: textbox opacity, a float between 0 (transparent) and 1 (opaque)
 		# <b>now on testing mode, defaults are different! box defaults to gray with border and rounding.</b>
 		def textbox(text, properties = {})
@@ -117,10 +117,10 @@ module CombinePDF
 				font_color: [0,0,0],
 				stroke_color: nil,
 				stroke_width: 0,
-				box_color: [0.7,0.7,0.7], # for testing, should be nil
-				border_color: [0.5,0.5,0.5], # for testing, should be nil
-				border_width: 2, # for testing, should be nil
-				border_radius: 5, # for testing, should be 0
+				box_color: nil,
+				border_color: nil,
+				border_width: 0,
+				box_radius: 0,
 				opacity: 1
 			}
 			options.update properties
@@ -146,7 +146,7 @@ module CombinePDF
 				# set graphic state for the box
 				box_stream << "q\nq\nq\n"
 				box_graphic_state = { ca: options[:opacity], CA: options[:opacity], LW: options[:border_width], LC: 0, LJ: 0,  LD: 0 }
-				if options[:border_radius] != 0 # if the text box has rounded corners
+				if options[:box_radius] != 0 # if the text box has rounded corners
 					box_graphic_state[:LC], box_graphic_state[:LJ] =  2, 1
 				end
 				box_graphic_state = graphic_state box_graphic_state # adds the graphic state to Resources and gets the reference
@@ -159,34 +159,34 @@ module CombinePDF
 					box_stream << "#{options[:border_color].join(' ')} SCN\n"
 				end
 				# create the path
-				radius = options[:border_radius]
+				radius = options[:box_radius]
 				half_radius = radius.to_f / 2
 				## set starting point
 				box_stream << "#{options[:x] + radius} #{options[:y]} m\n" 
 				## buttom and right corner - first line and first corner
 				box_stream << "#{options[:x] + options[:length] - radius} #{options[:y]} l\n" #buttom
-				if options[:border_radius] != 0 # make first corner, if not straight.
+				if options[:box_radius] != 0 # make first corner, if not straight.
 					box_stream << "#{options[:x] + options[:length] - half_radius} #{options[:y]} "
 					box_stream << "#{options[:x] + options[:length]} #{options[:y] + half_radius} "
 					box_stream << "#{options[:x] + options[:length]} #{options[:y] + radius} c\n"
 				end
 				## right and top-right corner
 				box_stream << "#{options[:x] + options[:length]} #{options[:y] + options[:height] - radius} l\n"
-				if options[:border_radius] != 0
+				if options[:box_radius] != 0
 					box_stream << "#{options[:x] + options[:length]} #{options[:y] + options[:height] - half_radius} "
 					box_stream << "#{options[:x] + options[:length] - half_radius} #{options[:y] + options[:height]} "
 					box_stream << "#{options[:x] + options[:length] - radius} #{options[:y] + options[:height]} c\n"
 				end
 				## top and top-left corner
 				box_stream << "#{options[:x] + radius} #{options[:y] + options[:height]} l\n"
-				if options[:border_radius] != 0
+				if options[:box_radius] != 0
 					box_stream << "#{options[:x] + half_radius} #{options[:y] + options[:height]} "
 					box_stream << "#{options[:x]} #{options[:y] + options[:height] - half_radius} "
 					box_stream << "#{options[:x]} #{options[:y] + options[:height] - radius} c\n"
 				end
 				## left and buttom-left corner
 				box_stream << "#{options[:x]} #{options[:y] + radius} l\n"
-				if options[:border_radius] != 0
+				if options[:box_radius] != 0
 					box_stream << "#{options[:x]} #{options[:y] + half_radius} "
 					box_stream << "#{options[:x] + half_radius} #{options[:y]} "
 					box_stream << "#{options[:x] + radius} #{options[:y]} c\n"
