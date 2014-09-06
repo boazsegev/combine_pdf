@@ -6,12 +6,12 @@
 ########################################################
 Gem::Specification.new do |s|
 	s.name = 'combine_pdf'
-	s.version = '0.0.6'
+	s.version = '0.0.7'
 	s.date = '2014-09-04'
 	s.add_runtime_dependency 'ruby-rc4', '>= 0.1.5'
 	s.required_ruby_version = '>= 1.9.2'
 	s.summary = "Combine, stamp and watermark PDF files in pure Ruby."
-	s.description = "A nifty gem, in pure Ruby, to parse PDF files and combine (merge) them with other PDF files, watermark them or stamp them (all using the PDF file format)."
+	s.description = "A nifty gem, in pure Ruby, to parse PDF files and combine (merge) them with other PDF files, number the pages, watermark them or stamp them (all using the PDF file format)."
 	s.authors = ["Boaz Segev", "Masters of the open source community"]
 	s.email = 'bsegev@gmail.com'
 	s.files = Dir["{lib}/**/*.rb"] #["lib/combine_pdf.rb", "lib/combine_pdf/combine_pdf_pdf.rb", "lib/combine_pdf/combine_pdf_parser.rb" , "lib/combine_pdf/combine_pdf_decrypt.rb" , "lib/combine_pdf/combine_pdf_filter.rb" ]
