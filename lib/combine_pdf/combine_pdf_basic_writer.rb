@@ -100,7 +100,6 @@ module CombinePDF
 		# border_width:: border width in PDF units. defaults to nil (none).
 		# box_radius:: border radius in PDF units. defaults to 0 (no corner rounding).
 		# opacity:: textbox opacity, a float between 0 (transparent) and 1 (opaque)
-		# <b>now on testing mode, defaults are different! box defaults to gray with border and rounding.</b>
 		def textbox(text, properties = {})
 			options = {
 				x: 0,
