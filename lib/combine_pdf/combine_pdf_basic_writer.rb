@@ -23,9 +23,9 @@ module CombinePDF
 	#
 	# The PDFWriter class is a subclass of Hash and represents a PDF Page object.
 	#
-	# Writing on this Page is done using the text_box function.
+	# Writing on this Page is done using the textbox function.
 	#
-	# Setting the page dimentions can be either at the new or using the media_box method.
+	# Setting the page dimentions can be either at the new or using the mediabox method.
 	#
 	# the rest of the methods are for internal use.
 	#
@@ -35,32 +35,32 @@ module CombinePDF
 	# We can either insert the PDFWriter as a new page:
 	#   pdf = CombinePDF.new
 	#   new_page = PDFWriter.new
-	#   new_page.text_box "some text"
+	#   new_page.textbox "some text"
 	#   pdf << new_page
 	#   pdf.save "file_with_new_page.pdf"
 	# Or we can insert the PDFWriter as an overlay (stamp / watermark) over existing pages:
 	#   pdf = CombinePDF.new
 	#   new_page = PDFWriter.new "some_file.pdf"
-	#   new_page.text_box "some text"
+	#   new_page.textbox "some text"
 	#   pdf.pages.each {|page| page << new_page }
 	#   pdf.save "stamped_file.pdf"
 	class PDFWriter < Hash
 
-		def initialize(media_box = [0.0, 0.0, 612.0, 792.0])
+		def initialize(mediabox = [0.0, 0.0, 612.0, 792.0])
 			# indirect_reference_id, :indirect_generation_number
 			self[:Type] = :Page
 			self[:indirect_reference_id] = 0
 			self[:Resources] = {}
 			self[:Contents] = { is_reference_only: true , referenced_object: {indirect_reference_id: 0, raw_stream_content: ""} }
-			self[:MediaBox] = media_box
+			self[:MediaBox] = mediabox
 		end
 		# accessor (getter) for the :MediaBox element of the page
-		def media_box
+		def mediabox
 			self[:MediaBox]
 		end
 		# accessor (setter) for the :MediaBox element of the page
 		# dimentions:: an Array consisting of four numbers (can be floats) setting the size of the media box.
-		def media_box=(dimentions = [0.0, 0.0, 612.0, 792.0])
+		def mediabox=(dimentions = [0.0, 0.0, 612.0, 792.0])
 			self[:MediaBox] = dimentions
 		end
 
@@ -75,78 +75,139 @@ module CombinePDF
 		# y:: the BUTTOM position of the box.
 		# length:: the length of the box.
 		# height:: the height of the box.
-		# font_name:: a Symbol representing one of the 14 standard fonts. defaults to ":Helvetica" @see add_font
+		# text_align:: symbol for horizontal text alignment, can be ":center" (default), ":right", ":left"
+		# text_valign:: symbol for vertical text alignment, can be ":center" (default), ":top", ":buttom"
+		# font_name:: a Symbol representing one of the 14 standard fonts. defaults to ":Helvetica". the options are:
+		# - :"Times-Roman"
+		# - :"Times-Bold"
+		# - :"Times-Italic"
+		# - :"Times-BoldItalic"
+		# - :Helvetica
+		# - :"Helvetica-Bold"
+		# - :"Helvetica-BoldOblique"
+		# - :"Helvetica- Oblique"
+		# - :Courier
+		# - :"Courier-Bold"
+		# - :"Courier-Oblique"
+		# - :"Courier-BoldOblique"
+		# - :Symbol
+		# - :ZapfDingbats
 		# font_size:: a Fixnum for the font size, or :fit_text to fit the text in the box. defaults to ":fit_text"
-		# text_color:: [R, G, B], an array with three floats, each in a value between 0 to 1 (gray will be "[0.5, 0.5, 0.5]").
-		def text_box(text, properties = {})
+		# font_color:: text color in [R, G, B], an array with three floats, each in a value between 0 to 1 (gray will be "[0.5, 0.5, 0.5]"). defaults to black.
+		# stroke_color:: text stroke color in [R, G, B], an array with three floats, each in a value between 0 to 1 (gray will be "[0.5, 0.5, 0.5]"). defounlts to nil (no stroke).
+		# stroke_width:: text stroke width in PDF units. defaults to 0 (none).
+		# box_color:: box fill color in [R, G, B], an array with three floats, each in a value between 0 to 1 (gray will be "[0.5, 0.5, 0.5]"). defaults to nil (none).
+		# border_color:: box border color in [R, G, B], an array with three floats, each in a value between 0 to 1 (gray will be "[0.5, 0.5, 0.5]"). defaults to nil (none).
+		# border_width:: border width in PDF units. defaults to nil (none).
+		# border_radius:: border radius in PDF units. defaults to 0 (no corner rounding).
+		# opacity:: textbox opacity, a float between 0 (transparent) and 1 (opaque)
+		# <b>now on testing mode, defaults are different! box defaults to gray with border and rounding.</b>
+		def textbox(text, properties = {})
 			options = {
-				text_alignment: :center,
-				text_color: [0,0,0],
-				text_stroke_color: nil,
-				text_stroke_width: 0,
-				font_name: :Helvetica,
-				font_size: :fit_text,
-				border_color: [0.5,0.5,0.5],
-				border_width: 2,
-				border_radius: 0,
-				background_color: [0.7,0.7,0.7],
-				opacity: 1,
 				x: 0,
 				y: 0,
 				length: -1,
 				height: -1,
+				text_align: :center,
+				text_valign: :center,
+				font_name: :Helvetica,
+				font_size: :fit_text,
+				font_color: [0,0,0],
+				stroke_color: nil,
+				stroke_width: 0,
+				box_color: [0.7,0.7,0.7], # for testing, should be nil
+				border_color: [0.5,0.5,0.5], # for testing, should be nil
+				border_width: 2, # for testing, should be nil
+				border_radius: 5, # for testing, should be 0
+				opacity: 1
 			}
 			options.update properties
 			# reset the length and height to meaningful values, if negative
-			options[:length] = media_box[2] - options[:x] if options[:length] < 0
-			options[:height] = media_box[3] - options[:y] if options[:height] < 0
+			options[:length] = mediabox[2] - options[:x] if options[:length] < 0
+			options[:height] = mediabox[3] - options[:y] if options[:height] < 0
 			# fit text in box, if requested
+			font_size = options[:font_size]
 			if options[:font_size] == :fit_text
-				options[:font_size] = self.fit_text text, options[:font_name], options[:length], options[:height]
+				font_size = self.fit_text text, options[:font_name], options[:length], options[:height]
 			end
 
 
 			# create box stream
+			box_stream = ""
+			# set graphic state for box
+			if options[:box_color] || (options[:stroke_color] && options[:border_color])
+				# compute x and y position for text
+				x = options[:x]
+				y = options[:y]
+
+				# set graphic state for the box
+				box_stream << "q\nq\nq\n"
+				box_graphic_state = graphic_state ca: options[:opacity], CA: options[:opacity], LW: options[:border_width], LC: 2, LJ:1,  LD: 0
+				box_stream << "#{PDFOperations._object_to_pdf box_graphic_state} gs\n"
+				box_stream << "DeviceRGB CS\nDeviceRGB cs\n"
+				# create the path
+				box_stream << "#{options[:x] + options[:border_radius]} #{options[:y]} m\n" # starting point
+				box_stream << "#{options[:x] + options[:length] - options[:border_radius]} #{options[:y]} l\n" #buttom
+				box_stream << "" if options[:border_radius] != 0
+				# exit graphic state for the box
+				box_stream << "Q\nQ\nQ\n"
+			end
+			#contents << box_stream
 
 			# reset x,y by text alignment - x,y are calculated from the buttom left
 			# each unit (1) is 1/72 Inch
-			x = options[:x]
-			y = options[:y]
 			# create text stream
 			text_stream = ""
-			text_stream << "BT\n" # the Begine Text marker			
-			text_stream << PDFOperations._format_name_to_pdf(font options[:font_name]) # Set font name
-			text_stream << " #{options[:font_size].to_f} Tf\n" # set font size and add font operator
-			text_stream << "#{options[:text_color][0]} #{options[:text_color][0]} #{options[:text_color][0]} rg\n" # sets the color state
-			text_stream << "#{x} #{y} Td\n" # set location for text object
-			text_stream << PDFOperations._format_string_to_pdf(text) # insert the string in PDF format
-			text_stream << " Tj\n ET\n" # the Text object operator and the End Text marker
+			if text.to_s != "" && font_size != 0 && (options[:font_color] || options[:stroke_color])
+				# compute x and y position for text
+				x = options[:x]
+				y = options[:y]
 
-			final_stream = ""
-			# set graphic state for box
-			final_stream << "q\nq\nq\n"
-			box_graphic_state = graphic_state ca: options[:opacity], CA: options[:opacity], LW: options[:border_width], LC: 2, LJ:1,  LD: 0
-			final_stream << "#{PDFOperations._object_to_pdf box_graphic_state} gs\n"
-			final_stream << "DeviceRGB CS\nDeviceRGB cs\n"
-
-			# set graphic state for text
-			final_stream << "q\nq\nq\n"
-			text_graphic_state = graphic_state({ca: options[:opacity], CA: options[:opacity], LW: options[:text_stroke_width], LC: 2, LJ: 1,  LD: 0})
-			final_stream << "#{PDFOperations._object_to_pdf text_graphic_state} gs\n"
-			final_stream << "DeviceRGB CS\nDeviceRGB cs\n"
-			final_stream << "#{options[:text_color][0]} #{options[:text_color][1]} #{options[:text_color][2]} scn\n"
-			if options[:text_stroke_width].to_i > 0 && options[:text_stroke_color]
-				final_stream << "#{options[:text_stroke_color][0]} #{options[:text_stroke_color][1]} #{options[:text_stroke_color][2]} SCN\n"
-				final_stream << "2 Tr\n"
-			else
-				final_stream << "0 Tr\n"
+				text_size = dimentions_of text, options[:font_name], font_size
+				if options[:text_align] == :center
+					x = (options[:length] - text_size[0])/2 + x
+				elsif options[:text_align] == :right
+					x = (options[:length] - text_size[0]) + x
+				end
+				if options[:text_valign] == :center
+					y = (options[:height] - text_size[1])/2 + y
+				elsif options[:text_valign] == :top
+					y = (options[:height] - text_size[1]) + y
+				end
+				# set graphic state for text
+				text_stream << "q\nq\nq\n"
+				text_graphic_state = graphic_state({ca: options[:opacity], CA: options[:opacity], LW: options[:stroke_width].to_f, LC: 2, LJ: 1,  LD: 0})
+				text_stream << "#{PDFOperations._object_to_pdf text_graphic_state} gs\n"
+				text_stream << "DeviceRGB CS\nDeviceRGB cs\n"
+				# set text render mode
+				if options[:font_color]
+					text_stream << "#{options[:font_color].join(' ')} scn\n"
+				end
+				if options[:stroke_width].to_i > 0 && options[:stroke_color]
+					text_stream << "#{options[:stroke_color].join(' ')} SCN\n"
+					if options[:font_color]
+						text_stream << "2 Tr\n"
+					else
+						final_stream << "1 Tr\n"
+					end
+				elsif options[:font_color]
+					text_stream << "0 Tr\n"
+				else
+					text_stream << "3 Tr\n"
+				end
+				# format text object
+				text_stream << "BT\n" # the Begine Text marker			
+				text_stream << PDFOperations._format_name_to_pdf(font options[:font_name]) # Set font name
+				text_stream << " #{font_size} Tf\n" # set font size and add font operator
+				text_stream << "#{options[:font_color].join(' ')} rg\n" # sets the color state
+				text_stream << "#{x} #{y} Td\n" # set location for text object
+				text_stream << PDFOperations._format_string_to_pdf(text) # insert the string in PDF format
+				text_stream << " Tj\n ET\n" # the Text object operator and the End Text marker
+				# exit graphic state for text
+				text_stream << "Q\nQ\nQ\n"
 			end
+			contents << text_stream
 
-			# clear graphic states
-			final_stream << "Q\nQ\nQ\n"
-			final_stream << "Q\nQ\nQ\n"
-
-			contents << final_stream
 			self
 		end
 
@@ -235,7 +296,7 @@ end
 
 
 
-# # text_box output example
+# # textbox output example
 # q
 # q
 # /GraphiStateName gs
