@@ -71,11 +71,11 @@ module CombinePDF
 		# the symbols and values in the properties Hash could be any or all of the following:
 		# x:: the left position of the box.
 		# y:: the BUTTOM position of the box.
-		# length:: the length of the box.
-		# height:: the height of the box.
+		# length:: the length of the box. negative values will be computed from edge of page. defaults to 0 (end of page).
+		# height:: the height of the box. negative values will be computed from edge of page. defaults to 0 (end of page).
 		# text_align:: symbol for horizontal text alignment, can be ":center" (default), ":right", ":left"
 		# text_valign:: symbol for vertical text alignment, can be ":center" (default), ":top", ":buttom"
-		# font_name:: a Symbol representing one of the 14 standard fonts. defaults to ":Helvetica". the options are:
+		# font:: a Symbol representing one of the 14 standard fonts. defaults to ":Helvetica". the options are:
 		# - :"Times-Roman"
 		# - :"Times-Bold"
 		# - :"Times-Italic"
@@ -104,11 +104,11 @@ module CombinePDF
 			options = {
 				x: 0,
 				y: 0,
-				length: -1,
+				length: 0,
 				height: -1,
 				text_align: :center,
 				text_valign: :center,
-				font_name: :Helvetica,
+				font: :Helvetica,
 				font_size: :fit_text,
 				max_font_size: nil,
 				font_color: [0,0,0],
@@ -122,12 +122,12 @@ module CombinePDF
 			}
 			options.update properties
 			# reset the length and height to meaningful values, if negative
-			options[:length] = mediabox[2] - options[:x] if options[:length] < 0
-			options[:height] = mediabox[3] - options[:y] if options[:height] < 0
+			options[:length] = mediabox[2] - options[:x] + options[:length] if options[:length] <= 0
+			options[:height] = mediabox[3] - options[:y] + options[:height] if options[:height] <= 0
 			# fit text in box, if requested
 			font_size = options[:font_size]
 			if options[:font_size] == :fit_text
-				font_size = self.fit_text text, options[:font_name], options[:length], options[:height]
+				font_size = self.fit_text text, options[:font], options[:length], options[:height]
 				font_size = options[:max_font_size] if options[:max_font_size] && font_size > options[:max_font_size]
 			end
 
@@ -212,7 +212,7 @@ module CombinePDF
 				x = options[:x]
 				y = options[:y]
 
-				text_size = dimentions_of text, options[:font_name], font_size
+				text_size = dimentions_of text, options[:font], font_size
 				if options[:text_align] == :center
 					x = (options[:length] - text_size[0])/2 + x
 				elsif options[:text_align] == :right
@@ -246,7 +246,7 @@ module CombinePDF
 				end
 				# format text object
 				text_stream << "BT\n" # the Begine Text marker			
-				text_stream << PDFOperations._format_name_to_pdf(font options[:font_name]) # Set font name
+				text_stream << PDFOperations._format_name_to_pdf(set_font options[:font]) # Set font name
 				text_stream << " #{font_size} Tf\n" # set font size and add font operator
 				text_stream << "#{options[:font_color].join(' ')} rg\n" # sets the color state
 				text_stream << "#{x} #{y} Td\n" # set location for text object
@@ -273,7 +273,7 @@ module CombinePDF
 		end
 		# creates a font object and adds the font to the resources dictionary
 		# returns the name of the font for the content stream.
-		# font_name:: a Symbol of one of the 14 Type 1 fonts, known as the standard 14 fonts:
+		# font:: a Symbol of one of the 14 Type 1 fonts, known as the standard 14 fonts:
 		# - :"Times-Roman"
 		# - :"Times-Bold"
 		# - :"Times-Italic"
@@ -288,7 +288,7 @@ module CombinePDF
 		# - :"Courier-BoldOblique"
 		# - :Symbol
 		# - :ZapfDingbats
-		def font(font_name = :Helvetica)
+		def set_font(font = :Helvetica)
 			# refuse any other fonts that arn't basic standard fonts
 			allow_fonts = [ :"Times-Roman",
 					:"Times-Bold",
@@ -304,16 +304,16 @@ module CombinePDF
 					:"Courier-BoldOblique",
 					:Symbol,
 					:ZapfDingbats ]
-			raise "add_font(font_name) accepts only one of the 14 standards fonts - wrong font_name!" unless allow_fonts.include? font_name
+			raise "set_font(font) accepts only one of the 14 standards fonts - wrong font!" unless allow_fonts.include? font
 			# if the font exists, return it's name
 			resources[:Font] ||= {}
 			resources[:Font].each do |k,v|
-				if v.is_a?(Hash) && v[:Type] == :Font && v[:BaseFont] == font_name
+				if v.is_a?(Hash) && v[:Type] == :Font && v[:BaseFont] == font
 					return k
 				end
 			end
 			# create font object
-			font_object = { Type: :Font, Subtype: :Type1, BaseFont: font_name}
+			font_object = { Type: :Font, Subtype: :Type1, BaseFont: font}
 			# set a secure name for the font
 			name = (SecureRandom.urlsafe_base64(9)).to_sym
 			# add object to reasource

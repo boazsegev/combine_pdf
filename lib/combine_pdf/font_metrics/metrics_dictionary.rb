@@ -5,13 +5,20 @@ module CombinePDF
 		# UNICODE SUPPORT IS MISSING!
 		#
 		# text:: String containing the text for which the demantion box will be calculated.
-		# font_name:: the font name, from the 14 fonts possible. @see font
+		# font:: the font name, from the 14 fonts possible. @see font
 		# size:: the size of the text, as it will be applied in the PDF.
-		def dimentions_of(text, font_name, size = 1000)
-			metrics = METRICS_DICTIONARY[font_name]
+		def dimentions_of(text, font, size = 1000)
+			metrics = METRICS_DICTIONARY[font]
 			metrics_array = []
 			# the following is only good for latin text - unicode support is missing!!!!
-			text.each_char{|c|  metrics_array << (metrics.select {|k,v| v[:charcode] == c.bytes[0].ord}).to_a[0][1] }
+			text.each_char do |c|
+				metrics_mappings = metrics.select {|k,v| v[:charcode] == c.bytes[0].ord}
+				######
+				# need to add unicode support
+				# this is a lousy patch that puts the bounds of @ inside...
+				metrics_mappings = metrics.select {|k,v| v[:charcode] == "@".ord} if metrics_mappings.empty?
+				metrics_array << metrics_mappings.to_a[0][1]
+			end
 			max_width = metrics_array.map {|m| m ? m[:wx] : 0} .max
 			height = metrics_array.map {|m| m ? m[:boundingbox][3] : 0} .max
 			height = height - (metrics_array.map {|m| m ? m[:boundingbox][1] : 0} ).min

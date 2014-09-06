@@ -28,7 +28,7 @@ module CombinePDF
 	# you can also add just odd or even pages:
 	#   pdf = CombinePDF.new
 	#   i = 0
-	#   CombinePDF.new("file.pdf").pages.each do |page
+	#   CombinePDF.new("file.pdf").pages.each do |page|
 	#     i += 1
 	#     pdf << page if i.even?
 	#   end
@@ -293,7 +293,7 @@ module CombinePDF
 				number_location: [:top, :bottom],
 				start_at: 1,
 				font_size: 12,
-				font_name: :Helvetica,
+				font: :Helvetica,
 				margin_from_height: 45,
 				margin_from_side: 15
 			}
@@ -309,7 +309,7 @@ module CombinePDF
 				# set stamp text
 				text = opt[:number_format] % page_number
 				# compute locations for text boxes
-				text_dimantions = stamp.dimentions_of( text, opt[:font_name], opt[:font_size] )
+				text_dimantions = stamp.dimentions_of( text, opt[:font], opt[:font_size] )
 				box_width = text_dimantions[0] * 1.2
 				box_height = text_dimantions[1] * 2
 				opt[:length] ||= box_width
