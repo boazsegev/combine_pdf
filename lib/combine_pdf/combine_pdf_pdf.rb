@@ -51,6 +51,14 @@ module CombinePDF
 	#
 	# Notice that page objects are Hash class objects and the << operator was added to the Page instances without altering the class.
 	#
+	# == Page Numbering
+	# adding page numbers to a PDF object or file is as simple as can be:
+	#   pdf = CombinePDF.new "file_to_number.pdf"
+	#   pdf.number_pages
+	#   pdf.save "file_with_numbering.pdf"
+	#
+	# numbering can be done with many different options, with different formating, with or without a box object, and even with opacity values.
+	#
 	# == Loading PDF data
 	# Loading PDF data can be done from file system or directly from the memory.
 	#
@@ -268,6 +276,83 @@ module CombinePDF
 				retrun false # return false, which will also stop any chaining.
 			end
 			return self #return self object for injection chaining (pdf << page << page << page)
+		end
+
+		# and page numbers to the PDF
+		# options:: a Hash of options setting the behavior and format of the page numbers:
+		#   - :number_format a string representing the format for page number. defaults to ' - %d - '.
+		#   - :number_location an Array containing the location for the page numbers, can be :top, :buttom, :top_left, :top_right, :bottom_left, :bottom_right. defaults to [:top, :buttom].
+		#   - :start_at a Fixnum that sets the number for first page number. defaults to 1.
+		#   - :margin_from_height a number (PDF points) for the top and buttom margins. defaults to 45.
+		#   - :margin_from_side a number (PDF points) for the left and right margins. defaults to 15.
+		# also take all the options for PDFWriter.textbox.
+		# defaults to font_name: :Helvetica, font_size: 12 and no box (:border_width => 0, :box_color => nil).
+		def number_pages(options = {})
+			opt = {
+				number_format: ' - %d - ',
+				number_location: [:top, :bottom],
+				start_at: 1,
+				font_size: 12,
+				font_name: :Helvetica,
+				margin_from_height: 45,
+				margin_from_side: 15
+			}
+			opt.update options
+			page_number = opt[:start_at]
+			pages.each do |page|
+				# create a "stamp" PDF page with the same size as the target page
+				mediabox = page[:MediaBox]
+				stamp = PDFWriter.new mediabox
+				# set the visible dimentions to the CropBox, if it exists.
+				cropbox = page[:CropBox]
+				mediabox = cropbox if cropbox
+				# set stamp text
+				text = opt[:number_format] % page_number
+				# compute locations for text boxes
+				text_dimantions = stamp.dimentions_of( text, opt[:font_name], opt[:font_size] )
+				box_width = text_dimantions[0] * 1.2
+				box_height = text_dimantions[1] * 2
+				opt[:length] ||= box_width
+				opt[:height] ||= box_height
+				from_height = 45
+				from_side = 15
+				page_width = mediabox[2]
+				page_height = mediabox[3]
+				center_position = (page_width - box_width)/2
+				left_position = from_side
+				right_position = page_width - from_side - box_width
+				top_position = page_height - from_height
+				buttom_position = from_height + box_height
+				x = center_position
+				y = top_position
+				if opt[:number_location].include? :top
+					 stamp.textbox text, {x: x, y: y }.merge(opt)
+				end
+				y = buttom_position #bottom position
+				if opt[:number_location].include? :bottom
+					 stamp.textbox text, {x: x, y: y }.merge(opt)
+				end
+				y = top_position #top position
+				x = left_position # left posotion
+				if opt[:number_location].include? :top_left
+					 stamp.textbox text, {x: x, y: y }.merge(opt)
+				end
+				y = buttom_position #bottom position
+				if opt[:number_location].include? :bottom_left
+					 stamp.textbox text, {x: x, y: y }.merge(opt)
+				end
+				x = right_position # right posotion
+				y = top_position #top position
+				if opt[:number_location].include? :top_right
+					 stamp.textbox text, {x: x, y: y }.merge(opt)
+				end
+				y = buttom_position #bottom position
+				if opt[:number_location].include? :bottom_right
+					 stamp.textbox text, {x: x, y: y }.merge(opt)
+				end
+				page << stamp
+				page_number += 1
+			end
 		end
 
 		# get the title for the pdf

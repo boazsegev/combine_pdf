@@ -1,26 +1,5 @@
 module CombinePDF
 	class PDFWriter < Hash
-		protected
-		METRICS_DICTIONARY = {
-			:"Times-Roman"			=>	TIMES_ROMAN_METRICS,
-			:"Times-Bold"			=>	TIMES_BOLD_METRICS,
-			:"Times-Italic"			=>	TIMES_ITALIC_METRICS,
-			:"Times-BoldItalic"		=>	TIMES_BOLDITALIC_METRICS,
-			:Helvetica				=>	HELVETICA_METRICS,
-			:"Helvetica-Bold"		=>	HELVETICA_BOLD_METRICS,
-			:"Helvetica-BoldOblique"=>	HELVETICA_BOLDOBLIQUE_METRICS,
-			:"Helvetica-Oblique"	=>	HELVETICA_OBLIQUE_METRICS,
-			:Courier				=>	COURIER_METRICS,
-			:"Courier-Bold"			=>	COURIER_BOLD_METRICS,
-			:"Courier-Oblique"		=>	COURIER_OBLIQUE_METRICS,
-			:"Courier-BoldOblique"	=>	COURIER_BOLDOBLIQUE_METRICS,
-			:Symbol					=>	SYMBOL_METRICS,
-			:ZapfDingbats			=>	ZAPFDINGBATS_METRICS
-		}
-		def self.get_metrics(font_name)
-			METRICS_DICTIONARY[font_name]
-		end
-
 		# This function calculates the dimentions of a string in a PDF.
 		#
 		# UNICODE SUPPORT IS MISSING!
@@ -46,6 +25,29 @@ module CombinePDF
 			end
 			[width.to_f/1000*size, height.to_f/1000*size]
 		end
+
+		protected
+
+		METRICS_DICTIONARY = {
+			:"Times-Roman"			=>	TIMES_ROMAN_METRICS,
+			:"Times-Bold"			=>	TIMES_BOLD_METRICS,
+			:"Times-Italic"			=>	TIMES_ITALIC_METRICS,
+			:"Times-BoldItalic"		=>	TIMES_BOLDITALIC_METRICS,
+			:Helvetica				=>	HELVETICA_METRICS,
+			:"Helvetica-Bold"		=>	HELVETICA_BOLD_METRICS,
+			:"Helvetica-BoldOblique"=>	HELVETICA_BOLDOBLIQUE_METRICS,
+			:"Helvetica-Oblique"	=>	HELVETICA_OBLIQUE_METRICS,
+			:Courier				=>	COURIER_METRICS,
+			:"Courier-Bold"			=>	COURIER_BOLD_METRICS,
+			:"Courier-Oblique"		=>	COURIER_OBLIQUE_METRICS,
+			:"Courier-BoldOblique"	=>	COURIER_BOLDOBLIQUE_METRICS,
+			:Symbol					=>	SYMBOL_METRICS,
+			:ZapfDingbats			=>	ZAPFDINGBATS_METRICS
+		}
+		def self.get_metrics(font_name)
+			METRICS_DICTIONARY[font_name]
+		end
+
 		# this method returns the size for which the text fits the requested metrices
 		# the size is type Float and is rather exact
 		# if the text cannot fit such a small place, returns zero (0).

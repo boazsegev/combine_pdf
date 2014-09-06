@@ -68,6 +68,14 @@ require "combine_pdf/font_metrics/metrics_dictionary.rb"
 #
 # Notice that page objects are Hash class objects and the << operator was added to the Page instances without altering the class.
 #
+# == Page Numbering
+# adding page numbers to a PDF object or file is as simple as can be:
+#   pdf = CombinePDF.new "file_to_number.pdf"
+#   pdf.number_pages
+#   pdf.save "file_with_numbering.pdf"
+#
+# numbering can be done with many different options, with different formating, with or without a box object, and even with opacity values.
+#
 # == Loading PDF data
 # Loading PDF data can be done from file system or directly from the memory.
 #
