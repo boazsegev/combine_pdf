@@ -8,53 +8,70 @@ Install with ruby gems:
 gem install combine_pdf
 ```
 
-## Merge / Combine Pages
-
-Combining PDF files s very straight forward.
-
-First we create the PDF object that will contain all the combined data.
-
-Then we "inject" the data, using the << operator. We either do this page by page (which is slower) or file by file (which is faster).
-
-Last, we render or save the data.
-
-For Example:
+## Combine/Merge PDF files or Pages
+To combine PDF files (or data):
 ```ruby
 pdf = CombinePDF.new
-# one way to combine, very fast:
-pdf << CombinePDF.new "file1.pdf"
-# different way to combine, slower, but allows to mix things up:
-CombinePDF.new("file2.pdf").pages.each {|page| pdf << page}
-# you can also parse PDF files from memory.
-pdf_data = IO.read 'file3.pdf'
-# we will add just the first page:
-pdf << CombinePDF.parse(pdf_data).pages[0]
-# Save to file
+pdf << CombinePDF.new("file1.pdf") # one way to combine, very fast.
+pdf << CombinePDF.new("file2.pdf")
 pdf.save "combined.pdf"
-# or render to memory
-pdf.to_pdf
+```
+Or even a one liner:
+```ruby
+(CombinePDF.new("file1.pdf") << CombinePDF.new("file2.pdf") << CombinePDF.new("file3.pdf")).save("combined.pdf")
+```
+you can also add just odd or even pages:
+```ruby
+pdf = CombinePDF.new
+i = 0
+CombinePDF.new("file.pdf").pages.each do |page
+  i += 1
+  pdf << page if i.even?
+end
+pdf.save "even_pages.pdf"
 ```
 
-The page by page is great if we want to mix things up, but since the "Catalog" dictionary of the PDF file must be updated for every page seperately, it is much slower (the Catalog is an internal PDF dictionary that contains references to all the pages and the order in which they are displayed).
-
-## Stamp / Watermark
-
+notice that adding all the pages one by one is slower then adding the whole file.
+## Add content to existing pages (Stamp / Watermark)
 **has issues with specific PDF files - [please see the issue published here](https://github.com/boazsegev/combine_pdf/issues/2).**
 
-To stamp PDF files (or data), first create the stamp from an existing PDF file.
+To add content to existing PDF pages, first import the new content from an existing PDF file. After that, add the content to each of the pages in your existing PDF.
 
-After the stamp was created, we inject the stamp onto existing PDF pages.
+In this example, we will add a company logo to each page:
 ```ruby
-# load the stamp
-stamp_pdf_file = CombinePDF.new "stamp_pdf_file.pdf"
-stamp_page = stamp_pdf_file.pages[0]
-# load the file to stamp on
-pdf = CombinePDF.new "file1.pdf"
-#stamping each page with the << operator
-pdf.pages.each {|page| page << stamp_page}
+company_logo = CombinePDF.new("company_logo.pdf").pages[0]
+pdf = CombinePDF.new "content_file.pdf"
+pdf.pages.each {|page| page << company_logo} # notice the << operator is on a page and not a PDF object.
+pdf.save "content_with_logo.pdf"
 ```
- 
-Notice the << operator is on a page and not a PDF object. The << operator acts differently on PDF objects and on Pages. The Page objects are Hash class objects and the << operator was added to the Page instances without altering the class.
+Notice the << operator is on a page and not a PDF object. The << operator acts differently on PDF objects and on Pages.
+
+The << operator defaults to secure injection by renaming references to avoid conflics. For overlaying pages using compressed data that might not be editable (due to limited filter support), you can use:
+```ruby
+pdf.pages(nil, false).each {|page| page << stamp_page}
+```
+## Page Numbering
+adding page numbers to a PDF object or file is as simple as can be:
+```ruby
+pdf = CombinePDF.new "file_to_number.pdf"
+pdf.number_pages
+pdf.save "file_with_numbering.pdf"
+```
+Numbering can be done with many different options, with different formating, with or without a box object, and even with opacity values - see documentation.
+
+## Loading PDF data
+Loading PDF data can be done from file system or directly from the memory.
+
+Loading data from a file is easy:
+```ruby
+pdf = CombinePDF.new("file.pdf")
+```
+you can also parse PDF files from memory:
+```ruby
+pdf_data = IO.read 'file.pdf' # for this demo, load a file to memory
+pdf = CombinePDF.parse(pdf_data)
+```
+Loading from the memory is especially effective for importing PDF data recieved through the internet or from a different authoring library such as Prawn.
 
 Decryption & Filters
 ====================
