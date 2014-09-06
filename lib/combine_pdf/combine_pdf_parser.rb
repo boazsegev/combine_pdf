@@ -31,6 +31,12 @@ module CombinePDF
 		#
 		# they are mainly to used to know if the file is (was) encrypted and to get more details.
 		attr_reader :info_object, :root_object
+
+		# when creating a parser, it is important to set the data (String) we wish to parse.
+		#
+		# <b>the data is required and it is not possible to set the data at a later stage</b>
+		#
+		# string:: the data to be parsed, as a String object.
 		def initialize (string)
 			raise TypeError, "couldn't parse and data, expecting type String" unless string.is_a? String
 			@string_to_parse = string.force_encoding(Encoding::ASCII_8BIT)
@@ -44,7 +50,7 @@ module CombinePDF
 			@scanner = nil
 		end
 
-		# parse the data in the parser (set in the initialize / new method)
+		# parse the data in the new parser (the data already set through the initialize / new method)
 		def parse
 			return @parsed unless @parsed.empty?
 			@scanner = StringScanner.new @string_to_parse
@@ -115,8 +121,9 @@ module CombinePDF
 			@parsed
 		end
 
-		protected
-		
+		# the actual recoursive parsing is done here.
+		#
+		# this is an internal function, but it was left exposed for posible future features.
 		def _parse_
 			out = []
 			str = ''

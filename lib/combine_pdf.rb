@@ -34,23 +34,32 @@ require "combine_pdf/font_metrics/metrics_dictionary.rb"
 # In the future, this library will also allow stamping and watermarking PDFs (it allows this now, only with some issues).
 #
 # PDF objects can be used to combine or to inject data.
-# == Combine / Merge
+# == Combine/Merge PDF files or Pages
 # To combine PDF files (or data):
 #   pdf = CombinePDF.new
 #   pdf << CombinePDF.new("file1.pdf") # one way to combine, very fast.
-#   CombinePDF.new("file2.pdf").pages.each {|page| pdf << page} # different way to combine, slower.
+#   pdf << CombinePDF.new("file2.pdf")
 #   pdf.save "combined.pdf"
+# or even a one liner:
+#   (CombinePDF.new("file1.pdf") << CombinePDF.new("file2.pdf") << CombinePDF.new("file3.pdf")).save("combined.pdf")
+# you can also add just odd or even pages:
+#   pdf = CombinePDF.new
+#   i = 0
+#   CombinePDF.new("file.pdf").pages.each do |page
+#     i += 1
+#     pdf << page if i.even?
+#   end
+#   pdf.save "even_pages.pdf"
+# notice that adding all the pages one by one is slower then adding the whole file.
+# == Add content to existing pages (Stamp / Watermark)
+# To add content to existing PDF pages, first import the new content from an existing PDF file.
+# after that, add the content to each of the pages in your existing PDF.
 #
-# Or, you can do it all in one line:
-#   ( CombinePDF.new("file1.pdf") << CombinePDF.new("file2.pdf") << CombinePDF.new("file3.pdf") ).save "combined.pdf"
-# == Stamp / Watermark
-# <b>has issues with specific PDF files - please see the issues</b>: https://github.com/boazsegev/combine_pdf/issues/2 
-# To combine PDF files (or data), first create the stamp from a PDF file:
-#   stamp_pdf_file = CombinePDF.new "stamp_pdf_file.pdf"
-#   stamp_page = stamp_pdf_file.pages[0]
-# After the stamp was created, inject to PDF pages:
-#   pdf = CombinePDF.new "file1.pdf"
-#   pdf.pages.each {|page| page << stamp_page}
+# in this example, we will add a company logo to each page:
+#   company_logo = CombinePDF.new("company_logo.pdf").pages[0]
+#   pdf = CombinePDF.new "content_file.pdf"
+#   pdf.pages.each {|page| page << company_logo} # notice the << operator is on a page and not a PDF object.
+#   pdf.save "content_with_logo.pdf"
 # Notice the << operator is on a page and not a PDF object. The << operator acts differently on PDF objects and on Pages.
 #
 # The << operator defaults to secure injection by renaming references to avoid conflics. For overlaying pages using compressed data that might not be editable (due to limited filter support), you can use:
@@ -58,6 +67,16 @@ require "combine_pdf/font_metrics/metrics_dictionary.rb"
 #
 #
 # Notice that page objects are Hash class objects and the << operator was added to the Page instances without altering the class.
+#
+# == Loading PDF data
+# Loading PDF data can be done from file system or directly from the memory.
+#
+# Loading data from a file is easy:
+#   pdf = CombinePDF.new("file.pdf")
+# you can also parse PDF files from memory:
+#   pdf_data = IO.read 'file.pdf' # for this demo, load a file to memory
+#   pdf = CombinePDF.parse(pdf_data)
+# Loading from the memory is especially effective for importing PDF data recieved through the internet or from a different authoring library such as Prawn.
 #
 # == Decryption & Filters
 #
