@@ -12,9 +12,9 @@ module CombinePDF
 
 	#:nodoc: all
 
-	# <b>This doesn't work yet!</b>
+	# <b>not fully tested!</b>
 	#
-	# and also, even when it will work, UNICODE SUPPORT IS MISSING!
+	# NO UNICODE SUPPORT!
 	#
 	# in the future I wish to make a simple PDF page writer, that has only one functions - the text box.
 	# Once the simple writer is ready (creates a text box in a self contained Page element),
@@ -93,6 +93,7 @@ module CombinePDF
 		# - :Symbol
 		# - :ZapfDingbats
 		# font_size:: a Fixnum for the font size, or :fit_text to fit the text in the box. defaults to ":fit_text"
+		# max_font_size:: if font_size is set to :fit_text, this will be the maximum font size. defaults to nil (no maximum)
 		# font_color:: text color in [R, G, B], an array with three floats, each in a value between 0 to 1 (gray will be "[0.5, 0.5, 0.5]"). defaults to black.
 		# stroke_color:: text stroke color in [R, G, B], an array with three floats, each in a value between 0 to 1 (gray will be "[0.5, 0.5, 0.5]"). defounlts to nil (no stroke).
 		# stroke_width:: text stroke width in PDF units. defaults to 0 (none).
@@ -112,6 +113,7 @@ module CombinePDF
 				text_valign: :center,
 				font_name: :Helvetica,
 				font_size: :fit_text,
+				max_font_size: nil,
 				font_color: [0,0,0],
 				stroke_color: nil,
 				stroke_width: 0,
@@ -129,30 +131,80 @@ module CombinePDF
 			font_size = options[:font_size]
 			if options[:font_size] == :fit_text
 				font_size = self.fit_text text, options[:font_name], options[:length], options[:height]
+				font_size = options[:max_font_size] if options[:max_font_size] && font_size > options[:max_font_size]
 			end
 
 
 			# create box stream
 			box_stream = ""
 			# set graphic state for box
-			if options[:box_color] || (options[:stroke_color] && options[:border_color])
+			if options[:box_color] || (options[:border_width].to_i > 0 && options[:border_color])
 				# compute x and y position for text
 				x = options[:x]
 				y = options[:y]
 
 				# set graphic state for the box
 				box_stream << "q\nq\nq\n"
-				box_graphic_state = graphic_state ca: options[:opacity], CA: options[:opacity], LW: options[:border_width], LC: 2, LJ:1,  LD: 0
+				box_graphic_state = { ca: options[:opacity], CA: options[:opacity], LW: options[:border_width], LC: 0, LJ: 0,  LD: 0 }
+				if options[:border_radius] != 0 # if the text box has rounded corners
+					box_graphic_state[:LC], box_graphic_state[:LJ] =  2, 1
+				end
+				box_graphic_state = graphic_state box_graphic_state # adds the graphic state to Resources and gets the reference
 				box_stream << "#{PDFOperations._object_to_pdf box_graphic_state} gs\n"
 				box_stream << "DeviceRGB CS\nDeviceRGB cs\n"
+				if options[:box_color]
+					box_stream << "#{options[:box_color].join(' ')} scn\n"
+				end
+				if options[:border_width].to_i > 0 && options[:border_color]
+					box_stream << "#{options[:border_color].join(' ')} SCN\n"
+				end
 				# create the path
-				box_stream << "#{options[:x] + options[:border_radius]} #{options[:y]} m\n" # starting point
-				box_stream << "#{options[:x] + options[:length] - options[:border_radius]} #{options[:y]} l\n" #buttom
-				box_stream << "" if options[:border_radius] != 0
+				radius = options[:border_radius]
+				half_radius = radius.to_f / 2
+				## set starting point
+				box_stream << "#{options[:x] + radius} #{options[:y]} m\n" 
+				## buttom and right corner - first line and first corner
+				box_stream << "#{options[:x] + options[:length] - radius} #{options[:y]} l\n" #buttom
+				if options[:border_radius] != 0 # make first corner, if not straight.
+					box_stream << "#{options[:x] + options[:length] - half_radius} #{options[:y]} "
+					box_stream << "#{options[:x] + options[:length]} #{options[:y] + half_radius} "
+					box_stream << "#{options[:x] + options[:length]} #{options[:y] + radius} c\n"
+				end
+				## right and top-right corner
+				box_stream << "#{options[:x] + options[:length]} #{options[:y] + options[:height] - radius} l\n"
+				if options[:border_radius] != 0
+					box_stream << "#{options[:x] + options[:length]} #{options[:y] + options[:height] - half_radius} "
+					box_stream << "#{options[:x] + options[:length] - half_radius} #{options[:y] + options[:height]} "
+					box_stream << "#{options[:x] + options[:length] - radius} #{options[:y] + options[:height]} c\n"
+				end
+				## top and top-left corner
+				box_stream << "#{options[:x] + radius} #{options[:y] + options[:height]} l\n"
+				if options[:border_radius] != 0
+					box_stream << "#{options[:x] + half_radius} #{options[:y] + options[:height]} "
+					box_stream << "#{options[:x]} #{options[:y] + options[:height] - half_radius} "
+					box_stream << "#{options[:x]} #{options[:y] + options[:height] - radius} c\n"
+				end
+				## left and buttom-left corner
+				box_stream << "#{options[:x]} #{options[:y] + radius} l\n"
+				if options[:border_radius] != 0
+					box_stream << "#{options[:x]} #{options[:y] + half_radius} "
+					box_stream << "#{options[:x] + half_radius} #{options[:y]} "
+					box_stream << "#{options[:x] + radius} #{options[:y]} c\n"
+				end
+				# fill / stroke path
+				box_stream << "h\n"
+				if options[:box_color] && options[:border_width].to_i > 0 && options[:border_color]
+					box_stream << "B\n"
+				elsif options[:box_color] # fill if fill color is set
+					box_stream << "f\n"
+				elsif options[:border_width].to_i > 0 && options[:border_color] # stroke if border is set
+					box_stream << "S\n"
+				end
+
 				# exit graphic state for the box
 				box_stream << "Q\nQ\nQ\n"
 			end
-			#contents << box_stream
+			contents << box_stream
 
 			# reset x,y by text alignment - x,y are calculated from the buttom left
 			# each unit (1) is 1/72 Inch
@@ -292,77 +344,6 @@ module CombinePDF
 	end
 	
 end
-
-
-
-
-# # textbox output example
-# q
-# q
-# /GraphiStateName gs
-# /DeviceRGB cs
-# 0.867 0.867 0.867 scn
-# 293.328 747.000 m
-# 318.672 747.000 l
-# 323.090 747.000 326.672 743.418 326.672 739.000 c
-# 326.672 735.800 l
-# 326.672 731.382 323.090 727.800 318.672 727.800 c
-# 293.328 727.800 l
-# 288.910 727.800 285.328 731.382 285.328 735.800 c
-# 285.328 739.000 l
-# 285.328 743.418 288.910 747.000 293.328 747.000 c
-# h
-# 293.328 64.200 m
-# 318.672 64.200 l
-# 323.090 64.200 326.672 60.618 326.672 56.200 c
-# 326.672 53.000 l
-# 326.672 48.582 323.090 45.000 318.672 45.000 c
-# 293.328 45.000 l
-# 288.910 45.000 285.328 48.582 285.328 53.000 c
-# 285.328 56.200 l
-# 285.328 60.618 288.910 64.200 293.328 64.200 c
-# h
-# f
-# 0.000 0.000 0.000 scn
-# /DeviceRGB CS
-# 1.000 1.000 1.000 SCN
-
-# 2 Tr
-# 0.000 0.000 0.000 scn
-# 0.000 0.000 0.000 SCN
-# 1.000 1.000 1.000 SCN
-# 0.000 0.000 0.000 scn
-# 0.000 0.000 0.000 scn
-# 0.000 0.000 0.000 SCN
-
-# BT
-# 291.776 733.3119999999999 Td
-# /FontName 16 Tf
-# [<2d2032202d>] TJ
-# ET
-
-# 1.000 1.000 1.000 SCN
-# 0.000 0.000 0.000 scn
-# 0.000 0.000 0.000 scn
-# 0.000 0.000 0.000 SCN
-# 1.000 1.000 1.000 SCN
-# 0.000 0.000 0.000 scn
-# 0.000 0.000 0.000 scn
-# 0.000 0.000 0.000 SCN
-
-# BT
-# 291.776 50.512 Td
-# /FontName 16 Tf
-# [<2d2032202d>] TJ
-# ET
-
-# 1.000 1.000 1.000 SCN
-# 0.000 0.000 0.000 scn
-
-# 0 Tr
-# Q
-# Q
-
 
 
 
