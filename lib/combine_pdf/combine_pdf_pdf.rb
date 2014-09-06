@@ -280,12 +280,12 @@ module CombinePDF
 
 		# and page numbers to the PDF
 		# options:: a Hash of options setting the behavior and format of the page numbers:
-		#   - :number_format a string representing the format for page number. defaults to ' - %d - '.
-		#   - :number_location an Array containing the location for the page numbers, can be :top, :buttom, :top_left, :top_right, :bottom_left, :bottom_right. defaults to [:top, :buttom].
-		#   - :start_at a Fixnum that sets the number for first page number. defaults to 1.
-		#   - :margin_from_height a number (PDF points) for the top and buttom margins. defaults to 45.
-		#   - :margin_from_side a number (PDF points) for the left and right margins. defaults to 15.
-		# also take all the options for PDFWriter.textbox.
+		# - :number_format a string representing the format for page number. defaults to ' - %d - '.
+		# - :number_location an Array containing the location for the page numbers, can be :top, :buttom, :top_left, :top_right, :bottom_left, :bottom_right. defaults to [:top, :buttom].
+		# - :start_at a Fixnum that sets the number for first page number. defaults to 1.
+		# - :margin_from_height a number (PDF points) for the top and buttom margins. defaults to 45.
+		# - :margin_from_side a number (PDF points) for the left and right margins. defaults to 15.
+		# the options Hash can also take all the options for PDFWriter.textbox.
 		# defaults to font_name: :Helvetica, font_size: 12 and no box (:border_width => 0, :box_color => nil).
 		def number_pages(options = {})
 			opt = {

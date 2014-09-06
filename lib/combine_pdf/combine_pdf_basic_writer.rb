@@ -64,9 +64,7 @@ module CombinePDF
 			self[:MediaBox] = dimentions
 		end
 
-		# <b>INCOMPLETE</b>
-		#
-		# This function, when completed, will add a simple text box to the Page represented by the PDFWriter class.
+		# This method adds a simple text box to the Page represented by the PDFWriter class.
 		# This function takes two values:
 		# text:: the text to potin the box.
 		# properties:: a Hash of box properties.
