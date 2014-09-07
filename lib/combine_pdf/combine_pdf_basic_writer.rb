@@ -25,7 +25,7 @@ module CombinePDF
 	#
 	# Writing on this Page is done using the textbox function.
 	#
-	# Setting the page dimentions can be either at the new or using the mediabox method.
+	# Setting the page dimensions can be either at the new or using the mediabox method.
 	#
 	# the rest of the methods are for internal use.
 	#
@@ -59,9 +59,9 @@ module CombinePDF
 			self[:MediaBox]
 		end
 		# accessor (setter) for the :MediaBox element of the page
-		# dimentions:: an Array consisting of four numbers (can be floats) setting the size of the media box.
-		def mediabox=(dimentions = [0.0, 0.0, 612.0, 792.0])
-			self[:MediaBox] = dimentions
+		# dimensions:: an Array consisting of four numbers (can be floats) setting the size of the media box.
+		def mediabox=(dimensions = [0.0, 0.0, 612.0, 792.0])
+			self[:MediaBox] = dimensions
 		end
 
 		# This method adds a simple text box to the Page represented by the PDFWriter class.
@@ -212,7 +212,7 @@ module CombinePDF
 				x = options[:x]
 				y = options[:y]
 
-				text_size = dimentions_of text, options[:font], font_size
+				text_size = dimensions_of text, options[:font], font_size
 				if options[:text_align] == :center
 					x = (options[:length] - text_size[0])/2 + x
 				elsif options[:text_align] == :right

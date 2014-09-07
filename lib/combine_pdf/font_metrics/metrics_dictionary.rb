@@ -1,13 +1,13 @@
 module CombinePDF
 	class PDFWriter < Hash
-		# This function calculates the dimentions of a string in a PDF.
+		# This function calculates the dimensions of a string in a PDF.
 		#
 		# UNICODE SUPPORT IS MISSING!
 		#
 		# text:: String containing the text for which the demantion box will be calculated.
 		# font:: the font name, from the 14 fonts possible. @see font
 		# size:: the size of the text, as it will be applied in the PDF.
-		def dimentions_of(text, font, size = 1000)
+		def dimensions_of(text, font, size = 1000)
 			metrics = METRICS_DICTIONARY[font]
 			metrics_array = []
 			# the following is only good for latin text - unicode support is missing!!!!
@@ -66,7 +66,7 @@ module CombinePDF
 		def fit_text(text, font, length, height = 10000000)
 			size = 100000
 			size_array = [size]
-			metrics = dimentions_of text, font, size
+			metrics = dimensions_of text, font, size
 			if metrics[0] > length
 				size_array << size * length/metrics[0]
 			end

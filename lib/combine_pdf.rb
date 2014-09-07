@@ -129,6 +129,11 @@ module CombinePDF
 		raise TypeError, "couldn't parse and data, expecting type String" unless data.is_a? String
 		PDF.new( PDFParser.new(data) )
 	end
+	# makes a PDFWriter object
+	# ::mediabox an Array representing the size of the PDF document. defaults to: [0.0, 0.0, 612.0, 792.0]
+	def create_page(mediabox = [0.0, 0.0, 612.0, 792.0])
+		PDFWriter.new mediabox
+	end
 end
 
 
