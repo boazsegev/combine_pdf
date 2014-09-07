@@ -24,7 +24,7 @@ you can also add just odd or even pages:
 ```ruby
 pdf = CombinePDF.new
 i = 0
-CombinePDF.new("file.pdf").pages.each do |page
+CombinePDF.new("file.pdf").pages.each do |page|
   i += 1
   pdf << page if i.even?
 end
