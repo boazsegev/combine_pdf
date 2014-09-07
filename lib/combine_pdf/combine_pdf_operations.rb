@@ -164,6 +164,12 @@ module CombinePDF
 				return object # objects that aren't Strings, Arrays or Hashes (such as Symbols and Fixnums) aren't pointers in Ruby and are always copied.
 			end
 		end
+		# removes id and generation number values, for better comparrison
+		# and avoiding object duplication
+		# objects:: one or more objects in a PDF file/page.
+		def remove_old_ids objects
+			_each_object(objects) {|obj| obj.delete(:indirect_reference_id); obj.delete(:indirect_generation_number)}
+		end
 		def get_refernced_object(objects_array = [], reference_hash = {})
 			objects_array.each do |stored_object|
 				return stored_object if ( stored_object.is_a?(Hash) &&

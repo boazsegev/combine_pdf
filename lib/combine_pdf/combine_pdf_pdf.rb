@@ -303,13 +303,13 @@ module CombinePDF
 				# create a "stamp" PDF page with the same size as the target page
 				mediabox = page[:MediaBox]
 				stamp = PDFWriter.new mediabox
-				# set the visible dimentions to the CropBox, if it exists.
+				# set the visible dimensions to the CropBox, if it exists.
 				cropbox = page[:CropBox]
 				mediabox = cropbox if cropbox
 				# set stamp text
 				text = opt[:number_format] % page_number
 				# compute locations for text boxes
-				text_dimantions = stamp.dimentions_of( text, opt[:font], opt[:font_size] )
+				text_dimantions = stamp.dimensions_of( text, opt[:font], opt[:font_size] )
 				box_width = text_dimantions[0] * 1.2
 				box_height = text_dimantions[1] * 2
 				opt[:length] = box_width
@@ -397,12 +397,20 @@ module CombinePDF
 				object.each {|it| add_referenced(it)}
 			when object.is_a?(Hash)
 				if object[:is_reference_only] && object[:referenced_object]
-					unless @objects.include? object[:referenced_object]
+					found_at = @objects.find_index object[:referenced_object]
+					if found_at
+						#if the objects are equal, they might still be different objects!
+						# so, we need to make sure they are the same object for the pointers to effect id numbering
+						# and formatting operations.
+						object[:referenced_object] = @objects[found_at]
+					else @objects.include? object[:referenced_object]
+						#the object wasn't found - add it to the @objects array
 						@objects << object[:referenced_object]
 						object[:referenced_object].each do |k, v|
 							add_referenced(v) unless k == :Parent
 						end						
 					end
+
 				else
 					object.each do |k, v|
 						add_referenced(v) unless k == :Parent 
@@ -457,6 +465,9 @@ module CombinePDF
 					warn "couldn't connect a reference!!! could be a null object, Silent error!!!" unless obj[:referenced_object]
 				end
 			end
+
+			# when finished, remove the old numbering system and keep only pointers
+			PDFOperations.remove_old_ids @objects
 
 			# # Version 3
 			# # benchmark 1000.times was 3.568246 sec for pdf = CombinePDF.new "/Users/2Be/Desktop/מוצגים/20121002\ הודעת\ הערעור.pdf" }
