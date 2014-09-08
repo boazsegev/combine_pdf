@@ -278,18 +278,19 @@ module CombinePDF
 			return self #return self object for injection chaining (pdf << page << page << page)
 		end
 
-		# and page numbers to the PDF
+		# LATIN ONLY - NO UNICODE SUPPORT YET
+		# add page numbers to the PDF
 		# options:: a Hash of options setting the behavior and format of the page numbers:
-		# - :number_format a string representing the format for page number. defaults to ' - %d - '.
+		# - :number_format a string representing the format for page number. defaults to ' - %s - ' (allows for letter numbering as well, such as "a", "b"...).
 		# - :number_location an Array containing the location for the page numbers, can be :top, :buttom, :top_left, :top_right, :bottom_left, :bottom_right. defaults to [:top, :buttom].
-		# - :start_at a Fixnum that sets the number for first page number. defaults to 1.
+		# - :start_at a Fixnum that sets the number for first page number. also accepts a letter ("a") for letter numbering. defaults to 1.
 		# - :margin_from_height a number (PDF points) for the top and buttom margins. defaults to 45.
 		# - :margin_from_side a number (PDF points) for the left and right margins. defaults to 15.
 		# the options Hash can also take all the options for PDFWriter.textbox.
 		# defaults to font_name: :Helvetica, font_size: 12 and no box (:border_width => 0, :box_color => nil).
 		def number_pages(options = {})
 			opt = {
-				number_format: ' - %d - ',
+				number_format: ' - %s - ',
 				number_location: [:top, :bottom],
 				start_at: 1,
 				font_size: 12,
@@ -351,7 +352,7 @@ module CombinePDF
 					 stamp.textbox text, {x: x, y: y }.merge(opt)
 				end
 				page << stamp
-				page_number += 1
+				page_number = page_number.succ
 			end
 		end
 

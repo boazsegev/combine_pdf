@@ -259,7 +259,29 @@ module CombinePDF
 
 			self
 		end
-
+		def dimensions_of(text, font_name, size = 1000)
+			Fonts.get_font(font_name).dimensions_of text, size
+		end
+		# this method returns the size for which the text fits the requested metrices
+		# the size is type Float and is rather exact
+		# if the text cannot fit such a small place, returns zero (0).
+		# maximum font size possible is set to 100,000 - which should be big enough for anything
+		# text:: the text to fit
+		# font:: the font name. @see font
+		# length:: the length to fit
+		# height:: the height to fit (optional - normally length is the issue)
+		def fit_text(text, font, length, height = 10000000)
+			size = 100000
+			size_array = [size]
+			metrics = Fonts.get_font(font).dimensions_of text, size
+			if metrics[0] > length
+				size_array << size * length/metrics[0]
+			end
+			if metrics[1] > height
+				size_array << size * height/metrics[1]
+			end
+			size_array.min
+		end
 		protected
 
 		# accessor (getter) for the :Resources element of the page
@@ -289,22 +311,6 @@ module CombinePDF
 		# - :Symbol
 		# - :ZapfDingbats
 		def set_font(font = :Helvetica)
-			# refuse any other fonts that arn't basic standard fonts
-			allow_fonts = [ :"Times-Roman",
-					:"Times-Bold",
-					:"Times-Italic",
-					:"Times-BoldItalic",
-					:Helvetica,
-					:"Helvetica-Bold",
-					:"Helvetica-BoldOblique",
-					:"Helvetica-Oblique",
-					:Courier,
-					:"Courier-Bold",
-					:"Courier-Oblique",
-					:"Courier-BoldOblique",
-					:Symbol,
-					:ZapfDingbats ]
-			raise "set_font(font) accepts only one of the 14 standards fonts - wrong font!" unless allow_fonts.include? font
 			# if the font exists, return it's name
 			resources[:Font] ||= {}
 			resources[:Font].each do |k,v|
@@ -312,10 +318,12 @@ module CombinePDF
 					return k
 				end
 			end
-			# create font object
-			font_object = { Type: :Font, Subtype: :Type1, BaseFont: font}
 			# set a secure name for the font
 			name = (SecureRandom.urlsafe_base64(9)).to_sym
+			# get font object
+			font_object = Fonts.get_font(font)
+			# return false if the font wan't found in the library.
+			return false unless font_object
 			# add object to reasource
 			resources[:Font][name] = font_object
 			#return name
