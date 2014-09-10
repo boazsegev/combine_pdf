@@ -26,6 +26,10 @@ module CombinePDF
 		class Font < Hash
 			# set/get the name of the font
 			attr_accessor :name
+			# set/get a character/Glyph mapping for the font (the equivilant of a CMap)
+			#
+			# the cmap is a Hash were each key is the unicode character code and the value is the glyph ID for the font.
+			attr_accessor :cmap
 			# get the metrics dictionary for the font
 			attr_reader :metrics
 			# set the metrics dictionary of the font, making sure the :missing value is set.
@@ -34,8 +38,10 @@ module CombinePDF
 				@metrics[:missing] = @metrics.first[1] unless @metrics[:missing]
 			end
 			# internelized a new Font object, setting it's name, it's metrics Hash and the object Hash.
-			def initialize(name = nil, font_metrics = {32=>{:wx=>250, :boundingbox=>[0, 0, 0, 0]}}, object = nil)
+			# Optionally set a CMap, if the glyph ID and character codes aren't the same.
+			def initialize(name = nil, font_metrics = {32=>{:wx=>250, :boundingbox=>[0, 0, 0, 0]}}, object = nil, c_map = nil)
 				self.name = name
+				self.cmap = c_map
 				self.metrics = font_metrics
 				self[:is_reference_only] = true
 				self[:referenced_object] = object
@@ -61,6 +67,26 @@ module CombinePDF
 				end
 				return [height.to_f/1000*size, width.to_f/1000*size] if metrics_array[0][:wy]
 				[width.to_f/1000*size, height.to_f/1000*size]
+			end
+
+			# This function translate a unicode string, to a character glyph ID stream.
+			def map_to_glyphs text
+				warn "will return self" unless self.cmap
+				return text unless self.cmap
+				coded_array = text.chars.map do |c|
+					case self.cmap[c.ord]
+					when 0..255
+						warn "coded to char"
+						self.cmap[c.ord].chr
+					when 256..65535
+						warn "coded to unicode"
+						[self.cmap[c.ord]].pack 'U*'
+					else
+						warn "uncoded!"
+						c
+					end
+				end
+				coded_array.join
 			end
 		end
 	end
@@ -91,13 +117,15 @@ module CombinePDF
 		# font_name:: a Symbol with the name of the font. if the fonts exists, it will be overwritten!
 		# font_metrics:: a Hash of ont metrics, of the format i => {wx: char_width, boundingbox: [left_x, buttom_y, right_x, top_y]} where i == character code (i.e. 32 for space). The Hash should contain a special value :missing for the metrics of missing characters. an optional :wy will be supported in the future, for up to down fonts.
 		# font_pdf_object:: a Hash in the internal format recognized by CombinePDF, that represents the font object.
-		def register_font(font_name, font_metrics, font_pdf_object)
+		def register_font(font_name, font_metrics, font_pdf_object, font_cmap = nil)
 			new_font = Font.new
 			new_font.name = font_name
 			new_font.metrics = font_metrics
+			new_font.cmap = font_cmap
 			new_font[:is_reference_only] = true
 			new_font[:referenced_object] = font_pdf_object
 			FONTS_LIBRARY[new_font.name] = new_font
+			new_font
 		end
 
 		# This function calculates the dimensions of a string in a PDF.
@@ -160,6 +188,218 @@ module CombinePDF
 				CombinePDF::Fonts.register_font fonts_names_array[i], fonts_metrics_array[i], { Type: :Font, Subtype: :Type1, BaseFont: fonts_names_array[i]}
 			end
 		end
+
+		# Register a fong that already exists in the pdf object into the font library.
+		# DOESN'T WORK YET!!!
+		def register_font_from_pdf_object font_name, font_object
+			# FIXME:
+			# - add stream deflation for the CMap file.
+			# - add :Encoding CMaps (such as :WinAnsiEncoding etc`)
+			# - the ToUnicode CMap parsing assumes 8 Bytes <0F0F> while 16 Bytes and multiple unicode chars are also possible. 
+
+			# first, create cmap, as it will be used to correctly create the widths directory.
+
+			# find the CMap from one of the two systems (TrueType vs. Type0 fonts)
+			# at the moment doen't suppot :Encoding cmaps...
+			cmap = {}
+			if font_object[:ToUnicode]
+				to_unicode = font_object[:ToUnicode]
+				to_unicode = to_unicode[:referenced_object] if to_unicode[:is_reference_only]
+				# deflate the cmap file stream here...
+				######
+				CombinePDF::PDFFilter.inflate_object to_unicode
+
+				# get the deflated stream
+				scanner = StringScanner.new to_unicode[:raw_stream_content]
+				# parse the cmap file - first collect the relevant lines from the cmap file.
+				do_scan = false
+				lines_found = [] #will be filled with arrays, each array representing a line.
+				test = []
+				until scanner.eos? do
+					if do_scan
+						while do_scan && !scanner.eos?
+							case
+							when scanner.scan(/\<[\d\w]+\>/)
+								lines_found.last << scanner.matched()[1..-2]
+							when scanner.scan(/\[/) #this marks an array of objects. so we create a container.
+								lines_found << []
+							when scanner.scan(/\]/) #at the end of the array, we insert the array object into it's containing line.
+								# the following is the equivelant of calling:
+								# lines_found[-2].<<(lines_found.pop)
+								# << is a function call in ruby, so the object on the left is computed before the object on the right.
+								# this is why we don't use lines_found.last << lines_found.pop (which might work if << was an operator).
+								array_parsed = lines_found.pop
+								lines_found.last <<  array_parsed
+							when scanner.scan(/[\n\r]+/)
+								lines_found << []
+							when scanner.scan(/endbfrange|endbfchar/)
+								# remove the last line added, as it won't be used, and set stop signal
+								lines_found.pop
+								do_scan = false
+							else
+								scanner.pos += 1
+							end
+						end
+					else
+						if scanner.scan_until(/beginbfrange|beginbfchar/)
+							#set the start signal, a new array (line) will be created once the \n is parsed and before any numbers
+							do_scan = true
+						else
+							scanner.terminate
+						end
+					end
+				end
+				# parse the cmap file - next, parse each line and set cmap data.
+				lines_found.each do |line|
+					case line.length
+					when 2
+						cmap[line[1].to_i(16)] = line[0].to_i(16) unless line[1].length > 4 #FixMe? for now limit to 8 Byte data
+					when 3
+						if line[2].is_a?(Array)
+							i = line[0].hex
+							j = 0
+							while i <= line[1].hex do
+								cmap[line[2][j].hex]  = i unless line[2][j].length > 4 #FixMe? for now limit to 8 Byte data
+								j += 1
+								i += 1
+							end					
+						else
+							i = line[0].hex
+							j = 0
+							while i <= line[1].hex do
+								cmap[line[2].hex + j] = i  unless line[2].length > 4 #FixMe? for now limit to 8 Byte data
+								j += 1
+								i += 1
+							end
+						end
+					end
+				end
+			else
+				warn "didn't find ToUnicode object for #{font_object}"
+				return false
+			end
+			warn "CMap is empty even after parsing!\nthese were the lines found: #{lines_found}\nfrom: #{scanner.string}\n\n\nsee test:\n#{test}" if cmap.empty?
+
+			# second, create the metrics directory.
+			avarage_bbox = [-99, -265, 1009, 735]
+			metrics = {}
+			old_widths = font_object
+			if font_object[:DescendantFonts]
+				old_widths = font_object[:DescendantFonts]
+				old_widths = old_widths[:referenced_object][:indirect_without_dictionary] if old_widths[:is_reference_only]
+				old_widths = old_widths[0][:referenced_object] 
+				avarage_bbox = old_widths[:FontDescriptor][:FontBBox] || avarage_bbox
+			end
+
+			# compute the metrics values using the appropiate system (TrueType vs. Type0 fonts)
+			cmap_inverted = cmap.invert
+			if old_widths[:W]
+				old_widths = old_widths[:W]
+				old_widths = old_widths[:referenced_object][:indirect_without_dictionary] if old_widths[:is_reference_only]
+				while old_widths[0] do
+					a = old_widths.shift
+					b = old_widths.shift
+					if b.is_a?(Array)
+						b.each_index {|i| metrics[ cmap_inverted[(a+i)] || (a+i) ] = {wx: b[i], boundingbox: avarage_bbox} }	
+					else
+						c = old_widths.shift
+						(b-a).times {|i| metrics[cmap_inverted[(a+i)] || (a+i)] = {wx: c[0], boundingbox: avarage_bbox} }
+					end
+
+				end
+			elsif old_widths[:Widths]
+				first_char = old_widths[:FirstChar]
+				old_widths = old_widths[:Widths]
+				old_widths = old_widths[:referenced_object][:indirect_without_dictionary] if old_widths[:is_reference_only]
+				old_widths.each_index {|i| metrics[cmap_inverted[(i + first_char)] || (i + first_char)] = {wx: old_widths[i], boundingbox: avarage_bbox} }
+			else
+				warn "didn't find widths object for #{old_widths}"
+				return false
+			end
+			# register the font and return the font object
+			cmap = nil if cmap.empty?
+			CombinePDF::Fonts.register_font font_name, metrics, font_object, cmap
+		end
+
+		# # register a TrueType font using the ttfunk gem
+		# #
+		# # NOT YET SUPPORTED - I'm still working on this one... learning about fonts as I go.
+		# #
+		# # name:: the name of the font - this is the name through which you can "pull" the font from the registery
+		# # true_type_font_file:: the file name to be opened and parsed using ttfunk
+		# #
+		# # credit to the Prawn team and the Prawn PDF project. This code is based on their work.
+		# # Please respect their license or don't use this.
+		# def from_ttfunk(name, true_type_font_file)
+		# 	# FIXME: PDF_object isn't formated correcly.
+		# 	# missing ToUnicode? CMAP? wrong Stream content...?
+
+		# 	# read the TTFunk file
+		# 	ttfont = TTFunk::File.open true_type_font_file
+		# 	#set the scaling from the font to PDF points (1000)
+		# 	scale = 1000.0 / ttfont.header.units_per_em
+		# 	# PDF flags, as indicated by Prawn team's code
+		# 	flags = 0
+		# 	family_class = (ttfont.os2.exists? && ttfont.os2.family_class || 0) >> 8
+		# 	flags |= 0x0001 if ttfont.postscript.fixed_pitch?
+		# 	flags |= 0x0002 if [1,2,3,4,5,7].include? family_class
+		# 	flags |= 0x0008 if family_class == 10
+		# 	flags |= 0x0040 if ttfont.postscript.italic_angle.to_i != 0
+		# 	flags |= 0x0004 # Prawn assumes the font contains at least some non-latin characters
+
+		# 	# get cmap
+		# 	cmap = ttfont.cmap.unicode[0].code_map
+		# 	# get metrics
+		# 	widths = ttfont.horizontal_metrics.widths
+		# 	metrics = {}
+		# 	cmap.each do |k,v|
+		# 		bb = ttfont.glyph_outlines.for(v)
+		# 		bb = bb ? [(bb.x_min*scale).to_i, (bb.y_min*scale).to_i, (bb.x_max*scale).to_i, (bb.y_max*scale).to_i ] : [0,0,0,0]
+		# 		metrics[k] = { wx: (widths[v].to_f * scale).to_i , boundingbox: bb}
+		# 	end
+
+		# 	# create PDF object
+		# 	subset = TTFunk::SubsetCollection.new ttfont
+		# 	cmap.each {|k,v| subset.encode([k])}
+		# 	pdf_object = { 	:Type=>:Font,
+		# 				:Subtype=>:TrueType,
+		# 				:Name=>:name,
+		# 				:BaseFont=> ttfont.name.postscript_name[0, 32].gsub("\0",""),
+		# 				:Encoding=>:WinAnsiEncoding,
+		# 				:FirstChar=>((ttfont.os2.exists? && ttfont.os2.first_char_index) ? ttfont.os2.first_char_index : 32),
+		# 				:LastChar=>((ttfont.os2.exists? && ttfont.os2.last_char_index) ? ttfont.os2.last_char_index : 64335),
+		# 				:Widths=>widths,
+		# 				:FontDescriptor => {
+		# 					is_reference_only: true,
+		# 					:referenced_object => {
+		# 						:Type=>:FontDescriptor,
+		# 						:FontName=> ttfont.name.postscript_name[0, 32].gsub("\0",""),
+		# 						:Flags=>flags,
+		# 						:ItalicAngle=>ttfont.postscript.italic_angle,
+		# 						:Ascent=> ttfont.ascent * scale,
+		# 						:Descent=> ttfont.descent * scale,
+		# 						:CapHeight=>(ttfont.os2.exists? && ttfont.os2.cap_height) ? ttfont.os2.cap_height : ttfont.ascent * scale,
+		# 						:AvgWidth=>396,
+		# 						:MaxWidth=> ttfont.horizontal_header.advance_width_max, #maybe?
+		# 						:FontWeight=> (ttfont.os2.exists? && ttfont.os2.weight_class) ? ttfont.os2.weight_class : 400,
+		# 						:XHeight=> (ttfont.os2.exists? && ttfont.os2.x_height) ? (ttfont.os2.x_height * scale).to_i: metrics["x".ord][:wx],
+		# 						# :Leading=>16,
+		# 						:StemV=>0, #TTFunk doesn't compute this
+		# 						:FontBBox=>( ttfont.bbox.map {|i| (i*scale).to_i } ),
+		# 						:FontFile2=>{
+		# 							is_reference_only: true,
+		# 							referenced_object: {
+		# 								:Length => ttfont.contents.length,
+		# 								raw_stream_content: subset[0..-1][0].encode
+		# 							}
+		# 						}
+		# 					}
+		# 				}
+		# 			}
+		# 	register_font name, metrics, pdf_object, cmap
+		# end
+
+
 
 		protected
 		# the Hash listing all the fonts.

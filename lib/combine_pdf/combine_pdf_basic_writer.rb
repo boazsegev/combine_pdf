@@ -212,7 +212,10 @@ module CombinePDF
 				x = options[:x]
 				y = options[:y]
 
-				text_size = dimensions_of text, options[:font], font_size
+				font_object = Fonts.get_font(options[:font])
+
+				text_size = font_object.dimensions_of text, font_size
+
 				if options[:text_align] == :center
 					x = (options[:length] - text_size[0])/2 + x
 				elsif options[:text_align] == :right
@@ -223,6 +226,7 @@ module CombinePDF
 				elsif options[:text_valign] == :top
 					y = (options[:height] - text_size[1]) + y
 				end
+
 				# set graphic state for text
 				text_stream << "q\nq\nq\n"
 				text_graphic_state = graphic_state({ca: options[:opacity], CA: options[:opacity], LW: options[:stroke_width].to_f, LC: 2, LJ: 1,  LD: 0})
@@ -250,7 +254,7 @@ module CombinePDF
 				text_stream << " #{font_size} Tf\n" # set font size and add font operator
 				text_stream << "#{options[:font_color].join(' ')} rg\n" # sets the color state
 				text_stream << "#{x} #{y} Td\n" # set location for text object
-				text_stream << PDFOperations._format_string_to_pdf(text) # insert the string in PDF format
+				text_stream << PDFOperations._format_string_to_pdf(  font_object.map_to_glyphs(text)  ) # insert the string in PDF format, after mapping to font glyphs
 				text_stream << " Tj\n ET\n" # the Text object operator and the End Text marker
 				# exit graphic state for text
 				text_stream << "Q\nQ\nQ\n"
@@ -314,7 +318,7 @@ module CombinePDF
 			# if the font exists, return it's name
 			resources[:Font] ||= {}
 			resources[:Font].each do |k,v|
-				if v.is_a?(Hash) && v[:Type] == :Font && v[:BaseFont] == font
+				if v.is_a?(Hash) && v.name && v.name == font
 					return k
 				end
 			end
