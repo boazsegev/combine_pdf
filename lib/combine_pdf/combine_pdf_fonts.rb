@@ -205,80 +205,14 @@ module CombinePDF
 			if font_object[:ToUnicode]
 				to_unicode = font_object[:ToUnicode]
 				to_unicode = to_unicode[:referenced_object] if to_unicode[:is_reference_only]
-				# deflate the cmap file stream here...
-				######
+				# deflate the cmap file stream before parsing
 				CombinePDF::PDFFilter.inflate_object to_unicode
-
-				# get the deflated stream
-				scanner = StringScanner.new to_unicode[:raw_stream_content]
-				# parse the cmap file - first collect the relevant lines from the cmap file.
-				do_scan = false
-				lines_found = [] #will be filled with arrays, each array representing a line.
-				test = []
-				until scanner.eos? do
-					if do_scan
-						while do_scan && !scanner.eos?
-							case
-							when scanner.scan(/\<[\d\w]+\>/)
-								lines_found.last << scanner.matched()[1..-2]
-							when scanner.scan(/\[/) #this marks an array of objects. so we create a container.
-								lines_found << []
-							when scanner.scan(/\]/) #at the end of the array, we insert the array object into it's containing line.
-								# the following is the equivelant of calling:
-								# lines_found[-2].<<(lines_found.pop)
-								# << is a function call in ruby, so the object on the left is computed before the object on the right.
-								# this is why we don't use lines_found.last << lines_found.pop (which might work if << was an operator).
-								array_parsed = lines_found.pop
-								lines_found.last <<  array_parsed
-							when scanner.scan(/[\n\r]+/)
-								lines_found << []
-							when scanner.scan(/endbfrange|endbfchar/)
-								# remove the last line added, as it won't be used, and set stop signal
-								lines_found.pop
-								do_scan = false
-							else
-								scanner.pos += 1
-							end
-						end
-					else
-						if scanner.scan_until(/beginbfrange|beginbfchar/)
-							#set the start signal, a new array (line) will be created once the \n is parsed and before any numbers
-							do_scan = true
-						else
-							scanner.terminate
-						end
-					end
-				end
-				# parse the cmap file - next, parse each line and set cmap data.
-				lines_found.each do |line|
-					case line.length
-					when 2
-						cmap[line[1].to_i(16)] = line[0].to_i(16) unless line[1].length > 4 #FixMe? for now limit to 8 Byte data
-					when 3
-						if line[2].is_a?(Array)
-							i = line[0].hex
-							j = 0
-							while i <= line[1].hex do
-								cmap[line[2][j].hex]  = i unless line[2][j].length > 4 #FixMe? for now limit to 8 Byte data
-								j += 1
-								i += 1
-							end					
-						else
-							i = line[0].hex
-							j = 0
-							while i <= line[1].hex do
-								cmap[line[2].hex + j] = i  unless line[2].length > 4 #FixMe? for now limit to 8 Byte data
-								j += 1
-								i += 1
-							end
-						end
-					end
-				end
+				# parse the deflated stream
+				cmap = self.parse_cmap to_unicode[:raw_stream_content]
 			else
 				warn "didn't find ToUnicode object for #{font_object}"
 				return false
 			end
-			warn "CMap is empty even after parsing!\nthese were the lines found: #{lines_found}\nfrom: #{scanner.string}\n\n\nsee test:\n#{test}" if cmap.empty?
 
 			# second, create the metrics directory.
 			avarage_bbox = [-99, -265, 1009, 735]
@@ -399,11 +333,91 @@ module CombinePDF
 		# 	register_font name, metrics, pdf_object, cmap
 		# end
 
-
-
 		protected
+
 		# the Hash listing all the fonts.
 		FONTS_LIBRARY = {}
+
+
+		# this method parses a cmap file using it's data stream
+		# FIXME:
+		# - the ToUnicode CMap parsing assumes 8 Bytes <0F0F> while 16 Bytes and multiple unicode chars are also possible (albit very rare).
+		def self.parse_cmap(stream = "")
+			# FIXME:
+			# - the ToUnicode CMap parsing assumes 8 Bytes <0F0F> while 16 Bytes and multiple unicode chars are also possible. 
+			cmap = {}
+			# get the deflated stream
+			scanner = StringScanner.new stream
+			# parse the cmap file - first collect the relevant lines from the cmap file.
+			do_scan = false # the parsing flag, starts as false
+			lines_found = [] #will be filled with arrays, each array representing a line.
+			until scanner.eos? do
+				if do_scan
+					while do_scan && !scanner.eos?
+						case
+						when scanner.scan(/[\<]?[\d\w]+[\>]?/)
+							if scanner.matched()[0] == "<"
+								lines_found.last << scanner.matched()[1..-2].hex
+							else
+								lines_found.last << scanner.matched().to_i
+							end
+						when scanner.scan(/\[/) #this marks an array of objects. so we create a container.
+							lines_found << []
+						when scanner.scan(/\]/) #at the end of the array, we insert the array object into it's containing line.
+							# the following is the equivelant of calling:
+							# lines_found[-2].<<(lines_found.pop)
+							# << is a function call in ruby, so the object on the left is computed before the object on the right.
+							# this is why we don't use lines_found.last << lines_found.pop (which might work if << was an operator).
+							array_parsed = lines_found.pop
+							lines_found.last <<  array_parsed
+						when scanner.scan(/[\n\r]+/)
+							lines_found << []
+						when scanner.scan(/endbfrange|endbfchar/)
+							# remove the last line added, as it won't be used, and set stop signal
+							lines_found.pop
+							do_scan = false
+						else
+							scanner.pos += 1
+						end
+					end
+				else
+					if scanner.scan_until(/beginbfrange|beginbfchar/)
+						#set the start signal, a new array (line) will be created once the \n is parsed and before any numbers
+						do_scan = true
+					else
+						scanner.terminate
+					end
+				end
+			end
+			# parse the cmap file - next, parse each line and set cmap data.
+			lines_found.each do |line|
+				case line.length
+				when 2
+					cmap[line[1]] = line[0] unless line[1] > 65535 #FixMe? for now limit to 8 Byte data
+				when 3
+					if line[2].is_a?(Array)
+						i = line[0]
+						j = 0
+						while i <= line[1] do
+							cmap[line[2][j]]  = i unless line[2][j] > 65535 #FixMe? for now limit to 8 Byte data
+							j += 1
+							i += 1
+						end					
+					else
+						i = line[0]
+						j = 0
+						while i <= line[1] do
+							cmap[line[2] + j] = i  unless line[2] > 65535 #FixMe? for now limit to 8 Byte data
+							j += 1
+							i += 1
+						end
+					end
+				end
+			end
+			warn "CMap is empty even after parsing!\nthese were the lines found: #{lines_found}\nfrom: #{scanner.string}" if cmap.empty?			
+			cmap
+		end
+
 	end
 end
 

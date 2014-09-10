@@ -15,9 +15,11 @@ module CombinePDF
 	#
 	# this Hash lists the private Hash keys that the CombinePDF library uses to
 	# differentiate between complex PDF objects.
-	PRIVATE_HASH_KEYS = [:indirect_reference_id, :indirect_generation_number, :raw_stream_content, :is_reference_only, :referenced_object, :indirect_without_dictionary]
+	PRIVATE_HASH_KEYS = [:indirect_reference_id, :indirect_generation_number, :raw_stream_content, :is_reference_only, :referenced_object, :indirect_without_dictionary, :linked_fonts]
 	#@private
 	#:nodoc: all
+
+	protected
 
 
 	# This is an internal class. you don't need it.
