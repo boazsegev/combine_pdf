@@ -16,11 +16,6 @@ module CombinePDF
 	#
 	# NO UNICODE SUPPORT!
 	#
-	# in the future I wish to make a simple PDF page writer, that has only one functions - the text box.
-	# Once the simple writer is ready (creates a text box in a self contained Page element),
-	# I could add it to the << operators and add it as either a self contained page or as an overlay.
-	# if all goes well, maybe I will also create an add_image function.
-	#
 	# The PDFWriter class is a subclass of Hash and represents a PDF Page object.
 	#
 	# Writing on this Page is done using the textbox function.
@@ -48,10 +43,11 @@ module CombinePDF
 
 		def initialize(mediabox = [0.0, 0.0, 612.0, 792.0])
 			# indirect_reference_id, :indirect_generation_number
+			@contents = ""
 			self[:Type] = :Page
 			self[:indirect_reference_id] = 0
 			self[:Resources] = {}
-			self[:Contents] = { is_reference_only: true , referenced_object: {indirect_reference_id: 0, raw_stream_content: ""} }
+			self[:Contents] = { is_reference_only: true , referenced_object: {indirect_reference_id: 0, raw_stream_content: @contents} }
 			self[:MediaBox] = mediabox
 		end
 		# accessor (getter) for the :MediaBox element of the page
@@ -254,7 +250,7 @@ module CombinePDF
 				text_stream << " #{font_size} Tf\n" # set font size and add font operator
 				text_stream << "#{options[:font_color].join(' ')} rg\n" # sets the color state
 				text_stream << "#{x} #{y} Td\n" # set location for text object
-				text_stream << PDFOperations._format_string_to_pdf(  font_object.map_to_glyphs(text)  ) # insert the string in PDF format, after mapping to font glyphs
+				text_stream << (  font_object.encode(text)  ) # insert the string in PDF format, after mapping to font glyphs
 				text_stream << " Tj\n ET\n" # the Text object operator and the End Text marker
 				# exit graphic state for text
 				text_stream << "Q\nQ\nQ\n"
@@ -295,7 +291,7 @@ module CombinePDF
 		# accessor (getter) for the stream in the :Contents element of the page
 		# after getting the string object, you can operate on it but not replace it (use << or other String methods).
 		def contents
-			self[:Contents][:referenced_object][:raw_stream_content]
+			@contents
 		end
 		# creates a font object and adds the font to the resources dictionary
 		# returns the name of the font for the content stream.
@@ -318,7 +314,7 @@ module CombinePDF
 			# if the font exists, return it's name
 			resources[:Font] ||= {}
 			resources[:Font].each do |k,v|
-				if v.is_a?(Hash) && v.name && v.name == font
+				if v.is_a?(Fonts::Font) && v.name && v.name == font
 					return k
 				end
 			end

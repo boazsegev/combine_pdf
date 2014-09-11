@@ -14,6 +14,8 @@ module CombinePDF
 	#@private
 	#:nodoc: all
 
+	protected
+
 	# This is the Parser class.
 	#
 	# It takes PDF data and parses it.

@@ -157,10 +157,13 @@ module CombinePDF
 				out << "/Info #{PDFOperations._object_to_pdf @info}"
 			end
 			out << ">>\nstartxref\n#{xref_location.to_s}\n%%EOF"
+			# when finished, remove the numbering system and keep only pointers
+			PDFOperations.remove_old_ids @objects
+			# output the pdf stream
 			out.join("\n").force_encoding(Encoding::ASCII_8BIT)
 		end
 
-		# Seve the PDF to file.
+		# Save the PDF to file.
 		# 
 		# file_name:: is a string or path object for the output.
 		#
@@ -420,7 +423,7 @@ module CombinePDF
 			end
 		end
 		# @private
-		# run block of code on evey object (Hash)
+		# run block of code on evey PDF object (PDF objects are class Hash)
 		def each_object(&block)
 			PDFOperations._each_object(@objects, &block)
 		end
@@ -484,7 +487,7 @@ module CombinePDF
 		# @private
 		def renumber_object_ids(start = nil)
 			warn "Resetting Object Reference IDs"
-			@set_start_id ||= start
+			@set_start_id = start || @set_start_id
 			start = @set_start_id
 			history = {}
 			all_indirect_object.each do |obj|
@@ -511,7 +514,8 @@ module CombinePDF
 		end
 		# @private
 		def all_indirect_object
-			[].tap {|out| @objects.each {|obj| out << obj if (obj.is_a?(Hash) && obj[:is_reference_only].nil?) } }
+			# [].tap {|out| @objects.each {|obj| out << obj if (obj.is_a?(Hash) && obj[:is_reference_only].nil?) } }
+			@objects
 		end
 		# @private
 		def sort_objects_by_id

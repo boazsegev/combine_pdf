@@ -3,13 +3,13 @@ require 'zlib'
 require 'securerandom'
 require 'strscan'
 
-require "combine_pdf/combine_pdf_operations.rb"
-require "combine_pdf/combine_pdf_basic_writer.rb"
-require "combine_pdf/combine_pdf_decrypt.rb"
-require "combine_pdf/combine_pdf_fonts.rb"
-require "combine_pdf/combine_pdf_filter.rb"
-require "combine_pdf/combine_pdf_parser.rb"
-require "combine_pdf/combine_pdf_pdf.rb"
+load "combine_pdf/combine_pdf_operations.rb"
+load "combine_pdf/combine_pdf_basic_writer.rb"
+load "combine_pdf/combine_pdf_decrypt.rb"
+load "combine_pdf/combine_pdf_fonts.rb"
+load "combine_pdf/combine_pdf_filter.rb"
+load "combine_pdf/combine_pdf_parser.rb"
+load "combine_pdf/combine_pdf_pdf.rb"
 
 # # will be removed one font support and font library is completed.
 # require "combine_pdf/font_metrics/courier-bold_metrics.rb"

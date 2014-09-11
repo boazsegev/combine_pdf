@@ -108,10 +108,13 @@ module CombinePDF
 			resources.each do |k,v|
 				if v.is_a?(Hash)
 					new_dictionary = {}
+					new_name = "Combine" + SecureRandom.urlsafe_base64() + "PDF"
+					i = 1
 					v.each do |old_key, value|
-						new_key = ("CombinePDF" + SecureRandom.urlsafe_base64(9)).to_sym
+						new_key = (new_name + i.to_s).to_sym
 						names_dictionary[old_key] = new_key
 						new_dictionary[new_key] = value
+						i += 1
 					end
 					resources[k] = new_dictionary
 				end

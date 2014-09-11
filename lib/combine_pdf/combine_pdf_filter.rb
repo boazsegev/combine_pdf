@@ -11,6 +11,8 @@ module CombinePDF
 	#@private
 	#:nodoc: all
 
+	protected
+
 	# This is an internal class. you don't need it.
 	module PDFFilter
 		module_function

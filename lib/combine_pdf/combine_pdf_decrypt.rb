@@ -10,6 +10,8 @@
 module CombinePDF
 	#:nodoc: all
 
+	protected
+	
 	# @private
 	# This is an internal class. you don't need it.
 	class PDFDecrypt

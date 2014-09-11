@@ -57,7 +57,7 @@ module CombinePDF
 				metrics_array = []
 				# the following is only good for latin text - unicode support is missing!!!!
 				text.each_char do |c|
-					metrics_array << (self.metrics[c.ord] or self.metrics[:missing])
+					metrics_array << (self.metrics[c] or self.metrics[:missing])
 				end
 				height = metrics_array.map {|m| m ? m[:boundingbox][3] : 0} .max
 				height = height - (metrics_array.map {|m| m ? m[:boundingbox][1] : 0} ).min
@@ -70,22 +70,19 @@ module CombinePDF
 			end
 
 			# This function translate a unicode string, to a character glyph ID stream.
-			def map_to_glyphs text
-				warn "will return self" unless self.cmap
-				return text unless self.cmap
+			def encode text
+				# FixMe: embed RTL text convertion
+				return PDFOperations._format_string_to_pdf(text) unless self.cmap
 				coded_array = text.chars.map do |c|
-					case self.cmap[c.ord]
-					when 0..255
-						warn "coded to char"
-						self.cmap[c.ord].chr
-					when 256..65535
-						warn "coded to unicode"
-						[self.cmap[c.ord]].pack 'U*'
+					if self.cmap[c]
+						self.cmap[c]
 					else
-						warn "uncoded!"
-						c
+						warn "CombinePDF ERROR: couldn't encode string - characters not supported by the chosen font."
+						""
 					end
 				end
+				coded_array.unshift "<"
+				coded_array.push ">"
 				coded_array.join
 			end
 		end
@@ -206,6 +203,7 @@ module CombinePDF
 				to_unicode = font_object[:ToUnicode]
 				to_unicode = to_unicode[:referenced_object] if to_unicode[:is_reference_only]
 				# deflate the cmap file stream before parsing
+				to_unicode = PDFOperations.create_deep_copy to_unicode
 				CombinePDF::PDFFilter.inflate_object to_unicode
 				# parse the deflated stream
 				cmap = self.parse_cmap to_unicode[:raw_stream_content]
@@ -215,21 +213,22 @@ module CombinePDF
 			end
 
 			# second, create the metrics directory.
-			avarage_bbox = [-99, -265, 1009, 735]
 			metrics = {}
 			old_widths = font_object
 			if font_object[:DescendantFonts]
 				old_widths = font_object[:DescendantFonts]
 				old_widths = old_widths[:referenced_object][:indirect_without_dictionary] if old_widths[:is_reference_only]
 				old_widths = old_widths[0][:referenced_object] 
-				avarage_bbox = old_widths[:FontDescriptor][:FontBBox] || avarage_bbox
+				avarage_bbox = [0, 0, 0, 0] # data is missing for full box metrics, just ignore
 			end
 
 			# compute the metrics values using the appropiate system (TrueType vs. Type0 fonts)
-			cmap_inverted = cmap.invert
+			cmap_inverted = {}
+			cmap.each {|k, v| cmap_inverted[v.hex] = k}
 			if old_widths[:W]
 				old_widths = old_widths[:W]
 				old_widths = old_widths[:referenced_object][:indirect_without_dictionary] if old_widths[:is_reference_only]
+				old_widths = PDFOperations.create_deep_copy old_widths
 				while old_widths[0] do
 					a = old_widths.shift
 					b = old_widths.shift
@@ -345,6 +344,17 @@ module CombinePDF
 		def self.parse_cmap(stream = "")
 			# FIXME:
 			# - the ToUnicode CMap parsing assumes 8 Bytes <0F0F> while 16 Bytes and multiple unicode chars are also possible. 
+
+					# when 0..255
+					# 	warn "coded to char"
+					# 	self.cmap[c.ord].chr
+					# when 256..65535
+					# 	warn "coded to unicode"
+					# 	[self.cmap[c.ord]].pack 'U*'
+					# else
+					# 	warn "uncoded!"
+					# 	c
+					# end
 			cmap = {}
 			# get the deflated stream
 			scanner = StringScanner.new stream
@@ -357,9 +367,13 @@ module CombinePDF
 						case
 						when scanner.scan(/[\<]?[\d\w]+[\>]?/)
 							if scanner.matched()[0] == "<"
-								lines_found.last << scanner.matched()[1..-2].hex
+								lines_found.last << scanner.matched()[1..-2]
 							else
-								lines_found.last << scanner.matched().to_i
+								if scanner.matched().to_i.to_s(16).length.odd?
+									lines_found.last <<  ("0" + scanner.matched().to_i.to_s(16))
+								else
+									lines_found.last <<  scanner.matched().to_i.to_s(16)
+								end
 							end
 						when scanner.scan(/\[/) #this marks an array of objects. so we create a container.
 							lines_found << []
@@ -393,21 +407,25 @@ module CombinePDF
 			lines_found.each do |line|
 				case line.length
 				when 2
-					cmap[line[1]] = line[0] unless line[1] > 65535 #FixMe? for now limit to 8 Byte data
+					cmap["%c" % line[1].hex] = line[0] #FixMe? for now limit to 8 Byte data
 				when 3
 					if line[2].is_a?(Array)
-						i = line[0]
+						format = "%0#{line[0].length}x"
+						i = line[0].hex
+						last_char = line[1].hex
 						j = 0
-						while i <= line[1] do
-							cmap[line[2][j]]  = i unless line[2][j] > 65535 #FixMe? for now limit to 8 Byte data
+						while i <= last_char do
+							cmap["%c" % line[2][j].hex]  = format % i #FixMe? for now limit to 8 Byte data
 							j += 1
 							i += 1
 						end					
 					else
-						i = line[0]
+						format = "%0#{line[0].length}x"
+						i = line[0].hex
+						last_char = line[1].hex
 						j = 0
-						while i <= line[1] do
-							cmap[line[2] + j] = i  unless line[2] > 65535 #FixMe? for now limit to 8 Byte data
+						while i <= last_char do
+							cmap["%c" % (line[2].hex + j)] = format % i #FixMe? for now limit to 8 Byte data
 							j += 1
 							i += 1
 						end
