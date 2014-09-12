@@ -406,14 +406,20 @@ module CombinePDF
 			out = []
 			scanner = StringScanner.new text
 			until scanner.eos? do
-				if scanner.scan /[#{rtl_characters}]/
+				if scanner.scan /[#{rtl_characters} ]/
 					out.unshift scanner.matched
-				end
-				if scanner.scan /[^#{rtl_characters}]+/
-					out.unshift scanner.matched
+				elsif scanner.scan /[^#{rtl_characters}]+/
+					if out.empty? && scanner.matched.match(/[\s]$/) && !scanner.eos?
+						warn "MOVING SPACE: #{scanner.matched}"
+						white_space_to_move = scanner.matched.match(/[\s]+$/).to_s
+						out.unshift scanner.matched[0..-1-white_space_to_move.length]
+						out.unshift white_space_to_move
+					else
+						out.unshift scanner.matched
+					end
 				end
 			end
-			out.join
+			out.join.strip
 		end
 	end
 	
