@@ -15,7 +15,7 @@ module CombinePDF
 	#
 	# this Hash lists the private Hash keys that the CombinePDF library uses to
 	# differentiate between complex PDF objects.
-	PRIVATE_HASH_KEYS = [:indirect_reference_id, :indirect_generation_number, :raw_stream_content, :is_reference_only, :referenced_object, :indirect_without_dictionary, :linked_fonts]
+	PRIVATE_HASH_KEYS = [:indirect_reference_id, :indirect_generation_number, :raw_stream_content, :is_reference_only, :referenced_object, :indirect_without_dictionary]
 	#@private
 	#:nodoc: all
 
@@ -130,6 +130,8 @@ module CombinePDF
 				names_dictionary.each do |old_key, new_key|
 					stream[:raw_stream_content].gsub! _object_to_pdf(old_key), _object_to_pdf(new_key)  ##### PRAY(!) that the parsed datawill be correctly reproduced! 
 				end
+				# patch back to PDF defaults, for OCRed PDF files.
+				stream[:raw_stream_content] = "q\nq\nq\nDeviceRGB CS\nDeviceRGB cs\n0 0 0 rg\n0 0 0 RG\n0 Tr\n%s\nQ\nQ\nQ\n" % stream[:raw_stream_content]
 			end
 
 			new_page
