@@ -32,11 +32,9 @@ load "combine_pdf/combine_pdf_pdf.rb"
 
 
 
-# This is a pure ruby library to merge PDF files.
+# This is a pure ruby library to combine/merge, stmap/overlay and number PDF files.
 #
-# In the future, this library will also allow stamping and watermarking PDFs (it allows this now, only with some issues).
-#
-# PDF objects can be used to combine or to inject data.
+# You can also use this library for writing basic text content into new or existing PDF files (For authoring new PDF files look at the Prawn ruby library).
 #
 # here is the most basic application for the library, a one-liner that combines the PDF files and saves them:
 #   (CombinePDF.new("file1.pdf") << CombinePDF.new("file2.pdf") << CombinePDF.new("file3.pdf")).save("combined.pdf")
@@ -59,7 +57,7 @@ load "combine_pdf/combine_pdf_pdf.rb"
 #   pdf.save "combined.pdf"
 # as demonstrated above, these can be chained for into a one-liner.
 #
-# you can also only selected pages.
+# you can also choose to add only specific pages.
 #
 # in this example, only even pages will be added:
 #   pdf = CombinePDF.new
@@ -77,15 +75,14 @@ load "combine_pdf/combine_pdf_pdf.rb"
 # in this example, a company logo will be stamped over each page:
 #   company_logo = CombinePDF.new("company_logo.pdf").pages[0]
 #   pdf = CombinePDF.new "content_file.pdf"
-#   pdf.pages.each {|page| page << company_logo} # notice the << operator is on a page and not a PDF object.
+#   pdf.pages.each {|page| page << company_logo}
 #   pdf.save "content_with_logo.pdf"
 # Notice the << operator is on a page and not a PDF object. The << operator acts differently on PDF objects and on Pages.
 #
-# The << operator defaults to secure injection by renaming references to avoid conflics. For overlaying pages using compressed data that might not be editable (due to limited filter support), you can use:
+# The << operator defaults to secure injection by renaming references to avoid conflics.
+#
+# Less recommended, but available - for overlaying pages using compressed data that might not be editable (due to limited filter support), you can use:
 #   pdf.pages(nil, false).each {|page| page << stamp_page}
-#
-#
-# Notice that page objects are Hash class objects and the << operator was added to the Page instances without altering the class.
 #
 # == Page Numbering
 # adding page numbers to a PDF object or file is as simple as can be:

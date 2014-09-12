@@ -48,9 +48,6 @@ module CombinePDF
 	# The << operator defaults to secure injection by renaming references to avoid conflics. For overlaying pages using compressed data that might not be editable (due to limited filter support), you can use:
 	#   pdf.pages(nil, false).each {|page| page << stamp_page}
 	#
-	#
-	# Notice that page objects are Hash class objects and the << operator was added to the Page instances without altering the class.
-	#
 	# == Page Numbering
 	# adding page numbers to a PDF object or file is as simple as can be:
 	#   pdf = CombinePDF.new "file_to_number.pdf"
@@ -281,8 +278,11 @@ module CombinePDF
 			return self #return self object for injection chaining (pdf << page << page << page)
 		end
 
-		# LATIN ONLY - NO UNICODE SUPPORT YET
 		# add page numbers to the PDF
+		#
+		# For unicode text, a unicode font(s) must first be registered. the registered font(s) must supply the
+		# subset of characters used in the text. UNICODE IS AN ISSUE WITH THE PDF FORMAT - USE CAUSION.
+		#
 		# options:: a Hash of options setting the behavior and format of the page numbers:
 		# - :number_format a string representing the format for page number. defaults to ' - %s - ' (allows for letter numbering as well, such as "a", "b"...).
 		# - :number_location an Array containing the location for the page numbers, can be :top, :buttom, :top_left, :top_right, :bottom_left, :bottom_right. defaults to [:top, :buttom].
