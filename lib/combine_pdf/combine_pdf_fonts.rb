@@ -47,28 +47,6 @@ module CombinePDF
 				self[:referenced_object] = object
 			end
 
-			# This function calculates the dimensions of a string in a PDF.
-			#
-			# UNICODE SUPPORT IS FONT DEPENDENT!
-			#
-			# text:: String containing the text for which the demantion box will be calculated.
-			# size:: the size of the text, as it will be applied in the PDF.
-			def dimensions_of(text, size = 1000)
-				metrics_array = []
-				# the following is only good for latin text - unicode support is missing!!!!
-				text.each_char do |c|
-					metrics_array << (self.metrics[c] or self.metrics[:missing])
-				end
-				height = metrics_array.map {|m| m ? m[:boundingbox][3] : 0} .max
-				height = height - (metrics_array.map {|m| m ? m[:boundingbox][1] : 0} ).min
-				width = 0.0
-				metrics_array.each do |m|
-					width += (m[:wx] or m[:wy])
-				end
-				return [height.to_f/1000*size, width.to_f/1000*size] if metrics_array[0][:wy]
-				[width.to_f/1000*size, height.to_f/1000*size]
-			end
-
 			# This function translate a unicode string, to a character glyph ID stream.
 			def encode text
 				# FixMe: embed RTL text convertion
@@ -112,8 +90,9 @@ module CombinePDF
 
 		# adds a correctly formatted font object to the font library.
 		# font_name:: a Symbol with the name of the font. if the fonts exists, it will be overwritten!
-		# font_metrics:: a Hash of ont metrics, of the format i => {wx: char_width, boundingbox: [left_x, buttom_y, right_x, top_y]} where i == character code (i.e. 32 for space). The Hash should contain a special value :missing for the metrics of missing characters. an optional :wy will be supported in the future, for up to down fonts.
+		# font_metrics:: a Hash of ont metrics, of the format char => {wx: char_width, boundingbox: [left_x, buttom_y, right_x, top_y]} where i == character code (i.e. 32 for space). The Hash should contain a special value :missing for the metrics of missing characters. an optional :wy will be supported in the future, for up to down fonts.
 		# font_pdf_object:: a Hash in the internal format recognized by CombinePDF, that represents the font object.
+		# font_cmap:: a CMap dictionary Hash) which maps unicode characters to the hex CID for the font (i.e. {"a" => "61", "z" => "7a" }).
 		def register_font(font_name, font_metrics, font_pdf_object, font_cmap = nil)
 			new_font = Font.new
 			new_font.name = font_name
@@ -125,17 +104,37 @@ module CombinePDF
 			new_font
 		end
 
-		# This function calculates the dimensions of a string in a PDF.
+		# gets the dimentions (width and height) of the text, as it will be printed in the PDF.
 		#
-		# UNICODE SUPPORT IS MISSING!
-		#
-		# text:: String containing the text for which the demantion box will be calculated.
-		# font:: the font name, from the 14 fonts possible. @see font
-		# size:: the size of the text, as it will be applied in the PDF.
-		def dimensions_of(text, font_name, size = 1000)
-			get_font(font_name).dimensions_of text, size
-		end
+		# text:: the text to measure
+		# fonts:: a font name or an Array of font names. Font names should be registered fonts. The 14 standard fonts are pre regitered with the font library.
+		# size:: the size of the font (defaults to 1000 points).
+		def dimensions_of(text, fonts, size = 1000)
+			fonts = [fonts] unless fonts.is_a? Array
+			merged_metrics = {}
+			# merge the metrics last to first (so that important fonts override secondary fonts)
+			fonts.length.downto(1).each do |i|
+				f = get_font(fonts[i-1])
+				if f && f.metrics
+					merged_metrics.update( get_font(fonts[i-1]).metrics)
+				else
+					warn "metrics of font not found!"
+				end
+			end
 
+			metrics_array = []
+			text.each_char do |c|
+				metrics_array << (merged_metrics[c] || {wx: 0, boundingbox: [0,0,0,0]})
+			end
+			height = metrics_array.map {|m| m ? m[:boundingbox][3] : 0} .max
+			height = height - (metrics_array.map {|m| m ? m[:boundingbox][1] : 0} ).min
+			width = 0.0
+			metrics_array.each do |m|
+				width += (m[:wx] || m[:wy])
+			end
+			return [height.to_f/1000*size, width.to_f/1000*size] if metrics_array[0][:wy]
+			[width.to_f/1000*size, height.to_f/1000*size]
+		end
 		# this function registers the 14 standard fonts to the library.
 		#
 		# it will be called when the module first requests a font from the library.
@@ -185,7 +184,7 @@ module CombinePDF
 			end
 		end
 
-		# Register a fong that already exists in the pdf object into the font library.
+		# Register a font that already exists in a pdf object into the font library.
 		# DOESN'T WORK YET!!!
 		def register_font_from_pdf_object font_name, font_object
 			# FIXME:

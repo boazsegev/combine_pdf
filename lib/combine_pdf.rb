@@ -33,18 +33,35 @@ load "combine_pdf/combine_pdf_pdf.rb"
 
 
 # This is a pure ruby library to merge PDF files.
+#
 # In the future, this library will also allow stamping and watermarking PDFs (it allows this now, only with some issues).
 #
 # PDF objects can be used to combine or to inject data.
+#
+# here is the most basic application for the library, a one-liner that combines the PDF files and saves them:
+#   (CombinePDF.new("file1.pdf") << CombinePDF.new("file2.pdf") << CombinePDF.new("file3.pdf")).save("combined.pdf")
+#
+# == Loading PDF data
+# Loading PDF data can be done from file system or directly from the memory.
+#
+# Loading data from a file is easy:
+#   pdf = CombinePDF.new("file.pdf")
+# you can also parse PDF files from memory:
+#   pdf_data = IO.read 'file.pdf' # for this demo, load a file to memory
+#   pdf = CombinePDF.parse(pdf_data)
+# Loading from the memory is especially effective for importing PDF data recieved through the internet or from a different authoring library such as Prawn.
+#
 # == Combine/Merge PDF files or Pages
 # To combine PDF files (or data):
 #   pdf = CombinePDF.new
-#   pdf << CombinePDF.new("file1.pdf") # one way to combine, very fast.
+#   pdf << CombinePDF.new("file1.pdf")
 #   pdf << CombinePDF.new("file2.pdf")
 #   pdf.save "combined.pdf"
-# or even a one liner:
-#   (CombinePDF.new("file1.pdf") << CombinePDF.new("file2.pdf") << CombinePDF.new("file3.pdf")).save("combined.pdf")
-# you can also add just odd or even pages:
+# as demonstrated above, these can be chained for into a one-liner.
+#
+# you can also only selected pages.
+#
+# in this example, only even pages will be added:
 #   pdf = CombinePDF.new
 #   i = 0
 #   CombinePDF.new("file.pdf").pages.each do |page|
@@ -52,12 +69,12 @@ load "combine_pdf/combine_pdf_pdf.rb"
 #     pdf << page if i.even?
 #   end
 #   pdf.save "even_pages.pdf"
-# notice that adding all the pages one by one is slower then adding the whole file.
+# notice that adding the whole file is faster then adding each page seperately.
 # == Add content to existing pages (Stamp / Watermark)
 # To add content to existing PDF pages, first import the new content from an existing PDF file.
 # after that, add the content to each of the pages in your existing PDF.
 #
-# in this example, we will add a company logo to each page:
+# in this example, a company logo will be stamped over each page:
 #   company_logo = CombinePDF.new("company_logo.pdf").pages[0]
 #   pdf = CombinePDF.new "content_file.pdf"
 #   pdf.pages.each {|page| page << company_logo} # notice the << operator is on a page and not a PDF object.
@@ -77,16 +94,40 @@ load "combine_pdf/combine_pdf_pdf.rb"
 #   pdf.save "file_with_numbering.pdf"
 #
 # numbering can be done with many different options, with different formating, with or without a box object, and even with opacity values.
+# == Writing Content
+# page numbering actually adds content using the PDFWriter object (a very basic writer).
 #
-# == Loading PDF data
-# Loading PDF data can be done from file system or directly from the memory.
+# in this example, all the PDF pages will be stamped, along the top, with a red box, with blue text, stating "Draft, page #".
+# here is the easy way (we can even use "number_pages" without page numbers, if we wish):
+#   pdf = CombinePDF.new "file_to_stamp.pdf"
+#   pdf.number_pages number_format: " - Draft, page %d - ", number_location: [:top], font_color: [0,0,1], box_color: [0.4,0,0], opacity: 0.75, font_size:16
+#   pdf.save "draft.pdf"
 #
-# Loading data from a file is easy:
-#   pdf = CombinePDF.new("file.pdf")
-# you can also parse PDF files from memory:
-#   pdf_data = IO.read 'file.pdf' # for this demo, load a file to memory
-#   pdf = CombinePDF.parse(pdf_data)
-# Loading from the memory is especially effective for importing PDF data recieved through the internet or from a different authoring library such as Prawn.
+# for demntration, it will now be coded the hard way, just so we can play more directly with some of the data.
+#
+#   pdf = CombinePDF.new "file_to_stamp.pdf"
+#   ipage_number = 1
+#   pdf.pages.each do |page|
+#     # create a "stamp" PDF page with the same size as the target page
+#     # we will do this because we will use this to center the box in the page
+#     mediabox = page[:MediaBox]
+#     # CombinePDF is pointer based...
+#     # so you can add the stamp to the page and still continue to edit it's content!
+#     stamp = PDFWriter.new mediabox
+#     page << stamp
+#     # set the visible dimensions to the CropBox, if it exists.
+#     cropbox = page[:CropBox]
+#     mediabox = cropbox if cropbox
+#     # set stamp text
+#     text = " Draft (page %d) " % page_number
+#     # write the textbox
+#     stamp.textbox text, x: mediabox[0]+30, y: mediabox[1]+30, width: mediabox[2]-mediabox[0]-60, height: mediabox[3]-mediabox[1]-60, font_color: [0,0,1], font_size: :fit_text, box_color: [0.4,0,0], opacity: 0.5
+#   end
+#   pdf.save "draft.pdf"
+#
+#
+# font support for the writer is still in the works and is extreamly limited.
+# at the moment it is best to limit the fonts to the 14 standard latin fonts (no unicode).
 #
 # == Decryption & Filters
 #
@@ -132,9 +173,46 @@ module CombinePDF
 		PDF.new( PDFParser.new(data) )
 	end
 	# makes a PDFWriter object
+	#
+	# PDFWriter objects reresent an empty page and have the method "textbox"
+	# that adds content to that page.
+	#
+	# PDFWriter objects are used internally for numbering pages (by creating a PDF page
+	# with the page number and "stamping" it over the existing page).
+	#
 	# ::mediabox an Array representing the size of the PDF document. defaults to: [0.0, 0.0, 612.0, 792.0]
+	#
+	# if the page is PDFWriter object as a stamp, the final size will be that of the original page.
 	def create_page(mediabox = [0.0, 0.0, 612.0, 792.0])
 		PDFWriter.new mediabox
+	end
+
+	# adds a correctly formatted font object to the font library.
+	#
+	# registered fonts will remain in the library and will only be embeded in
+	# PDF objects when they are used by PDFWriter objects (for example, for numbering pages).
+	#
+	# this function enables plug-ins to expend the font functionality of CombinePDF.
+	#
+	# font_name:: a Symbol with the name of the font. if the fonts exists in the library, it will be overwritten!
+	# font_metrics:: a Hash of font metrics, of the format char => {wx: char_width, boundingbox: [left_x, buttom_y, right_x, top_y]} where char == character itself (i.e. " " for space). The Hash should contain a special value :missing for the metrics of missing characters. an optional :wy might be supported in the future, for up to down fonts.
+	# font_pdf_object:: a Hash in the internal format recognized by CombinePDF, that represents the font object.
+	# font_cmap:: a CMap dictionary Hash) which maps unicode characters to the hex CID for the font (i.e. {"a" => "61", "z" => "7a" }).
+	def register_font(font_name, font_metrics, font_pdf_object, font_cmap = nil)
+		Fonts.register_font font_name, font_metrics, font_pdf_object, font_cmap
+	end
+
+	# adds an existing font (from any PDF Object) to the font library.
+	#
+	# returns the font on success or false on failure.
+	#
+	# VERY LIMITTED SUPPORT:
+	# - at the moment it only imports Type0 fonts.
+	# - also, to extract the Hash of the actual font object you were looking for, is not a trivial matter. I do it on the console.
+	# font_name:: a Symbol with the name of the font registry. if the fonts exists in the library, it will be overwritten! 
+	# font_object:: a Hash in the internal format recognized by CombinePDF, that represents the font object.
+	def register_font_from_pdf_object font_name, font_object
+		Fonts.register_font_from_pdf_object font_name, font_object
 	end
 end
 

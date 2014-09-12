@@ -44,6 +44,7 @@ module CombinePDF
 		def initialize(mediabox = [0.0, 0.0, 612.0, 792.0])
 			# indirect_reference_id, :indirect_generation_number
 			@contents = ""
+			@base_font_name = "Writer" + SecureRandom.urlsafe_base64(7) + "PDF"
 			self[:Type] = :Page
 			self[:indirect_reference_id] = 0
 			self[:Resources] = {}
@@ -67,11 +68,11 @@ module CombinePDF
 		# the symbols and values in the properties Hash could be any or all of the following:
 		# x:: the left position of the box.
 		# y:: the BUTTOM position of the box.
-		# length:: the length of the box. negative values will be computed from edge of page. defaults to 0 (end of page).
+		# width:: the width/length of the box. negative values will be computed from edge of page. defaults to 0 (end of page).
 		# height:: the height of the box. negative values will be computed from edge of page. defaults to 0 (end of page).
 		# text_align:: symbol for horizontal text alignment, can be ":center" (default), ":right", ":left"
 		# text_valign:: symbol for vertical text alignment, can be ":center" (default), ":top", ":buttom"
-		# font:: a Symbol representing one of the 14 standard fonts. defaults to ":Helvetica". the options are:
+		# font:: a registered font name or an Array of names. defaults to ":Helvetica". The 14 standard fonts names are:
 		# - :"Times-Roman"
 		# - :"Times-Bold"
 		# - :"Times-Italic"
@@ -100,11 +101,11 @@ module CombinePDF
 			options = {
 				x: 0,
 				y: 0,
-				length: 0,
+				width: 0,
 				height: -1,
 				text_align: :center,
 				text_valign: :center,
-				font: :Helvetica,
+				font: nil,
 				font_size: :fit_text,
 				max_font_size: nil,
 				font_color: [0,0,0],
@@ -118,15 +119,8 @@ module CombinePDF
 			}
 			options.update properties
 			# reset the length and height to meaningful values, if negative
-			options[:length] = mediabox[2] - options[:x] + options[:length] if options[:length] <= 0
+			options[:width] = mediabox[2] - options[:x] + options[:width] if options[:width] <= 0
 			options[:height] = mediabox[3] - options[:y] + options[:height] if options[:height] <= 0
-			# fit text in box, if requested
-			font_size = options[:font_size]
-			if options[:font_size] == :fit_text
-				font_size = self.fit_text text, options[:font], options[:length], options[:height]
-				font_size = options[:max_font_size] if options[:max_font_size] && font_size > options[:max_font_size]
-			end
-
 
 			# create box stream
 			box_stream = ""
@@ -146,29 +140,29 @@ module CombinePDF
 				box_stream << "#{PDFOperations._object_to_pdf box_graphic_state} gs\n"
 				box_stream << "DeviceRGB CS\nDeviceRGB cs\n"
 				if options[:box_color]
-					box_stream << "#{options[:box_color].join(' ')} scn\n"
+					box_stream << "#{options[:box_color].join(' ')} rg\n"
 				end
 				if options[:border_width].to_i > 0 && options[:border_color]
-					box_stream << "#{options[:border_color].join(' ')} SCN\n"
+					box_stream << "#{options[:border_color].join(' ')} RG\n"
 				end
 				# create the path
 				radius = options[:box_radius]
-				half_radius = radius.to_f / 2
+				half_radius = (radius.to_f / 2).round 4
 				## set starting point
 				box_stream << "#{options[:x] + radius} #{options[:y]} m\n" 
 				## buttom and right corner - first line and first corner
-				box_stream << "#{options[:x] + options[:length] - radius} #{options[:y]} l\n" #buttom
+				box_stream << "#{options[:x] + options[:width] - radius} #{options[:y]} l\n" #buttom
 				if options[:box_radius] != 0 # make first corner, if not straight.
-					box_stream << "#{options[:x] + options[:length] - half_radius} #{options[:y]} "
-					box_stream << "#{options[:x] + options[:length]} #{options[:y] + half_radius} "
-					box_stream << "#{options[:x] + options[:length]} #{options[:y] + radius} c\n"
+					box_stream << "#{options[:x] + options[:width] - half_radius} #{options[:y]} "
+					box_stream << "#{options[:x] + options[:width]} #{options[:y] + half_radius} "
+					box_stream << "#{options[:x] + options[:width]} #{options[:y] + radius} c\n"
 				end
 				## right and top-right corner
-				box_stream << "#{options[:x] + options[:length]} #{options[:y] + options[:height] - radius} l\n"
+				box_stream << "#{options[:x] + options[:width]} #{options[:y] + options[:height] - radius} l\n"
 				if options[:box_radius] != 0
-					box_stream << "#{options[:x] + options[:length]} #{options[:y] + options[:height] - half_radius} "
-					box_stream << "#{options[:x] + options[:length] - half_radius} #{options[:y] + options[:height]} "
-					box_stream << "#{options[:x] + options[:length] - radius} #{options[:y] + options[:height]} c\n"
+					box_stream << "#{options[:x] + options[:width]} #{options[:y] + options[:height] - half_radius} "
+					box_stream << "#{options[:x] + options[:width] - half_radius} #{options[:y] + options[:height]} "
+					box_stream << "#{options[:x] + options[:width] - radius} #{options[:y] + options[:height]} c\n"
 				end
 				## top and top-left corner
 				box_stream << "#{options[:x] + radius} #{options[:y] + options[:height]} l\n"
@@ -203,19 +197,26 @@ module CombinePDF
 			# each unit (1) is 1/72 Inch
 			# create text stream
 			text_stream = ""
-			if text.to_s != "" && font_size != 0 && (options[:font_color] || options[:stroke_color])
+			if text.to_s != "" && options[:font_size] != 0 && (options[:font_color] || options[:stroke_color])
 				# compute x and y position for text
 				x = options[:x]
 				y = options[:y]
 
-				font_object = Fonts.get_font(options[:font])
+				# set the fonts (fonts array, with :Helvetica as fallback).
+				fonts = [*options[:font], :Helvetica]
+				# fit text in box, if requested
+				font_size = options[:font_size]
+				if options[:font_size] == :fit_text
+					font_size = self.fit_text text, fonts, options[:width], options[:height]
+					font_size = options[:max_font_size] if options[:max_font_size] && font_size > options[:max_font_size]
+				end
 
-				text_size = font_object.dimensions_of text, font_size
+				text_size = dimensions_of text, fonts, font_size
 
 				if options[:text_align] == :center
-					x = (options[:length] - text_size[0])/2 + x
+					x = (options[:width] - text_size[0])/2 + x
 				elsif options[:text_align] == :right
-					x = (options[:length] - text_size[0]) + x
+					x = (options[:width] - text_size[0]) + x
 				end
 				if options[:text_valign] == :center
 					y = (options[:height] - text_size[1])/2 + y
@@ -230,10 +231,10 @@ module CombinePDF
 				text_stream << "DeviceRGB CS\nDeviceRGB cs\n"
 				# set text render mode
 				if options[:font_color]
-					text_stream << "#{options[:font_color].join(' ')} scn\n"
+					text_stream << "#{options[:font_color].join(' ')} rg\n"
 				end
 				if options[:stroke_width].to_i > 0 && options[:stroke_color]
-					text_stream << "#{options[:stroke_color].join(' ')} SCN\n"
+					text_stream << "#{options[:stroke_color].join(' ')} RG\n"
 					if options[:font_color]
 						text_stream << "2 Tr\n"
 					else
@@ -244,14 +245,19 @@ module CombinePDF
 				else
 					text_stream << "3 Tr\n"
 				end
-				# format text object
-				text_stream << "BT\n" # the Begine Text marker			
-				text_stream << PDFOperations._format_name_to_pdf(set_font options[:font]) # Set font name
-				text_stream << " #{font_size} Tf\n" # set font size and add font operator
-				text_stream << "#{options[:font_color].join(' ')} rg\n" # sets the color state
-				text_stream << "#{x} #{y} Td\n" # set location for text object
-				text_stream << (  font_object.encode(text)  ) # insert the string in PDF format, after mapping to font glyphs
-				text_stream << " Tj\n ET\n" # the Text object operator and the End Text marker
+				# format text object(s)
+					# text_stream << "#{options[:font_color].join(' ')} rg\n" # sets the color state
+				encode(text, fonts).each do |encoded|
+					text_stream << "BT\n" # the Begine Text marker			
+					text_stream << PDFOperations._format_name_to_pdf(set_font encoded[0]) # Set font name
+					text_stream << " #{font_size} Tf\n" # set font size and add font operator
+					text_stream << "#{x.round 4} #{y.round 4} Td\n" # set location for text object
+					text_stream << (  encoded[1] ) # insert the encoded string to the stream
+					text_stream << " Tj\n" # the Text object operator and the End Text marker
+					text_stream << "ET\n" # the Text object operator and the End Text marker
+					x += encoded[2]/1000*font_size #update text starting point
+					y -= encoded[3]/1000*font_size #update text starting point
+				end
 				# exit graphic state for text
 				text_stream << "Q\nQ\nQ\n"
 			end
@@ -259,8 +265,13 @@ module CombinePDF
 
 			self
 		end
-		def dimensions_of(text, font_name, size = 1000)
-			Fonts.get_font(font_name).dimensions_of text, size
+		# gets the dimentions (width and height) of the text, as it will be printed in the PDF.
+		#
+		# text:: the text to measure
+		# font:: a font name or an Array of font names. Font names should be registered fonts. The 14 standard fonts are pre regitered with the font library.
+		# size:: the size of the font (defaults to 1000 points).
+		def dimensions_of(text, fonts, size = 1000)
+			Fonts.dimensions_of text, fonts, size
 		end
 		# this method returns the size for which the text fits the requested metrices
 		# the size is type Float and is rather exact
@@ -273,7 +284,7 @@ module CombinePDF
 		def fit_text(text, font, length, height = 10000000)
 			size = 100000
 			size_array = [size]
-			metrics = Fonts.get_font(font).dimensions_of text, size
+			metrics = Fonts.dimensions_of text, font, size
 			if metrics[0] > length
 				size_array << size * length/metrics[0]
 			end
@@ -282,6 +293,8 @@ module CombinePDF
 			end
 			size_array.min
 		end
+
+
 		protected
 
 		# accessor (getter) for the :Resources element of the page
@@ -295,7 +308,7 @@ module CombinePDF
 		end
 		# creates a font object and adds the font to the resources dictionary
 		# returns the name of the font for the content stream.
-		# font:: a Symbol of one of the 14 Type 1 fonts, known as the standard 14 fonts:
+		# font:: a Symbol of one of the fonts registered in the library, or:
 		# - :"Times-Roman"
 		# - :"Times-Bold"
 		# - :"Times-Italic"
@@ -319,7 +332,7 @@ module CombinePDF
 				end
 			end
 			# set a secure name for the font
-			name = (SecureRandom.urlsafe_base64(9)).to_sym
+			name = (@base_font_name + (resources[:Font].length + 1).to_s).to_sym
 			# get font object
 			font_object = Fonts.get_font(font)
 			# return false if the font wan't found in the library.
@@ -329,6 +342,8 @@ module CombinePDF
 			#return name
 			name
 		end
+		# register or get a registered graphoc state dictionary.
+		# the method returns the name of the graphos state, for use in a content stream.
 		def graphic_state(graphic_state_dictionary = {})
 			# if the graphic state exists, return it's name
 			resources[:ExtGState] ||= {}
@@ -345,6 +360,60 @@ module CombinePDF
 			resources[:ExtGState][name] = graphic_state_dictionary
 			#return name
 			name
+		end
+
+		# encodes the text in an array of [:font_name, <PDFHexString>] for use in textbox
+		def encode text, fonts
+			# text must be a unicode string and fonts must be an array.
+			# this is an internal method, don't perform tests.
+			fonts_array = []
+			fonts.each do |name|
+				f = Fonts.get_font name
+				fonts_array << f if f
+			end
+
+			# before starting, we should reorder any RTL content in the string
+			text = reorder_rtl_content text
+
+			out = []
+			text.chars.each do |c|
+				fonts_array.each_index do |i|
+					if fonts_array[i].cmap.nil? || (fonts_array[i].cmap && fonts_array[i].cmap[c])
+						#add to array
+						if out.last.nil? || out.last[0] != fonts[i]
+							out.last[1] << ">" unless out.last.nil?
+							out << [fonts[i], "<" , 0, 0] 
+						end
+						out.last[1] << ( fonts_array[i].cmap.nil? ? ( c.unpack("H*")[0] ) : (fonts_array[i].cmap[c]) )
+						if fonts_array[i].metrics[c]
+							out.last[2] += fonts_array[i].metrics[c][:wx].to_f
+							out.last[3] += fonts_array[i].metrics[c][:wy].to_f
+						end
+						break
+					end
+				end
+			end
+			out.last[1] << ">" if out.last
+			out
+		end
+
+		# a very primitive text reordering algorithm... I was lazy...
+		# ...still, it works (I think).
+		def reorder_rtl_content text
+			rtl_characters = "\u05d0-\u05ea\u05f0-\u05f4\u0600-\u06ff\u0750-\u077f"
+			return text unless text =~ /[#{rtl_characters}]/
+
+			out = []
+			scanner = StringScanner.new text
+			until scanner.eos? do
+				if scanner.scan /[#{rtl_characters}]/
+					out.unshift scanner.matched
+				end
+				if scanner.scan /[^#{rtl_characters}]+/
+					out.unshift scanner.matched
+				end
+			end
+			out.join
 		end
 	end
 	

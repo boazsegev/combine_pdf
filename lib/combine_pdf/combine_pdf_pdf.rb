@@ -290,7 +290,7 @@ module CombinePDF
 		# - :margin_from_height a number (PDF points) for the top and buttom margins. defaults to 45.
 		# - :margin_from_side a number (PDF points) for the left and right margins. defaults to 15.
 		# the options Hash can also take all the options for PDFWriter.textbox.
-		# defaults to font_name: :Helvetica, font_size: 12 and no box (:border_width => 0, :box_color => nil).
+		# defaults to font: :Helvetica, font_size: 12 and no box (:border_width => 0, :box_color => nil).
 		def number_pages(options = {})
 			opt = {
 				number_format: ' - %s - ',
@@ -316,7 +316,7 @@ module CombinePDF
 				text_dimantions = stamp.dimensions_of( text, opt[:font], opt[:font_size] )
 				box_width = text_dimantions[0] * 1.2
 				box_height = text_dimantions[1] * 2
-				opt[:length] = box_width
+				opt[:width] = box_width
 				opt[:height] = box_height
 				from_height = 45
 				from_side = 15

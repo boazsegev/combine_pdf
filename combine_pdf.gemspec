@@ -7,7 +7,7 @@
 Gem::Specification.new do |s|
 	s.name = 'combine_pdf'
 	s.version = '0.0.11'
-	s.date = '2014-09-04'
+	s.date = Time.now.strftime "%Y-%m-%d"
 	s.add_runtime_dependency 'ruby-rc4', '>= 0.1.5'
 	s.required_ruby_version = '>= 1.9.2'
 	s.summary = "Combine, stamp and watermark PDF files in pure Ruby."
