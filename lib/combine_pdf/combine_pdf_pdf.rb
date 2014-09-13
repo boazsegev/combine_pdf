@@ -235,7 +235,7 @@ module CombinePDF
 			page_list
 		end
 
-		# this function adds pages or CombinePDF objects at the end of the file (merge)
+		# add the pages (or file) to the PDF (combine/merge) and return the new pages array.
 		# for example:
 		#
 		#   pdf = CombinePDF.new "first_file.pdf"
@@ -243,39 +243,64 @@ module CombinePDF
 		#   pdf << CombinePDF.new "second_file.pdf"
 		#
 		#   pdf.save "both_files_merged.pdf"
-		# @params obj is Hash, PDF or Array of parsed PDF data.
-		def << (obj)
+		# data:: is PDF page (Hash), and Array of PDF pages or a parsed PDF object to be added.
+		def << (data)
 			#########
 			## how should we add data to PDF?
 			## and how to handles imported pages?
-			case
-			when (obj.is_a?(PDF))
-		 		@version = [@version, obj.version].max
+			if data.is_a?(PDF)
+		 		@version = [@version, data.version].max
 
-		 		obj.renumber_object_ids @set_start_id + @objects.length
+				@need_to_rebuild_resources = true
 
-		 		@objects.push(*obj.objects)
+		 		@objects.push(*data.objects)
 				# rebuild_catalog
-				@need_to_rebuild_resources = true
-			when (obj.is_a?(Hash) && obj[:Type] == :Page), (obj.is_a?(Array) && (obj.reject {|i| i.is_a?(Hash) && i[:Type] == :Page}).empty?)
-			 	# set obj paramater to array if it's only one page
-			 	obj = [obj] if obj.is_a?(Hash)
-				# add page(s) to objects
-				@objects.push(*obj)
-				# add page dependencies to objects
-				add_referenced(obj)
-				# add page(s) to Catalog(s)
-				rebuild_catalog obj
-				@need_to_rebuild_resources = true
-			when (obj.is_a?(Hash) && obj[:indirect_reference_id] && obj[:referenced_object].nil?)
-				#only let top level indirect objects into the PDF tree.
-				@objects << obj
-				@need_to_rebuild_resources = true
-			else
-				warn "Shouldn't add objects to the file if they are not top-level indirect PDF objects."
-				retrun false # return false, which will also stop any chaining.
+				return rebuild_catalog[:Pages][:referenced_object][:Kids]
 			end
-			return self #return self object for injection chaining (pdf << page << page << page)
+			insert -1, data
+		end
+
+		# add the pages (or file) to the BEGINNING of the PDF (combine/merge) and return the new pages array.
+		# for example:
+		#
+		#   pdf = CombinePDF.new "second_file.pdf"
+		#
+		#   pdf >> CombinePDF.new "first_file.pdf"
+		#
+		#   pdf.save "both_files_merged.pdf"
+		# data:: is PDF page (Hash), and Array of PDF pages or a parsed PDF object to be added.
+		def >> (data)
+			insert 0, data
+		end
+
+		# add PDF pages (or PDF files) into a specific location.
+		#
+		# returns the new pages Array
+		#
+		# location:: the location for the added page(s). Could be any number. negative numbers represent a count backwards (-1 being the end of the page array and 0 being the begining). if the location is beyond bounds, the pages will be added to the end of the PDF object (or at the begining, if the out of bounds was a negative number).
+		# data:: a PDF page, a PDF file (CombinePDF.new "filname.pdf") or an array of pages (CombinePDF.new("filname.pdf").pages[0..3]).
+		def insert(location, data)
+			pages_to_add = nil
+			if data.is_a? PDF
+				pages_to_add = data.pages
+			elsif data.is_a?(Array) && (data.select {|o| !(o.is_a?(Hash) && o[:Type] == :Page) } ).empty?
+				pages_to_add = data
+			elsif data.is_a?(Hash) && data[:Type] == :Page
+				pages_to_add = [data]
+			else
+				warn "Shouldn't add objects to the file unless they are PDF objects or PDF pages (an Array or a single PDF page)."
+				retrun false # return false, which will also stop any chaining.				
+			end
+			catalog = rebuild_catalog
+			pages_array = catalog[:Pages][:referenced_object][:Kids]
+			page_count = pages_array.length
+			if location < 0 && (page_count + location < 0 )
+				location = 0
+			elsif location > 0 && (location > page_count)
+				location = page_count
+			end
+			pages_array.insert location, pages_to_add
+			pages_array
 		end
 
 		# add page numbers to the PDF
