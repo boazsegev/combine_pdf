@@ -99,8 +99,7 @@ load "combine_pdf/combine_pdf_pdf.rb"
 #   pdf >> title_page # the >> operator adds pages at the begining
 #   pdf.save "draft.pdf"
 #
-# font support for the writer is still in the works and is limited to extracting know fonts by location.
-# at the moment it is best to limit the fonts to the 14 standard latin fonts (no unicode).
+# font support for the writer is still in the works and is limited to extracting know fonts by location of the 14 standard fonts.
 #
 # == Decryption & Filters
 #
@@ -124,7 +123,7 @@ module CombinePDF
 
 	# Create an empty PDF object or create a PDF object from a file (parsing the file).
 	# file_name:: is the name of a file to be parsed.
-	def new(file_name = "")
+	def load(file_name = "")
 		raise TypeError, "couldn't parse and data, expecting type String" unless file_name.is_a?(String) || file_name.is_a?(Pathname)
 		return PDF.new() if file_name == ''
 		PDF.new( PDFParser.new(  IO.read(file_name).force_encoding(Encoding::ASCII_8BIT) ) )
@@ -259,7 +258,7 @@ module CombinePDF
 		end
 		table
 	end
-	alias_method :create_tabe, :new_table
+	alias_method :new_table, :create_table
 
 	# adds a correctly formatted font object to the font library.
 	#
@@ -280,6 +279,10 @@ module CombinePDF
 	#
 	# returns the font on success or false on failure.
 	#
+	# example:
+	#   fonts = CombinePDF.new("japanese_fonts.pdf").fonts(true)
+	#   CombinePDF.register_font_from_pdf_object :david, fonts[0]
+	#
 	# VERY LIMITTED SUPPORT:
 	# - at the moment it only imports Type0 fonts.
 	# - also, to extract the Hash of the actual font object you were looking for, is not a trivial matter. I do it on the console.
@@ -288,7 +291,7 @@ module CombinePDF
 	def register_font_from_pdf_object font_name, font_object
 		Fonts.register_font_from_pdf_object font_name, font_object
 	end
-	alias_method :register_font_from_pdf_object, :register_existing_font
+	alias_method :register_existing_font, :register_font_from_pdf_object
 end
 
 
