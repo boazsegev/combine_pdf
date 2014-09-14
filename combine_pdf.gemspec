@@ -6,7 +6,7 @@
 ########################################################
 Gem::Specification.new do |s|
 	s.name = 'combine_pdf'
-	s.version = '0.1.1'
+	s.version = '0.1.2'
 	s.date = Time.now.strftime "%Y-%m-%d"
 	s.add_runtime_dependency 'ruby-rc4', '>= 0.1.5'
 	s.required_ruby_version = '>= 1.9.2'
