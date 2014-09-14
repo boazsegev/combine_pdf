@@ -254,6 +254,24 @@ module CombinePDF
 			page_list
 		end
 
+		# returns an array with the different fonts used in the file.
+		#
+		# Type0 font objects ( "font[:Subtype] == :Type0" ) can be registered with the font library
+		# for use in PDFWriter objects (font numbering / table creation etc').
+		# @param limit_to_type0 [true,false] limits the list to type0 fonts.
+		def fonts(limit_to_type0 = false)
+			fonts_array = []
+			pages.each do |p|
+				p[:Resources][:Font].values.each do |f|
+					f = f[:referenced_object] if f[:referenced_object]
+					if (limit_to_type0 || f[:Subtype] = :Type0) && f[:Type] == :Font  && !fonts_array.include?(f)
+						fonts_array << f
+					end
+				end
+			end
+			fonts_array
+		end
+
 		# add the pages (or file) to the PDF (combine/merge) and return the new pages array.
 		# for example:
 		#

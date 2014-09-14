@@ -33,7 +33,6 @@ pdf.save "even_pages.pdf"
 
 notice that adding all the pages one by one is slower then adding the whole file.
 ## Add content to existing pages (Stamp / Watermark)
-**has issues with specific PDF files - [please see the issue published here](https://github.com/boazsegev/combine_pdf/issues/2).**
 
 To add content to existing PDF pages, first import the new content from an existing PDF file. After that, add the content to each of the pages in your existing PDF.
 

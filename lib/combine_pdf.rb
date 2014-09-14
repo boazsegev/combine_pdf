@@ -1,4 +1,6 @@
 # -*- encoding : utf-8 -*-
+# use under GPLv3 terms only
+
 require 'zlib'
 require 'securerandom'
 require 'strscan'
@@ -32,7 +34,7 @@ load "combine_pdf/combine_pdf_pdf.rb"
 
 
 
-# This is a pure ruby library to combine/merge, stmap/overlay and number PDF files.
+# This is a pure ruby library to combine/merge, stmap/overlay and number PDF files - as well as to create tables (ment for indexing combined files).
 #
 # You can also use this library for writing basic text content into new or existing PDF files (For authoring new PDF files look at the Prawn ruby library).
 #
@@ -42,12 +44,10 @@ load "combine_pdf/combine_pdf_pdf.rb"
 # == Loading PDF data
 # Loading PDF data can be done from file system or directly from the memory.
 #
-# Loading data from a file is easy:
+# Load data from a file:
 #   pdf = CombinePDF.new("file.pdf")
-# you can also parse PDF files from memory:
-#   pdf_data = IO.read 'file.pdf' # for this demo, load a file to memory
+# parse PDF files from memory:
 #   pdf = CombinePDF.parse(pdf_data)
-# Loading from the memory is especially effective for importing PDF data recieved through the internet or from a different authoring library such as Prawn.
 #
 # == Combine/Merge PDF files or Pages
 # To combine PDF files (or data):
@@ -55,10 +55,8 @@ load "combine_pdf/combine_pdf_pdf.rb"
 #   pdf << CombinePDF.new("file1.pdf")
 #   pdf << CombinePDF.new("file2.pdf")
 #   pdf.save "combined.pdf"
-# as demonstrated above, these can be chained for into a one-liner.
 #
-# you can also choose to add only specific pages.
-#
+# It is possible to add only specific pages.
 # in this example, only even pages will be added:
 #   pdf = CombinePDF.new
 #   i = 0
@@ -67,30 +65,21 @@ load "combine_pdf/combine_pdf_pdf.rb"
 #     pdf << page if i.even?
 #   end
 #   pdf.save "even_pages.pdf"
-# notice that adding the whole file is faster then adding each page seperately.
+# Notice that adding the whole file is faster then adding each page seperately.
 # == Add content to existing pages (Stamp / Watermark)
-# To add content to existing PDF pages, first import the new content from an existing PDF file.
-# after that, add the content to each of the pages in your existing PDF.
-#
-# in this example, a company logo will be stamped over each page:
+# It is possible "stamp" one PDF page using another PDF page. In this example, a company logo will be stamped over each page:
 #   company_logo = CombinePDF.new("company_logo.pdf").pages[0]
 #   pdf = CombinePDF.new "content_file.pdf"
 #   pdf.pages.each {|page| page << company_logo}
 #   pdf.save "content_with_logo.pdf"
 # Notice the << operator is on a page and not a PDF object. The << operator acts differently on PDF objects and on Pages.
-#
-# The << operator defaults to secure injection by renaming references to avoid conflics.
-#
-# Less recommended, but available - for overlaying pages using compressed data that might not be editable (due to limited filter support), you can use:
-#   pdf.pages(nil, false).each {|page| page << stamp_page}
-#
 # == Page Numbering
-# adding page numbers to a PDF object or file is as simple as can be:
+# It is possible to number the pages. in this example we will add very simple numbering:
 #   pdf = CombinePDF.new "file_to_number.pdf"
 #   pdf.number_pages
 #   pdf.save "file_with_numbering.pdf"
 #
-# numbering can be done with many different options, with different formating, with or without a box object, and even with opacity values.
+# numbering can be done with many different options, with different formating, with or without a box object, different locations on each page and even with opacity values.
 # == Writing Content
 # page numbering actually adds content using the PDFWriter object (a very basic writer).
 #
@@ -100,54 +89,31 @@ load "combine_pdf/combine_pdf_pdf.rb"
 #   pdf.number_pages number_format: " - Draft, page %d - ", number_location: [:top], font_color: [0,0,1], box_color: [0.4,0,0], opacity: 0.75, font_size:16
 #   pdf.save "draft.pdf"
 #
-# for demntration, it will now be coded the hard way, just so we can play more directly with some of the data.
+# in this example we will add a first page with the word "Draft", in red over a colored background:
 #
-#   pdf = CombinePDF.new "file_to_stamp.pdf"
-#   ipage_number = 1
-#   pdf.pages.each do |page|
-#     # create a "stamp" PDF page with the same size as the target page
-#     # we will do this because we will use this to center the box in the page
-#     mediabox = page[:MediaBox]
-#     # CombinePDF is pointer based...
-#     # so you can add the stamp to the page and still continue to edit it's content!
-#     stamp = PDFWriter.new mediabox
-#     page << stamp
-#     # set the visible dimensions to the CropBox, if it exists.
-#     cropbox = page[:CropBox]
-#     mediabox = cropbox if cropbox
-#     # set stamp text
-#     text = " Draft (page %d) " % page_number
-#     # write the textbox
-#     stamp.textbox text, x: mediabox[0]+30, y: mediabox[1]+30, width: mediabox[2]-mediabox[0]-60, height: mediabox[3]-mediabox[1]-60, font_color: [0,0,1], font_size: :fit_text, box_color: [0.4,0,0], opacity: 0.5
-#   end
+#   pdf = CombinePDF.new "file.pdf"
+#   pdf_first_page = pdf.pages[0]
+#   mediabox = page[:CropBox] || page[:MediaBox] #copy page size
+#   title_page = CombinePDF.create_page mediabox #make title page same size as first page
+#   title_page.textbox "DRAFT", font_color: [0.8,0,0], font_size: :fit_text, box_color: [1,0.8,0.8], opacity: 1
+#   pdf >> title_page # the >> operator adds pages at the begining
 #   pdf.save "draft.pdf"
 #
-#
-# font support for the writer is still in the works and is extreamly limited.
+# font support for the writer is still in the works and is limited to extracting know fonts by location.
 # at the moment it is best to limit the fonts to the 14 standard latin fonts (no unicode).
 #
 # == Decryption & Filters
 #
-# Some PDF files are encrypted and some are compressed (the use of filters)...
-#
-# There is very little support for encrypted files and very very basic and limited support for compressed files.
-#
-# I need help with that.
-#
+# Some PDF files are encrypted and some are compressed (the use of filters)... not all files can be opened, merged, stamped or used and stamps.
 # == Comments and file structure
 #
 # If you want to help with the code, please be aware:
-#
-# I'm a self learned hobbiest at heart. The documentation is lacking and the comments in the code are poor guidlines.
 #
 # The code itself should be very straight forward, but feel free to ask whatever you want.
 #
 # == Credit
 #
-# Caige Nichols wrote an amazing RC4 gem which I used in my code.
-#
-# I wanted to install the gem, but I had issues with the internet and ended up copying the code itself into the combine_pdf_decrypt class file.
-#
+# Caige Nichols wrote an amazing RC4 gem which I reference in my code.
 # Credit to his wonderful is given here. Please respect his license and copyright... and mine.
 #
 # == License
@@ -159,10 +125,12 @@ module CombinePDF
 	# Create an empty PDF object or create a PDF object from a file (parsing the file).
 	# file_name:: is the name of a file to be parsed.
 	def new(file_name = "")
-		raise TypeError, "couldn't parse and data, expecting type String" unless file_name.is_a? String
+		raise TypeError, "couldn't parse and data, expecting type String" unless file_name.is_a?(String) || file_name.is_a?(Pathname)
 		return PDF.new() if file_name == ''
 		PDF.new( PDFParser.new(  IO.read(file_name).force_encoding(Encoding::ASCII_8BIT) ) )
 	end
+	alias_method :new, :load
+
 	# Create a PDF object from a raw PDF data (parsing the data).
 	# data:: is a string that represents the content of a PDF file.
 	def parse(data)
@@ -180,7 +148,7 @@ module CombinePDF
 	# ::mediabox an Array representing the size of the PDF document. defaults to: [0.0, 0.0, 612.0, 792.0]
 	#
 	# if the page is PDFWriter object as a stamp, the final size will be that of the original page.
-	def create_page(mediabox = [0.0, 0.0, 612.0, 792.0])
+	def create_page(mediabox = [0, 0, 595.3, 841.9])
 		PDFWriter.new mediabox
 	end
 
@@ -192,7 +160,7 @@ module CombinePDF
 	# the main intended use of this method is to create indexes (a table of contents) for merged data.
 	#
 	# example:
-	#   pdf = CombinePDF.new_table headers: ["header 1", "another header"], table_data: [ ["this is one row", "with two columns"] , ["this is another row", "also two columns", "the third will be ignored"] ]
+	#   pdf = CombinePDF.create_table headers: ["header 1", "another header"], table_data: [ ["this is one row", "with two columns"] , ["this is another row", "also two columns", "the third will be ignored"] ]
 	#   pdf.save "table_file.pdf"
 	#
 	# accepts a Hash with any of the following keys as well as any of the PDFWriter#textbox options:
@@ -204,16 +172,16 @@ module CombinePDF
 	# column_widths:: an array of relative column widths ([1,2] will display only the first two columns, the second twice as big as the first). defaults to nil (even widths).
 	# header_color:: the header color. defaults to [0.8, 0.8, 0.8] (light gray).
 	# main_color:: main row color. defaults to nil (transparent / white).
-	# alternate_color: alternate row color. defaults to [0.95, 0.95, 0.95] (very light gray).
-	# font_color: font color. defaults to [0,0,0] (black).
-	# border_color: border color. defaults to [0,0,0] (black).
-	# border_width: border width in PDF units. defaults to 1.
-	# header_align: the header text alignment within each column (:right, :left, :center). defaults to :center.
+	# alternate_color:: alternate row color. defaults to [0.95, 0.95, 0.95] (very light gray).
+	# font_color:: font color. defaults to [0,0,0] (black).
+	# border_color:: border color. defaults to [0,0,0] (black).
+	# border_width:: border width in PDF units. defaults to 1.
+	# header_align:: the header text alignment within each column (:right, :left, :center). defaults to :center.
 	# row_align:: the row text alignment within each column. defaults to :left (:right for RTL table).
-	# direction: the table's writing direction (:ltr or :rtl). this reffers to the direction of the columns and doesn't effect text (rtl text is automatically recognized). defaults to :ltr.
-	# rows_per_page: the number of rows per page, INCLUDING the header row. deafults to 25.
-	# page_size: the size of the page in PDF points. defaults to [0, 0, 595.3, 841.9] (A4).
-	def new_table (options = {})
+	# direction:: the table's writing direction (:ltr or :rtl). this reffers to the direction of the columns and doesn't effect text (rtl text is automatically recognized). defaults to :ltr.
+	# rows_per_page:: the number of rows per page, INCLUDING the header row. deafults to 25.
+	# page_size:: the size of the page in PDF points. defaults to [0, 0, 595.3, 841.9] (A4).
+	def create_table (options = {})
 		defaults = {
 			headers: nil,
 			table_data: [[]],
@@ -291,6 +259,7 @@ module CombinePDF
 		end
 		table
 	end
+	alias_method :create_tabe, :new_table
 
 	# adds a correctly formatted font object to the font library.
 	#
@@ -319,6 +288,7 @@ module CombinePDF
 	def register_font_from_pdf_object font_name, font_object
 		Fonts.register_font_from_pdf_object font_name, font_object
 	end
+	alias_method :register_font_from_pdf_object, :register_existing_font
 end
 
 

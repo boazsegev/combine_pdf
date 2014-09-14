@@ -11,7 +11,8 @@
 module CombinePDF
 
 
-	#@private
+	# @!visibility private
+	# @private
 	#:nodoc: all
 
 	protected
@@ -24,6 +25,9 @@ module CombinePDF
 	#
 	# This is an internal class. you don't need it.
 	class PDFParser
+
+	# @!visibility private
+
 
 		# the array containing all the parsed data (PDF Objects)
 		attr_reader :parsed

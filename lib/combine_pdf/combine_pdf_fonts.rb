@@ -13,12 +13,15 @@
 module CombinePDF
 
 	#:nodoc: all
+	# @!visibility private
 
 
 
 	module Fonts
 
 		protected
+
+		# @!visibility private
 
 		# the internal class for the Fonts model
 		#

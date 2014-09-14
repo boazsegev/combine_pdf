@@ -1,12 +1,11 @@
 module CombinePDF
 
-	#:nodoc: all
 	################################################################
 	## These are common functions, used within the different classes
 	## These functions aren't open to the public.
 	################################################################
 
-	#@private
+
 	# lists the Hash keys used for PDF objects
 	#
 	# the CombinePDF library doesn't use special classes for its objects (PDFPage class, PDFStream class or anything like that).
@@ -16,15 +15,22 @@ module CombinePDF
 	# this Hash lists the private Hash keys that the CombinePDF library uses to
 	# differentiate between complex PDF objects.
 	PRIVATE_HASH_KEYS = [:indirect_reference_id, :indirect_generation_number, :raw_stream_content, :is_reference_only, :referenced_object, :indirect_without_dictionary]
-	#@private
+
+	# @private
+	# @!visibility private
 	#:nodoc: all
 
 	protected
 
+	# @!visibility private
 
 	# This is an internal class. you don't need it.
 	module PDFOperations
+
 		module_function
+
+		# @!visibility private
+
 		def inject_to_page page = {Type: :Page, MediaBox: [0,0,612.0,792.0], Resources: {}, Contents: []}, stream = nil, top = true
 			# make sure both the page reciving the new data and the injected page are of the correct data type.
 			return false unless page.is_a?(Hash) && stream.is_a?(Hash)

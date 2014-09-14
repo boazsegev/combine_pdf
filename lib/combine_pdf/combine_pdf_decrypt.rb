@@ -13,8 +13,12 @@ module CombinePDF
 	protected
 	
 	# @private
+	# @!visibility private
+
 	# This is an internal class. you don't need it.
 	class PDFDecrypt
+
+		# @!visibility private
 		
 		# make a new Decrypt object. requires:
 		# objects:: an array containing the encrypted objects.
