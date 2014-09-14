@@ -87,17 +87,32 @@ module CombinePDF
 			@info = {}
 			if args[0].is_a? PDFParser
 				@objects = args[0].parse
+				# connecting references with original objects
+				serialize_objects_and_references
+				# make sure there is only one Catalog (the latest Catalog)
+				if args[0].root_object[:Root]
+					@objects.delete_if {|obj| obj[:Type] == :Catalog}
+					@objects << args[0].root_object[:Root]
+				else
+					last_calalog = (@objects.select {|obj| obj[:Type] == :Catalog}).last
+					unless last_calalog.nil?
+					@objects.delete_if {|obj| obj[:Type] == :Catalog}
+					@objects << last_calalog
+					end
+				end
 				@version = args[0].version if args[0].version.is_a? Float
 				@info = args[0].info_object || {}
 			elsif args[0].is_a? Array
 				# object initialization
 				@objects = args[0]
 				@version = args[1] if args[1].is_a? Float
+				# connecting references with original objects
+				serialize_objects_and_references
 			elsif args[0].is_a? Hash
 				@objects = args
+				# connecting references with original objects
+				serialize_objects_and_references
 			end
-			# connecting references with original objects
-			serialize_objects_and_references
 			# general globals
 			@string_output = :literal
 			@need_to_rebuild_resources = false
@@ -224,6 +239,10 @@ module CombinePDF
 								self
 							end
 						end
+						catalogs[:MediaBox] ||= catalogs[:Parent][:referenced_object][:MediaBox] if catalogs[:Parent].is_a?(Hash) && catalogs[:Parent][:referenced_object].is_a?(Hash) && catalogs[:Parent][:referenced_object][:MediaBox]
+						catalogs[:CropBox] ||= catalogs[:Parent][:referenced_object][:CropBox] if catalogs[:CropBox].is_a?(Hash) && catalogs[:CropBox][:referenced_object].is_a?(Hash) && catalogs[:Parent][:referenced_object][:CropBox]
+						catalogs[:MediaBox] = catalogs[:MediaBox][:referenced_object][:indirect_without_dictionary] if catalogs[:MediaBox].is_a?(Hash) && catalogs[:MediaBox][:referenced_object].is_a?(Hash) && catalogs[:MediaBox][:referenced_object][:indirect_without_dictionary]
+						catalogs[:CropBox] = catalogs[:CropBox][:referenced_object][:indirect_without_dictionary] if catalogs[:CropBox].is_a?(Hash) && catalogs[:CropBox][:referenced_object].is_a?(Hash) && catalogs[:CropBox][:referenced_object][:indirect_without_dictionary]
 						page_list << catalogs
 					when :Pages
 						page_list.push *(pages(catalogs[:Kids])) unless catalogs[:Kids].nil?
@@ -330,11 +349,8 @@ module CombinePDF
 			page_number = opt[:start_at]
 			pages.each do |page|
 				# create a "stamp" PDF page with the same size as the target page
-				mediabox = page[:MediaBox]
+				mediabox = page[:CropBox] || page[:MediaBox] || [0, 0, 595.3, 841.9]
 				stamp = PDFWriter.new mediabox
-				# set the visible dimensions to the CropBox, if it exists.
-				cropbox = page[:CropBox]
-				mediabox = cropbox if cropbox
 				# set stamp text
 				text = opt[:number_format] % page_number
 				# compute locations for text boxes

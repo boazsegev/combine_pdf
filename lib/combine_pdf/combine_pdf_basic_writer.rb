@@ -72,6 +72,7 @@ module CombinePDF
 		# height:: the height of the box. negative values will be computed from edge of page. defaults to 0 (end of page).
 		# text_align:: symbol for horizontal text alignment, can be ":center" (default), ":right", ":left"
 		# text_valign:: symbol for vertical text alignment, can be ":center" (default), ":top", ":buttom"
+		# text_padding:: a Float between 0 and 1, setting the padding for the text. defaults to 0.05 (5%).
 		# font:: a registered font name or an Array of names. defaults to ":Helvetica". The 14 standard fonts names are:
 		# - :"Times-Roman"
 		# - :"Times-Bold"
@@ -105,6 +106,7 @@ module CombinePDF
 				height: -1,
 				text_align: :center,
 				text_valign: :center,
+				text_padding: 0.1,
 				font: nil,
 				font_size: :fit_text,
 				max_font_size: nil,
@@ -121,6 +123,9 @@ module CombinePDF
 			# reset the length and height to meaningful values, if negative
 			options[:width] = mediabox[2] - options[:x] + options[:width] if options[:width] <= 0
 			options[:height] = mediabox[3] - options[:y] + options[:height] if options[:height] <= 0
+
+			# reset the padding value
+			options[:text_padding] = 0 if options[:text_padding].to_f >= 1
 
 			# create box stream
 			box_stream = ""
@@ -199,29 +204,29 @@ module CombinePDF
 			text_stream = ""
 			if text.to_s != "" && options[:font_size] != 0 && (options[:font_color] || options[:stroke_color])
 				# compute x and y position for text
-				x = options[:x]
-				y = options[:y]
+				x = options[:x] + (options[:width]*options[:text_padding])
+				y = options[:y] + (options[:height]*options[:text_padding])
 
 				# set the fonts (fonts array, with :Helvetica as fallback).
 				fonts = [*options[:font], :Helvetica]
 				# fit text in box, if requested
 				font_size = options[:font_size]
 				if options[:font_size] == :fit_text
-					font_size = self.fit_text text, fonts, options[:width], options[:height]
+					font_size = self.fit_text text, fonts, (options[:width]*(1-options[:text_padding])), (options[:height]*(1-options[:text_padding]))
 					font_size = options[:max_font_size] if options[:max_font_size] && font_size > options[:max_font_size]
 				end
 
 				text_size = dimensions_of text, fonts, font_size
 
 				if options[:text_align] == :center
-					x = (options[:width] - text_size[0])/2 + x
+					x = ( ( options[:width]*(1-(2*options[:text_padding])) ) - text_size[0] )/2 + x
 				elsif options[:text_align] == :right
-					x = (options[:width] - text_size[0]) + x
+					x = ( ( options[:width]*(1-(1.5*options[:text_padding])) ) - text_size[0] ) + x
 				end
 				if options[:text_valign] == :center
-					y = (options[:height] - text_size[1])/2 + y
+					y = ( ( options[:height]*(1-(2*options[:text_padding])) ) - text_size[1] )/2 + y
 				elsif options[:text_valign] == :top
-					y = (options[:height] - text_size[1]) + y
+					y = ( options[:height]*(1-(1.5*options[:text_padding])) ) - text_size[1] + y
 				end
 
 				# set graphic state for text

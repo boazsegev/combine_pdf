@@ -217,7 +217,11 @@ module CombinePDF
 				old_widths = font_object[:DescendantFonts]
 				old_widths = old_widths[:referenced_object][:indirect_without_dictionary] if old_widths[:is_reference_only]
 				old_widths = old_widths[0][:referenced_object] 
-				avarage_bbox = [0, 0, 0, 0] # data is missing for full box metrics, just ignore
+				avrg_height = 360
+				avrg_height = old_widths[:XHeight] if old_widths[:XHeight]
+				avrg_height = (avrg_height + old_widths[:CapHeight])/2 if old_widths[:CapHeight]
+				avrg_width = old_widths[:AvgWidth] || 0
+				avarage_bbox = [0, 0, avrg_width, avrg_height] # data is missing for full box metrics, just ignore
 			end
 
 			# compute the metrics values using the appropiate system (TrueType vs. Type0 fonts)
