@@ -128,7 +128,9 @@ module CombinePDF
 		return PDF.new() if file_name == ''
 		PDF.new( PDFParser.new(  IO.read(file_name).force_encoding(Encoding::ASCII_8BIT) ) )
 	end
-	alias_method :new, :load
+	def new(file_name = "")
+		load(file_name)
+	end
 
 	# Create a PDF object from a raw PDF data (parsing the data).
 	# data:: is a string that represents the content of a PDF file.
@@ -180,7 +182,7 @@ module CombinePDF
 	# direction:: the table's writing direction (:ltr or :rtl). this reffers to the direction of the columns and doesn't effect text (rtl text is automatically recognized). defaults to :ltr.
 	# rows_per_page:: the number of rows per page, INCLUDING the header row. deafults to 25.
 	# page_size:: the size of the page in PDF points. defaults to [0, 0, 595.3, 841.9] (A4).
-	def create_table (options = {})
+	def create_table(options = {})
 		defaults = {
 			headers: nil,
 			table_data: [[]],
@@ -258,7 +260,9 @@ module CombinePDF
 		end
 		table
 	end
-	alias_method :new_table, :create_table
+	def new_table(options = {})
+		create_table options
+	end
 
 	# adds a correctly formatted font object to the font library.
 	#
@@ -288,10 +292,12 @@ module CombinePDF
 	# - also, to extract the Hash of the actual font object you were looking for, is not a trivial matter. I do it on the console.
 	# font_name:: a Symbol with the name of the font registry. if the fonts exists in the library, it will be overwritten! 
 	# font_object:: a Hash in the internal format recognized by CombinePDF, that represents the font object.
-	def register_font_from_pdf_object font_name, font_object
+	def register_existing_font font_name, font_object
 		Fonts.register_font_from_pdf_object font_name, font_object
 	end
-	alias_method :register_existing_font, :register_font_from_pdf_object
+	def register_font_from_pdf_object font_name, font_object
+		register_existing_font font_name, font_object
+	end
 end
 
 
