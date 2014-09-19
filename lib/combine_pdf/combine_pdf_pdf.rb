@@ -137,7 +137,10 @@ module CombinePDF
 			if @need_to_rebuild_resources
 				rebuild_resources
 			end
-			catalog = rebuild_catalog_and_objects #rebuild_catalog
+			#rebuild_catalog
+			catalog = rebuild_catalog_and_objects
+			# add ID and generation numbers to objects
+			renumber_object_ids
 
 			warn "Formatting PDF output"
 
@@ -339,6 +342,22 @@ module CombinePDF
 			pages_array.insert location, pages_to_add
 			pages_array
 		end
+
+		# removes a PDF page from the file and the catalog
+		#
+		# returns the removed page.
+		#
+		# returns nil if failed or if out of bounds.
+		#
+		# page_index:: the page's index in the zero (0) based page array. negative numbers represent a count backwards (-1 being the end of the page array and 0 being the begining).
+		def remove(page_index)
+			catalog = rebuild_catalog
+			pages_array = catalog[:Pages][:referenced_object][:Kids]
+			removed_page = pages_array.delete_at page_index
+			catalog[:Pages][:referenced_object][:Count] = pages_array.length
+			removed_page
+		end
+
 
 		# add page numbers to the PDF
 		#
@@ -545,7 +564,6 @@ module CombinePDF
 		end
 		# @private
 		def renumber_object_ids(start = nil)
-			warn "Resetting Object Reference IDs"
 			@set_start_id = start || @set_start_id
 			start = @set_start_id
 			history = {}
@@ -553,7 +571,6 @@ module CombinePDF
 				obj[:indirect_reference_id] = start
 				start += 1
 			end
-			warn "Finished serializing IDs"
 		end
 
 		# @private
@@ -588,8 +605,6 @@ module CombinePDF
 
 		# @private
 		def rebuild_catalog(*with_pages)
-			warn "Re-Building Catalog"
-
 			# # build page list v.1 Slow but WORKS
 			# # Benchmark testing value: 26.708394
 			# old_catalogs = @objects.select {|obj| obj.is_a?(Hash) && obj[:Type] == :Catalog}
@@ -635,7 +650,6 @@ module CombinePDF
 			@objects = []
 			@objects << catalog
 			add_referenced catalog
-			renumber_object_ids
 			catalog
 		end
 
