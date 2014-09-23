@@ -13,26 +13,6 @@ load "combine_pdf/combine_pdf_filter.rb"
 load "combine_pdf/combine_pdf_parser.rb"
 load "combine_pdf/combine_pdf_pdf.rb"
 
-# # will be removed one font support and font library is completed.
-# require "combine_pdf/font_metrics/courier-bold_metrics.rb"
-# require "combine_pdf/font_metrics/courier-boldoblique_metrics.rb"
-# require "combine_pdf/font_metrics/courier-oblique_metrics.rb"
-# require "combine_pdf/font_metrics/courier_metrics.rb"
-# require "combine_pdf/font_metrics/helvetica-bold_metrics.rb"
-# require "combine_pdf/font_metrics/helvetica-boldoblique_metrics.rb"
-# require "combine_pdf/font_metrics/helvetica-oblique_metrics.rb"
-# require "combine_pdf/font_metrics/helvetica_metrics.rb"
-# require "combine_pdf/font_metrics/symbol_metrics.rb"
-# require "combine_pdf/font_metrics/times-bold_metrics.rb"
-# require "combine_pdf/font_metrics/times-bolditalic_metrics.rb"
-# require "combine_pdf/font_metrics/times-italic_metrics.rb"
-# require "combine_pdf/font_metrics/times-roman_metrics.rb"
-# require "combine_pdf/font_metrics/zapfdingbats_metrics.rb"
-# require "combine_pdf/font_metrics/metrics_dictionary.rb"
-
-
-
-
 
 # This is a pure ruby library to combine/merge, stmap/overlay and number PDF files - as well as to create tables (ment for indexing combined files).
 #
