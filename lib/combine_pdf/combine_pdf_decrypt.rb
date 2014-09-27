@@ -43,7 +43,6 @@ module CombinePDF
 			@key = set_general_key
 			case @encryption_dictionary[:V]
 			when 1,2
-				warn "trying to decrypt with RC4."
 				# raise_encrypted_error
 				_perform_decrypt_proc_ @objects, self.method(:decrypt_RC4)
 			else
@@ -109,7 +108,7 @@ module CombinePDF
 			# (0..2).each { |e| object_key << (encrypted_id >> e*8 & 0xFF ) }
 			# (0..1).each { |e| object_key << (encrypted_generation >> e*8 & 0xFF ) }
 			key_length = object_key.length < 16 ? object_key.length : 16
-			rc4 = RC4.new( Digest::MD5.digest(object_key)[(0...key_length)] )
+			rc4 = ::RC4.new( Digest::MD5.digest(object_key)[(0...key_length)] )
 			rc4.decrypt(encrypted)
 		end
 		def decrypt_AES(encrypted, encrypted_id, encrypted_generation, encrypted_filter)

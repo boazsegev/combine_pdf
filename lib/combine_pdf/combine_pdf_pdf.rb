@@ -115,12 +115,10 @@ module CombinePDF
 			end
 			# general globals
 			@string_output = :literal
-			@need_to_rebuild_resources = false
 			@set_start_id = 1
 			@info[:Producer] = "Ruby CombinePDF Library by Boaz Segev"
 			@info.delete :CreationDate
 			@info.delete :ModDate
-			warn "finished to initialize PDF object."
 		end
 
 		# Formats the data to PDF formats and returns a binary string that represents the PDF file content.
@@ -133,16 +131,10 @@ module CombinePDF
 			@version = 1.5 if @version.to_f == 0.0
 			#set creation date for merged file
 			@info[:CreationDate] = Time.now.strftime "D:%Y%m%d%H%M%S%:::z'00"
-			#rebuild resources if needed
-			if @need_to_rebuild_resources
-				rebuild_resources
-			end
 			#rebuild_catalog
 			catalog = rebuild_catalog_and_objects
 			# add ID and generation numbers to objects
 			renumber_object_ids
-
-			warn "Formatting PDF output"
 
 			out = []
 			xref = []
@@ -159,7 +151,6 @@ module CombinePDF
 				out << PDFOperations._object_to_pdf(o)
 				loc += out.last.length + 1
 			end
-			warn "Building XREF"
 			xref_location = 0
 			out.each { |line| xref_location += line.bytes.length + 1}
 			out << "xref\n\r0 #{(indirect_object_count).to_s}\n\r0000000000 65535 f \n\r"
@@ -275,7 +266,7 @@ module CombinePDF
 			fonts_array
 		end
 
-		# add the pages (or file) to the PDF (combine/merge) and return the new pages array.
+		# add the pages (or file) to the PDF (combine/merge) and RETURNS SELF, for nesting.
 		# for example:
 		#
 		#   pdf = CombinePDF.new "first_file.pdf"
@@ -290,17 +281,14 @@ module CombinePDF
 			## and how to handles imported pages?
 			if data.is_a?(PDF)
 		 		@version = [@version, data.version].max
-
-				@need_to_rebuild_resources = true
-
 		 		@objects.push(*data.objects)
 				# rebuild_catalog
-				return rebuild_catalog[:Pages][:referenced_object][:Kids]
+				return self
 			end
 			insert -1, data
 		end
 
-		# add the pages (or file) to the BEGINNING of the PDF (combine/merge) and return the new pages array.
+		# add the pages (or file) to the BEGINNING of the PDF (combine/merge) and RETURNS SELF for nesting operators.
 		# for example:
 		#
 		#   pdf = CombinePDF.new "second_file.pdf"
@@ -311,6 +299,7 @@ module CombinePDF
 		# data:: is PDF page (Hash), and Array of PDF pages or a parsed PDF object to be added.
 		def >> (data)
 			insert 0, data
+			self
 		end
 
 		# add PDF pages (or PDF files) into a specific location.
@@ -519,8 +508,6 @@ module CombinePDF
 		end
 		# @private
 		def serialize_objects_and_references(object = nil)
-			warn "connecting objects with their references (serialize_objects_and_references)."
-
 			# # Version 3.5 injects indirect objects if they arn't dictionaries.
 			# # benchmark 1000.times was 3.568246 sec for pdf = CombinePDF.new "/Users/2Be/Desktop/מוצגים/20121002\ הודעת\ הערעור.pdf" }
 			# # puts Benchmark.measure { 1000.times {pdf.serialize_objects_and_references} }
@@ -651,49 +638,6 @@ module CombinePDF
 			@objects << catalog
 			add_referenced catalog
 			catalog
-		end
-
-		# @private
-		# disabled, don't use. simpley returns true.
-		def rebuild_resources
-
-			warn "Resources re-building disabled as it isn't worth the price in peformance as of yet."
-
-			return true
-
-			warn "Re-Building Resources"
-			@need_to_rebuild_resources = false
-			# what are resources?
-			# anything at the top level of the file exept catalogs, page lists (Pages) and pages...
-			not_resources = [:Catalog, :Pages, :Page]
-			# get old resources list
-			old_resources = @objects.select {|obj| obj.is_a?(Hash) && !not_resources.include?(obj[:Type])}
-			# collect all unique resources while ignoring double values and resetting references
-			# also ignore inner values (canot use PRIVATE_HASH_KEYS because of stream and other issues)
-			ignore_keys = [:indirect_reference_id, :indirect_generation_number, :is_reference_only, :referenced_object]
-			new_resources = []
-			all_references = references
-			old_resources.each do |old_r|
-				add = true
-				new_resources.each do |new_r|
-					# ## v.1.0 - slower
-					# if (old_r.reject {|k,v| ignore_keys.include?(k) }) == (new_r.reject {|k,v| ignore_keys.include?(k)})
-					# 	all_references.each {|ref| ref[:referenced_object] = new_r if ref[:referenced_object].object_id == old_r.object_id }  # fails, but doesn't assume all references are connected: compare_reference_values(old_r, ref) }
-					# 	add = false
-					# end
-					## v.1.1 - faster, doesn't build two hashes (but iterates one)
-					if ( [].tap {|out| old_r.each {|k,v| out << true unless ((!ignore_keys.include?(k)) && new_r[k] == v) } } .empty?)
-						all_references.each {|ref| ref[:referenced_object] = new_r if ref[:referenced_object].object_id == old_r.object_id }  # fails, but doesn't assume all references are connected: compare_reference_values(old_r, ref) }
-						add = false
-					end
-				end
-				new_resources << old_r if add
-			end
-			# remove old resources
-			@objects.reject! {|obj| old_resources.include?(obj)}
-			# insert new resources
-			@objects.push *new_resources
-			# rebuild stream lengths?
 		end
 
 		# @private

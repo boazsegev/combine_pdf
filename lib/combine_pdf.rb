@@ -5,6 +5,10 @@ require 'zlib'
 require 'securerandom'
 require 'strscan'
 
+#require the RC4 Gem
+require 'rc4'
+
+
 load "combine_pdf/combine_pdf_operations.rb"
 load "combine_pdf/combine_pdf_basic_writer.rb"
 load "combine_pdf/combine_pdf_decrypt.rb"
@@ -294,9 +298,9 @@ end
 # numbers are Fixnum or Float
 # boolean are TrueClass or FalseClass
 
-## You can test performance with:
-## puts Benchmark.measure { pdf = CombinePDF.new(file_name); pdf.save "test.pdf" } # PDFEditor.new_pdf
-## demo: file_name = "/Users/2Be/Ruby/pdfs/encrypted.pdf"; pdf=0; puts Benchmark.measure { pdf = CombinePDF.new(file_name); pdf.save "test.pdf" }
+## test performance with:
+## puts Benchmark.measure { pdf = CombinePDF.new(file); pdf.save "test.pdf" } # PDFEditor.new_pdf
+## demo: file_name = "~/Ruby/pdfs/encrypted.pdf"; pdf=0; puts Benchmark.measure { pdf = CombinePDF.new(file_name); pdf.save "test.pdf" }
 ## at the moment... my code it terribly slow for larger files... :(
 ## The file saving is solved (I hope)... but file loading is an issue.
 ##  pdf.each_object {|obj| puts "Stream length: #{obj[:raw_stream_content].length} was registered as #{obj[:Length].is_a?(Hash)? obj[:Length][:referenced_object][:indirect_without_dictionary] : obj[:Length]}" if obj[:raw_stream_content] }
@@ -304,5 +308,30 @@ end
 ##  puts Benchmark.measure { 1000.times { (CombinePDF::PDFOperations.get_refernced_object pdf.objects, {indirect_reference_id: 100, indirect_generation_number:0}).object_id } }
 ##  puts Benchmark.measure { 1000.times { (pdf.objects.select {|o| o[:indirect_reference_id]== 100 && o[:indirect_generation_number] == 0})[0].object_id } }
 ## puts Benchmark.measure { {}.tap {|out| pdf.objects.each {|o| out[ [o[:indirect_reference_id], o[:indirect_generation_number] ] ] = o }} }
-
+##
+#### local test for CombinePDF
+## file = "/Users/2Be/Ruby/pdfs/encrypted.pdf"
+## puts Benchmark.measure { 1000.times { pdf = CombinePDF.new(file); pdf.save "test.pdf" } }
+### gives : 2.540000   0.140000   2.680000 (  2.696524)
+## puts Benchmark.measure { pdf = CombinePDF.new() ; 1000.times { pdf << CombinePDF.new(file) } ; pdf.save "test.pdf" }
+### gives: 11.770000   0.090000  11.860000 ( 11.879411) #why the difference? NOT the object reference rebuilding...
+### file size: 7Kb success
+###### gives: 7.440000   0.100000   7.540000 (  7.536460) (!!!) with draft file size 8kb
+##
+#### local test by pdftk
+## pdftk_path = '/Users/2Be/Ruby/pdfs/pdftk_lib/bin/pdftk'
+## file_array = []
+## 1000.times { file_array << file }
+## puts Benchmark.measure { system ( pdftk_path + " '" + file_array.join("' '") + "' input_pw '' output 'test.pdf'" ) }
+### gives: 0.000000   0.000000   3.250000 (  3.244724)
+### FAILS with no output, unwilling to decrypt.
+###### gives:  0.000000   0.000000   2.640000 (  2.661801) with draft file size 1.3MB (!!)
+#### local test by pyton
+## pyton_path = '/Users/2Be/Ruby/pdfs/pdftk_lib/join.py'
+## file_array = []
+## 1000.times { file_array << file }
+## puts Benchmark.measure { system ( pyton_path + " -o 'test.pdf' '#{file_array.join "' '"}' " ) }
+### gives 0.000000   0.000000   1.010000 (  1.147135)
+### file merge FAILS with 1,000 empty pages (undecrypted)
+####### gives: 0.000000   0.000000   1.770000 (  1.775513) with draft. file size 4.9MB (!!!)
 

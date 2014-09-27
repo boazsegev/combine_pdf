@@ -65,7 +65,6 @@ module CombinePDF
 				@version = @scanner.matched.scan(/[\d\.]+/)[0].to_f
 			end
 
-			warn "Starting to parse PDF data."
 			@parsed = _parse_
 
 			if @root_object == {}
@@ -75,7 +74,6 @@ module CombinePDF
 				end
 			end
 			raise "root is unknown - cannot determine if file is Encrypted" if @root_object == {}
-			warn "Injecting actual values into root object: #{@root_object}."
 			PDFOperations.change_references_to_actual_values @parsed, @root_object
 
 			if @root_object[:Encrypt]
@@ -91,7 +89,6 @@ module CombinePDF
 					warn "PDF 1.5 Object streams found - they are not fully supported! attempting to extract objects."
 					
 					object_streams.each do |o|
-						warn "Attempting #{o.select {|k,v| k != :raw_stream_content}}"
 						## un-encode (using the correct filter) the object streams
 						PDFFilter.inflate_object o 
 						## extract objects from stream to top level arry @parsed
@@ -123,7 +120,6 @@ module CombinePDF
 			else
 				@info_object = {}
 			end
-			warn "setting parsed collection and returning collection."
 			@parsed
 		end
 
@@ -133,7 +129,6 @@ module CombinePDF
 		def _parse_
 			out = []
 			str = ''
-			# warn "Scaning for objects, starting at #{@scanner.pos}: #{@scanner.peek(10)}"
 			while @scanner.rest? do
 				case
 				##########################################
@@ -171,7 +166,6 @@ module CombinePDF
 				## parse an Object after finished
 				##########################################
 				when str = @scanner.scan(/endobj/)
-					# warn "Proccessing Object"
 					#what to do when this is an object?
 					if out.last.is_a? Hash
 						out << out.pop.merge({indirect_generation_number: out.pop, indirect_reference_id: out.pop})
