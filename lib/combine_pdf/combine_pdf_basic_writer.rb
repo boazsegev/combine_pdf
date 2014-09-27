@@ -133,7 +133,7 @@ module CombinePDF
 				y = options[:y]
 
 				# set graphic state for the box
-				box_stream << "q\nq\nq\n"
+				box_stream << "q\n"
 				box_graphic_state = { ca: options[:opacity], CA: options[:opacity], LW: options[:border_width], LC: 0, LJ: 0,  LD: 0 }
 				if options[:box_radius] != 0 # if the text box has rounded corners
 					box_graphic_state[:LC], box_graphic_state[:LJ] =  2, 1
@@ -191,7 +191,7 @@ module CombinePDF
 				end
 
 				# exit graphic state for the box
-				box_stream << "Q\nQ\nQ\n"
+				box_stream << "Q\n"
 			end
 			contents << box_stream
 
@@ -227,7 +227,7 @@ module CombinePDF
 				end
 
 				# set graphic state for text
-				text_stream << "q\nq\nq\n"
+				text_stream << "q\n"
 				text_graphic_state = graphic_state({ca: options[:opacity], CA: options[:opacity], LW: options[:stroke_width].to_f, LC: 2, LJ: 1,  LD: 0})
 				text_stream << "#{PDFOperations._object_to_pdf text_graphic_state} gs\n"
 				text_stream << "DeviceRGB CS\nDeviceRGB cs\n"
@@ -261,7 +261,7 @@ module CombinePDF
 					y -= encoded[3]/1000*font_size #update text starting point
 				end
 				# exit graphic state for text
-				text_stream << "Q\nQ\nQ\n"
+				text_stream << "Q\n"
 			end
 			contents << text_stream
 
