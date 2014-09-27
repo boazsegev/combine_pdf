@@ -37,7 +37,7 @@ module CombinePDF
 
 			# following the reference chain and assigning a pointer to the correct Resouces object.
 			# (assignments of Strings, Arrays and Hashes are pointers in Ruby, unless the .dup method is called)
-			original_resources = page[:Resources]
+			original_resources = page[:Resources] || {}
 			if original_resources[:is_reference_only]
 				original_resources = original_resources[:referenced_object]
 				raise "Couldn't tap into resources dictionary, as it is a reference and isn't linked." unless original_resources
@@ -45,7 +45,7 @@ module CombinePDF
 			original_contents = page[:Contents]
 			original_contents = [original_contents] unless original_contents.is_a? Array
 
-			stream_resources = stream[:Resources]
+			stream_resources = stream[:Resources] || {}
 			if stream_resources[:is_reference_only]
 				stream_resources = stream_resources[:referenced_object]
 				raise "Couldn't tap into resources dictionary, as it is a reference and isn't linked." unless stream_resources
