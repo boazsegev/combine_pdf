@@ -72,6 +72,11 @@ pdf = CombinePDF.parse(pdf_data)
 ```
 Loading from the memory is especially effective for importing PDF data recieved through the internet or from a different authoring library such as Prawn.
 
+Demo
+====
+
+You can see a Demo for a ["Bates stumping web-app"](http://nameless-gorge-3596.herokuapp.com/bates) and read through it's [code](http://nameless-gorge-3596.herokuapp.com/code) . Good luck :)
+
 Decryption & Filters
 ====================
 
