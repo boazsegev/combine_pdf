@@ -6,7 +6,7 @@
 ########################################################
 Gem::Specification.new do |s|
 	s.name = 'combine_pdf'
-	s.version = '0.1.5'
+	s.version = '0.1.6'
 	s.date = Time.now.strftime "%Y-%m-%d"
 	s.add_runtime_dependency 'ruby-rc4', '>= 0.1.5'
 	s.required_ruby_version = '>= 1.9.2'
@@ -16,5 +16,5 @@ Gem::Specification.new do |s|
 	s.email = 'bsegev@gmail.com'
 	s.files = Dir["{lib}/**/*.rb"] #["lib/combine_pdf.rb", "lib/combine_pdf/combine_pdf_pdf.rb", "lib/combine_pdf/combine_pdf_parser.rb" , "lib/combine_pdf/combine_pdf_decrypt.rb" , "lib/combine_pdf/combine_pdf_filter.rb" ]
 	s.homepage = 'https://github.com/boazsegev/combine_pdf'
-	s.license = 'GPLv3'
+	s.license = 'MIT'
 end
