@@ -403,6 +403,11 @@ module CombinePDF
 		# ...still, it works (I think).
 		def reorder_rtl_content text
 			rtl_characters = "\u05d0-\u05ea\u05f0-\u05f4\u0600-\u06ff\u0750-\u077f"
+			rtl_replaces = { '(' => ')', ')' => '(',
+							'[' => ']', ']'=>'[',
+							'{' => '}', '}'=>'{',
+							'<' => '>', '>'=>'<',
+							}
 			return text unless text =~ /[#{rtl_characters}]/
 
 			out = []
@@ -415,6 +420,8 @@ module CombinePDF
 						white_space_to_move = scanner.matched.match(/[\s]+$/).to_s
 						out.unshift scanner.matched[0..-1-white_space_to_move.length]
 						out.unshift white_space_to_move
+					elsif scanner.matched.match /^[\(\)\[\]\{\}\<\>]$/
+						out.unshift rtl_replaces[scanner.matched]
 					else
 						out.unshift scanner.matched
 					end
