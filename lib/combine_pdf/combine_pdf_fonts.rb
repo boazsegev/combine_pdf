@@ -103,7 +103,9 @@ module CombinePDF
 			new_font.cmap = font_cmap
 			new_font[:is_reference_only] = true
 			new_font[:referenced_object] = font_pdf_object
-			FONTS_LIBRARY[new_font.name] = new_font
+			FONTS_LIBRARY_MUTEX.synchronize do
+				FONTS_LIBRARY[new_font.name] = new_font
+			end
 			new_font
 		end
 
@@ -341,6 +343,10 @@ module CombinePDF
 
 		# the Hash listing all the fonts.
 		FONTS_LIBRARY = {}
+
+		# the Mutex for library write access
+
+		FONTS_LIBRARY_MUTEX = Mutex.new
 
 
 		# this method parses a cmap file using it's data stream

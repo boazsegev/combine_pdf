@@ -1,5 +1,4 @@
 # -*- encoding : utf-8 -*-
-# use under GPLv3 terms only
 
 require 'zlib'
 require 'securerandom'
@@ -16,6 +15,7 @@ load "combine_pdf/combine_pdf_fonts.rb"
 load "combine_pdf/combine_pdf_filter.rb"
 load "combine_pdf/combine_pdf_parser.rb"
 load "combine_pdf/combine_pdf_pdf.rb"
+require "combine_pdf/version"
 
 
 # This is a pure ruby library to combine/merge, stmap/overlay and number PDF files - as well as to create tables (ment for indexing combined files).
@@ -101,7 +101,7 @@ load "combine_pdf/combine_pdf_pdf.rb"
 #
 # == License
 #
-# GPLv3
+# MIT
 module CombinePDF
 	module_function
 
@@ -288,7 +288,7 @@ end
 
 #########################################################
 # this file is part of the CombinePDF library and the code
-# is subject to the same license (GPLv3).
+# is subject to the same license (MIT).
 #########################################################
 # PDF object types cross reference:
 # Indirect objects, references, dictionaries and streams are Hash

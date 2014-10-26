@@ -1,20 +1,25 @@
-# -*- encoding : utf-8 -*-
-########################################################
-## Thoughts from reading the ISO 32000-1:2008
-## this file is part of the CombinePDF library and the code
-## is subject to the same license.
-########################################################
-Gem::Specification.new do |s|
-	s.name = 'combine_pdf'
-	s.version = '0.1.6'
-	s.date = Time.now.strftime "%Y-%m-%d"
-	s.add_runtime_dependency 'ruby-rc4', '>= 0.1.5'
-	s.required_ruby_version = '>= 1.9.2'
-	s.summary = "Combine, stamp and watermark PDF files in pure Ruby."
-	s.description = "A nifty gem, in pure Ruby, to parse PDF files and combine (merge) them with other PDF files, number the pages, watermark them or stamp them, create tables or basic text objects etc` (all using the PDF file format)."
-	s.authors = ["Boaz Segev", "Masters of the open source community"]
-	s.email = 'bsegev@gmail.com'
-	s.files = Dir["{lib}/**/*.rb"] #["lib/combine_pdf.rb", "lib/combine_pdf/combine_pdf_pdf.rb", "lib/combine_pdf/combine_pdf_parser.rb" , "lib/combine_pdf/combine_pdf_decrypt.rb" , "lib/combine_pdf/combine_pdf_filter.rb" ]
-	s.homepage = 'https://github.com/boazsegev/combine_pdf'
-	s.license = 'MIT'
+# coding: utf-8
+lib = File.expand_path('../lib', __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require 'combine_pdf/version'
+
+Gem::Specification.new do |spec|
+  spec.name          = "combine_pdf"
+  spec.version       = CombinePdf::VERSION
+  spec.authors       = ["Boaz Segev"]
+  spec.email         = ["We try, we fail, we do, we are"]
+  spec.summary       = %q{Combine, stamp and watermark PDF files in pure Ruby.}
+  spec.description   = %q{A nifty gem, in pure Ruby, to parse PDF files and combine (merge) them with other PDF files, number the pages, watermark them or stamp them, create tables or basic text objects etc` (all using the PDF file format).}
+  spec.homepage      = "https://github.com/boazsegev/combine_pdf"
+  spec.license       = "MIT"
+
+  spec.files         = `git ls-files -z`.split("\x0")
+  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
+  spec.require_paths = ["lib"]
+
+  spec.add_runtime_dependency 'ruby-rc4', '>= 0.1.5'
+
+  spec.add_development_dependency "bundler", "~> 1.7"
+  spec.add_development_dependency "rake", "~> 10.0"
 end

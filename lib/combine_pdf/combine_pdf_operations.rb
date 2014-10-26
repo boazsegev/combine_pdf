@@ -392,7 +392,7 @@ end
 
 #########################################################
 # this file is part of the CombinePDF library and the code
-# is subject to the same license (GPLv3).
+# is subject to the same license (MIT).
 #########################################################
 # PDF object types cross reference:
 # Indirect objects, references, dictionaries and streams are Hash

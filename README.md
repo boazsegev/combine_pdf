@@ -106,7 +106,7 @@ Credit to his wonderful is given here. Please respect his license and copyright.
 
 License
 =======
-GPLv3
+MIT
 
 
 
