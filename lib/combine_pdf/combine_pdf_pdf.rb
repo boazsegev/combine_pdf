@@ -318,7 +318,7 @@ module CombinePDF
 				pages_to_add = [data]
 			else
 				warn "Shouldn't add objects to the file unless they are PDF objects or PDF pages (an Array or a single PDF page)."
-				retrun false # return false, which will also stop any chaining.				
+				return false # return false, which will also stop any chaining.
 			end
 			catalog = rebuild_catalog
 			pages_array = catalog[:Pages][:referenced_object][:Kids]
