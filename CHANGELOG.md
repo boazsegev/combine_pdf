@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.1.7
+
+**fix**: PDF `insert` had a typo in the code that would cause failure when unsupported object insertion was attempted - fixed by Nathan Keyes (nkeyes).
+
+***
+
 Change log v.0.1.6
 
 **fix**: added Mutex to font library (which was shared by all PDFWriter objects) - now fonts are thread safe (PDF objects are NOT thread safe by design).
