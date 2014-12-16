@@ -158,6 +158,11 @@ module CombinePDF
 			end
 		end
 
+		# returns the PDF Object Hash holding the acutal data (if exists) or the original hash (if it wasn't a reference)
+		def get_referenced object
+			object[:referenced_object] || object
+		end
+
 
 		# Ruby normally assigns pointes.
 		# noramlly:

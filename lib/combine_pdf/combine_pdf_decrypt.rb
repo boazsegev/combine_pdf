@@ -45,6 +45,19 @@ module CombinePDF
 			when 1,2
 				# raise_encrypted_error
 				_perform_decrypt_proc_ @objects, self.method(:decrypt_RC4)
+			when 4
+				# raise unsupported error for now
+				raise_encrypted_error
+				# make sure CF is a Hash (as required by the PDF standard for this type of encryption).
+				raise_encrypted_error unless @encryption_dictionary[:CF].is_a?(Hash)
+
+				# do nothing if there is no data to decrypt except embeded files...?
+				return true unless (@encryption_dictionary[:CF].values.select { |v| !v[:AuthEvent] || v[:AuthEvent] == :DocOpen } ).empty?
+
+				# attempt to decrypt all strings?
+				# attempt to decrypy all streams
+				# attempt to decrypt all embeded files?
+
 			else
 				raise_encrypted_error
 			end
