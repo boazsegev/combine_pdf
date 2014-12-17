@@ -159,6 +159,8 @@ module CombinePDF
 		end
 
 		# returns the PDF Object Hash holding the acutal data (if exists) or the original hash (if it wasn't a reference)
+		#
+		# works only AFTER references have been connected.
 		def get_referenced object
 			object[:referenced_object] || object
 		end

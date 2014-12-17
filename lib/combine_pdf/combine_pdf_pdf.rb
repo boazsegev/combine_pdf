@@ -531,7 +531,7 @@ module CombinePDF
 			each_object do |obj|
 				if obj[:is_reference_only]
 					obj[:referenced_object] = objects_reference_hash[ [obj[:indirect_reference_id], obj[:indirect_generation_number] ]   ]
-					warn "couldn't connect a reference!!! could be a null object, Silent error!!!" unless obj[:referenced_object]
+					warn "couldn't connect a reference!!! could be a null or removed (empty) object, Silent error!!!" unless obj[:referenced_object]
 				end
 			end
 
