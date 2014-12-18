@@ -4,7 +4,7 @@
 
 Change log v.0.1.8
 
-**fix**: Fixed an (issue reported by Saba)[https://github.com/boazsegev/combine_pdf/issues/8], where PDF files that were written using bad practices (namely, without wrapping their content streams correctly) would not be stamped correctly due to changes in the space matrix (CTM). Fixed by wrapping all existing streams before stamping.
+**fix**: Fixed an [issue reported by Saba](https://github.com/boazsegev/combine_pdf/issues/8), where PDF files that were written using bad practices (namely, without wrapping their content streams correctly) would not be stamped correctly due to changes in the space matrix (CTM). Fixed by wrapping all existing streams before stamping.
 
 ***
 
