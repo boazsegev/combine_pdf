@@ -16,6 +16,13 @@ module CombinePDF
 	# differentiate between complex PDF objects.
 	PRIVATE_HASH_KEYS = [:indirect_reference_id, :indirect_generation_number, :raw_stream_content, :is_reference_only, :referenced_object, :indirect_without_dictionary]
 
+	# holds a simple content stream that starts a PDF graphic state container - used for wrapping malformed PDF content streams.
+	CONTENT_CONTAINER_START = { is_reference_only: true , referenced_object: {indirect_reference_id: 0, raw_stream_content: 'q'} }
+	# holds a simple content stream that ends a PDF graphic state container - used for wrapping malformed PDF content streams.
+	CONTENT_CONTAINER_MIDDLE = { is_reference_only: true , referenced_object: {indirect_reference_id: 0, raw_stream_content: "Q\nq"} }
+	# holds a simple content stream that ends a PDF graphic state container - used for wrapping malformed PDF content streams.
+	CONTENT_CONTAINER_END = { is_reference_only: true , referenced_object: {indirect_reference_id: 0, raw_stream_content: 'Q'} }
+
 	# @private
 	# @!visibility private
 	#:nodoc: all
@@ -75,10 +82,16 @@ module CombinePDF
 
 			if top # if this is a stamp (overlay)
 				page[:Contents] = original_contents
+				page[:Contents].unshift CONTENT_CONTAINER_START.dup
+				page[:Contents].push CONTENT_CONTAINER_MIDDLE.dup
 				page[:Contents].push *stream_contents
+				page[:Contents].push CONTENT_CONTAINER_END.dup
 			else #if this was a watermark (underlay? would be lost if the page was scanned, as white might not be transparent)
 				page[:Contents] = stream_contents
+				page[:Contents].unshift CONTENT_CONTAINER_START.dup
+				page[:Contents].push CONTENT_CONTAINER_MIDDLE.dup
 				page[:Contents].push *original_contents
+				page[:Contents].push CONTENT_CONTAINER_END.dup
 			end
 
 			page
@@ -139,7 +152,8 @@ module CombinePDF
 					stream[:raw_stream_content].gsub! _object_to_pdf(old_key), _object_to_pdf(new_key)  ##### PRAY(!) that the parsed datawill be correctly reproduced! 
 				end
 				# patch back to PDF defaults, for OCRed PDF files.
-				stream[:raw_stream_content] = "q\nq\nq\nDeviceRGB CS\nDeviceRGB cs\n0 0 0 rg\n0 0 0 RG\n0 Tr\n%s\nQ\nQ\nQ\n" % stream[:raw_stream_content]
+				# stream[:raw_stream_content] = "q\nq\nq\nDeviceRGB CS\nDeviceRGB cs\n0 0 0 rg\n0 0 0 RG\n0 Tr\n%s\nQ\nQ\nQ\n" % stream[:raw_stream_content]
+				stream[:raw_stream_content] = "q\nq\nq\nDeviceRGB CS\nDeviceRGB cs\n0 0 0 rg\n0 0 0 RG\n0 Tr\n1 0 0 1 0 0 cm\n%s\nQ\nQ\nQ\n" % stream[:raw_stream_content]
 			end
 
 			new_page

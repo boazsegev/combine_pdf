@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.1.8
+
+**fix**: Fixed an issue reported by Saba, where PDF files that were written using bad practices (namely, without wrapping their content streams correctly) would not be stamped correctly due to changes in the space matrix (CTM). Fixed by wrapping all existing streams.
+
+***
+
 Change log v.0.1.7
 
 **fix**: PDF `insert` had a typo in the code that would cause failure when unsupported object insertion was attempted - fixed by Nathan Keyes (nkeyes).

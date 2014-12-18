@@ -114,7 +114,8 @@ module CombinePDF
 				border_color: nil,
 				border_width: 0,
 				box_radius: 0,
-				opacity: 1
+				opacity: 1,
+				ctm: [1,0,0,1,0,0]
 			}
 			options.update properties
 			# reset the length and height to meaningful values, if negative
@@ -134,7 +135,7 @@ module CombinePDF
 
 				# set graphic state for the box
 				box_stream << "q\n"
-				box_graphic_state = { ca: options[:opacity], CA: options[:opacity], LW: options[:border_width], LC: 0, LJ: 0,  LD: 0 }
+				box_graphic_state = { ca: options[:opacity], CA: options[:opacity], LW: options[:border_width], LC: 0, LJ: 0,  LD: 0, CTM: options[:ctm]}
 				if options[:box_radius] != 0 # if the text box has rounded corners
 					box_graphic_state[:LC], box_graphic_state[:LJ] =  2, 1
 				end
@@ -228,7 +229,7 @@ module CombinePDF
 
 				# set graphic state for text
 				text_stream << "q\n"
-				text_graphic_state = graphic_state({ca: options[:opacity], CA: options[:opacity], LW: options[:stroke_width].to_f, LC: 2, LJ: 1,  LD: 0})
+				text_graphic_state = graphic_state({ca: options[:opacity], CA: options[:opacity], LW: options[:stroke_width].to_f, LC: 2, LJ: 1,  LD: 0, CTM: options[:ctm]})
 				text_stream << "#{PDFOperations._object_to_pdf text_graphic_state} gs\n"
 				text_stream << "DeviceRGB CS\nDeviceRGB cs\n"
 				# set text render mode
