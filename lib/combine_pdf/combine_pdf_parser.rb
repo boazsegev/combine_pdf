@@ -99,7 +99,8 @@ module CombinePDF
 							id_array << stream_data.shift
 							stream_data.shift
 						end
-						while stream_data[0].is_a? Hash
+						while id_array[0] && stream_data[0]
+							stream_data[0] = {indirect_without_dictionary: stream_data[0]} unless stream_data[0].is_a?(Hash)
 							stream_data[0][:indirect_reference_id] = id_array.shift
 							stream_data[0][:indirect_generation_number] = 0
 							@parsed << stream_data.shift
