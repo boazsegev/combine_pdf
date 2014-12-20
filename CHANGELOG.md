@@ -6,6 +6,7 @@ Change log v.0.1.9
 
 **fix**: possible fix for bug reported by lamphuongha, regarding PDF 1.5 streams. I await confirmation that the fix actually works, as I cannot seem to reproduce the whole spectrum of the bug on my system...
 
+***
 
 Change log v.0.1.8
 
