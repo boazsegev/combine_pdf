@@ -199,13 +199,13 @@ module CombinePDF
 						when ')'
 							count -= 1 unless seperator_count.odd?
 						else
-							warn "Unknown error parsing string at #{@scanner.pos}!"
-							cout = 0 # error
+							warn "Unknown error parsing string at #{@scanner.pos} for string: #{str}!"
+							count = 0 # error
 						end
 					end
 					# The PDF formatted string is: str[0..-2]
 					# now staring to convert to regular string
-					str_bytes = str[0..-2].bytes
+					str_bytes = str[0..-2].bytes.to_a
 					str = []
 					until str_bytes.empty?
 						case str_bytes[0]
