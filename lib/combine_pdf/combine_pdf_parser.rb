@@ -237,7 +237,7 @@ module CombinePDF
 								str << 8
 							when 102 #f
 								str << 255
-							when 48..57 #decimal notation for byte?
+							when 48..57 #octal notation for byte?
 								rep = rep.chr
 								rep += str_bytes.shift.chr if str_bytes[0].between?(48,57)
 								rep += str_bytes.shift.chr if str_bytes[0].between?(48,57) && ((rep + str_bytes[0].chr).to_i <= 255)

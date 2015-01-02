@@ -6,6 +6,8 @@ Change log v.0.1.10
 
 **fix**: fixed a typo that prevented access to the CombinePDF::VERSION constant.
 
+**?fix?** Attempted to fix [the issue reported by srogers](https://github.com/boazsegev/combine_pdf/issues/10), by forcing the String byte collection to return an Array. waiting confirmation for fix (couldn't reproduce the issue just yet).
+
 ***
 
 Change log v.0.1.9
