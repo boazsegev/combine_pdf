@@ -5,7 +5,7 @@ require 'combine_pdf/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "combine_pdf"
-  spec.version       = CombinePdf::VERSION
+  spec.version       = CombinePDF::VERSION
   spec.authors       = ["Boaz Segev"]
   spec.email         = ["We try, we fail, we do, we are"]
   spec.summary       = %q{Combine, stamp and watermark PDF files in pure Ruby.}
