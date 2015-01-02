@@ -34,6 +34,7 @@ module CombinePDF
 		#
 		# object:: object to decompress.
 		def inflate_object object = nil
+			return false unless object.is_a?(Hash)
 			filter_array = object[:Filter]
 			if filter_array.is_a?(Hash) && filter_array[:is_reference_only]
 				filter_array = filter_array[:referenced_object]

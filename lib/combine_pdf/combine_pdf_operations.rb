@@ -348,7 +348,7 @@ module CombinePDF
 			# b) Any character in a name that is a regular character (other than NUMBER SIGN) shall be written as itself or by using its 2-digit hexadecimal code, preceded by the NUMBER SIGN.
 			# c) Any character that is not a regular character shall be written using its 2-digit hexadecimal code, preceded by the NUMBER SIGN only.
 			# [0x00, 0x09, 0x0a, 0x0c, 0x0d, 0x20, 0x28, 0x29, 0x3c, 0x3e, 0x5b, 0x5d, 0x7b, 0x7d, 0x2f, 0x25]
-			out = object.to_s.bytes.map do |b|
+			out = object.to_s.bytes.to_a.map do |b|
 				case b
 				when 0..15
 					'#0' + b.to_s(16)

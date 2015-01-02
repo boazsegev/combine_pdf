@@ -2,11 +2,17 @@
 
 ***
 
+Change log v.0.1.11
+
+**fix**: fixed a bug where Page Resources and ColorSpace data wouldn't be inherited correctly from the Catalog and Pages parent objects. This issue could cause pages to render without all their content intact. This issue is now fixed (although more testing should be done for multiple inheritance).
+
+**?fix?** Attempted to fix [the issue reported by srogers](https://github.com/boazsegev/combine_pdf/issues/10), by forcing all String byte collections to return an Array. waiting confirmation for fix (couldn't reproduce the issue just yet, as I can't seem to install Ruby MRI 1.9.3 on my mac).
+
+***
+
 Change log v.0.1.10
 
 **fix**: fixed a typo that prevented access to the CombinePDF::VERSION constant.
-
-**?fix?** Attempted to fix [the issue reported by srogers](https://github.com/boazsegev/combine_pdf/issues/10), by forcing the String byte collection to return an Array. waiting confirmation for fix (couldn't reproduce the issue just yet).
 
 ***
 

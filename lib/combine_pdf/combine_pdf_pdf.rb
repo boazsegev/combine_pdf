@@ -144,7 +144,7 @@ module CombinePDF
 
 			#collect objects and set xref table locations
 			loc = 0
-			out.each {|line| loc += line.bytes.length + 1}
+			out.each {|line| loc += line.bytesize + 1}
 			@objects.each do |o|
 				indirect_object_count += 1
 				xref << loc
@@ -152,7 +152,7 @@ module CombinePDF
 				loc += out.last.length + 1
 			end
 			xref_location = 0
-			out.each { |line| xref_location += line.bytes.length + 1}
+			out.each { |line| xref_location += line.bytesize + 1}
 			out << "xref\n\r0 #{(indirect_object_count).to_s}\n\r0000000000 65535 f \n\r"
 			xref.each {|offset| out << ( out.pop + ("%010d 00000 n \n\r" % offset) ) }
 			out << out.pop + "trailer"
@@ -197,7 +197,7 @@ module CombinePDF
 		#
 		# catalogs:: a catalog, or an Array of catalog objects. defaults to the existing catalog.
 		# secure_injection:: a boolean (true / false) controling the behavior of the << operator.
-		def pages(catalogs = nil, secure_injection = true)
+		def pages(catalogs = nil, secure_injection = true, inheritance_hash = {})
 			page_list = []
 			if catalogs == nil
 				catalogs = @objects.select {|obj| obj.is_a?(Hash) && obj[:Type] == :Catalog}
@@ -205,16 +205,24 @@ module CombinePDF
 			end
 			case 
 			when catalogs.is_a?(Array)
-				catalogs.each {|c| page_list.push *(pages(c)) unless c.nil?}
+				catalogs.each {|c| page_list.push *( pages(c, secure_injection, inheritance_hash ) ) unless c.nil?}
 			when catalogs.is_a?(Hash)
 				if catalogs[:is_reference_only]
-					catalogs[:referenced_object] = pages(PDFOperations.get_refernced_object @objects, catalogs) unless catalogs[:referenced_object]
+					# not applicable any more... | catalogs[:referenced_object] = PDFOperations.get_refernced_object(@objects, catalogs) # for some reson, the code was: pages(PDFOperations.get_refernced_object(@objects, catalogs), secure_injection, inheritance_hash) unless catalogs[:referenced_object]
 					if catalogs[:referenced_object]
-						page_list.push *( pages(catalogs[:referenced_object]) )
+						page_list.push *( pages(catalogs[:referenced_object], secure_injection, inheritance_hash) )
 					else
 						warn "couldn't follow reference!!! #{catalogs} not found!"
 					end
 				else
+					unless catalogs[:Type] == :Page
+						# set inheritance, when applicable
+						inheritance_hash[:MediaBox] = catalogs[:MediaBox] if catalogs[:MediaBox]
+						inheritance_hash[:CropBox] = catalogs[:CropBox] if catalogs[:CropBox]
+						(inheritance_hash[:Resources] ||= {}).update( (catalogs[:Resources][:referenced_object] || catalogs[:Resources]), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:Resources]
+						(inheritance_hash[:ColorSpace] ||= {}).update( (catalogs[:ColorSpace][:referenced_object] || catalogs[:ColorSpace]), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:ColorSpace]
+					end
+
 					case catalogs[:Type]
 					when :Page
 						holder = self
@@ -233,15 +241,23 @@ module CombinePDF
 								self
 							end
 						end
-						catalogs[:MediaBox] ||= catalogs[:Parent][:referenced_object][:MediaBox] if catalogs[:Parent].is_a?(Hash) && catalogs[:Parent][:referenced_object].is_a?(Hash) && catalogs[:Parent][:referenced_object][:MediaBox]
-						catalogs[:CropBox] ||= catalogs[:Parent][:referenced_object][:CropBox] if catalogs[:CropBox].is_a?(Hash) && catalogs[:CropBox][:referenced_object].is_a?(Hash) && catalogs[:Parent][:referenced_object][:CropBox]
+
+						# inheritance 
+						catalogs[:MediaBox] ||= inheritance_hash[:MediaBox] if inheritance_hash[:MediaBox]
+						catalogs[:CropBox] ||= inheritance_hash[:CropBox] if inheritance_hash[:CropBox]
+						(catalogs[:Resources] ||= {}).update( inheritance_hash[:Resources], &( self.class.method(:hash_update_proc_for_old) ) ) if inheritance_hash[:Resources]
+						(catalogs[:ColorSpace] ||= {}).update( inheritance_hash[:ColorSpace], &( self.class.method(:hash_update_proc_for_old) ) ) if inheritance_hash[:ColorSpace]
+
+
+						# avoide references on MediaBox and CropBox
 						catalogs[:MediaBox] = catalogs[:MediaBox][:referenced_object][:indirect_without_dictionary] if catalogs[:MediaBox].is_a?(Hash) && catalogs[:MediaBox][:referenced_object].is_a?(Hash) && catalogs[:MediaBox][:referenced_object][:indirect_without_dictionary]
 						catalogs[:CropBox] = catalogs[:CropBox][:referenced_object][:indirect_without_dictionary] if catalogs[:CropBox].is_a?(Hash) && catalogs[:CropBox][:referenced_object].is_a?(Hash) && catalogs[:CropBox][:referenced_object][:indirect_without_dictionary]
+
 						page_list << catalogs
 					when :Pages
-						page_list.push *(pages(catalogs[:Kids])) unless catalogs[:Kids].nil?
+						page_list.push *(pages(catalogs[:Kids], secure_injection, inheritance_hash.dup )) unless catalogs[:Kids].nil?
 					when :Catalog
-						page_list.push *(pages(catalogs[:Pages])) unless catalogs[:Pages].nil?
+						page_list.push *(pages(catalogs[:Pages], secure_injection, inheritance_hash.dup )) unless catalogs[:Pages].nil?
 					end
 				end
 			end
@@ -466,6 +482,7 @@ module CombinePDF
 			case 
 			when object.is_a?(Array)
 				object.each {|it| add_referenced(it)}
+				return true
 			when object.is_a?(Hash)
 				if object[:is_reference_only] && object[:referenced_object]
 					found_at = @objects.find_index object[:referenced_object]
@@ -474,20 +491,22 @@ module CombinePDF
 						# so, we need to make sure they are the same object for the pointers to effect id numbering
 						# and formatting operations.
 						object[:referenced_object] = @objects[found_at]
-					else @objects.include? object[:referenced_object]
+						# stop this path, there is no need to run over the Hash's keys and values
+						return true
+					else
+						# @objects.include? object[:referenced_object] is bound to be false
 						#the object wasn't found - add it to the @objects array
 						@objects << object[:referenced_object]
-						object[:referenced_object].each do |k, v|
-							add_referenced(v) unless k == :Parent
-						end						
 					end
 
-				else
-					object.each do |k, v|
-						add_referenced(v) unless k == :Parent 
-					end
 				end
+				object.each do |k, v|
+					add_referenced(v) unless k == :Parent 
+				end
+			else
+				return false
 			end
+			true
 		end
 		# @private
 		# run block of code on evey PDF object (PDF objects are class Hash)
@@ -496,6 +515,27 @@ module CombinePDF
 		end
 
 		protected
+
+		# @private
+		# this method reviews a Hash an updates it by merging Hash data,
+		# preffering the old over the new.
+		def self.hash_update_proc_for_old key, old_data, new_data
+			if old_data.is_a? Hash
+				old_data.merge( new_data, &self.method(:hash_update_proc_for_old) )
+			else
+				old_data
+			end
+		end
+		# @private
+		# this method reviews a Hash an updates it by merging Hash data,
+		# preffering the new over the old.
+		def self.hash_update_proc_for_new key, old_data, new_data
+			if old_data.is_a? Hash
+				old_data.merge( new_data, &self.method(:hash_update_proc_for_new) )
+			else
+				new_data
+			end
+		end
 
 		# @private
 		# this function returns all the Page objects - regardless of order and even if not cataloged
@@ -531,7 +571,7 @@ module CombinePDF
 			each_object do |obj|
 				if obj[:is_reference_only]
 					obj[:referenced_object] = objects_reference_hash[ [obj[:indirect_reference_id], obj[:indirect_generation_number] ]   ]
-					warn "couldn't connect a reference!!! could be a null or removed (empty) object, Silent error!!!" unless obj[:referenced_object]
+					warn "couldn't connect a reference!!! could be a null or removed (empty) object, Silent error!!!\n Object raising issue: #{obj.to_s}" unless obj[:referenced_object]
 				end
 			end
 

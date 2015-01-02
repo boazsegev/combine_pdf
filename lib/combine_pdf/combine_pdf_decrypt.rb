@@ -69,7 +69,7 @@ module CombinePDF
 
 		def set_general_key(password = "")
 			# 1) make sure the initial key is 32 byte long (if no password, uses padding).
-			key = (password.bytes[0..32] + @padding_key)[0..31].pack('C*').force_encoding(Encoding::ASCII_8BIT)
+			key = (password.bytes[0..32].to_a + @padding_key)[0..31].to_a.pack('C*').force_encoding(Encoding::ASCII_8BIT)
 			# 2) add the value of the encryption dictionary’s O entry
 			key << @encryption_dictionary[:O].to_s
 			# 3) Convert the integer value of the P entry to a 32-bit unsigned binary number
