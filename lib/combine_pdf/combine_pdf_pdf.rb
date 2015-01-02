@@ -219,6 +219,7 @@ module CombinePDF
 						# set inheritance, when applicable
 						inheritance_hash[:MediaBox] = catalogs[:MediaBox] if catalogs[:MediaBox]
 						inheritance_hash[:CropBox] = catalogs[:CropBox] if catalogs[:CropBox]
+						inheritance_hash[:Rotate] = catalogs[:Rotate] if catalogs[:Rotate]
 						(inheritance_hash[:Resources] ||= {}).update( (catalogs[:Resources][:referenced_object] || catalogs[:Resources]), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:Resources]
 						(inheritance_hash[:ColorSpace] ||= {}).update( (catalogs[:ColorSpace][:referenced_object] || catalogs[:ColorSpace]), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:ColorSpace]
 					end
@@ -245,13 +246,15 @@ module CombinePDF
 						# inheritance 
 						catalogs[:MediaBox] ||= inheritance_hash[:MediaBox] if inheritance_hash[:MediaBox]
 						catalogs[:CropBox] ||= inheritance_hash[:CropBox] if inheritance_hash[:CropBox]
+						catalogs[:Rotate] ||= inheritance_hash[:Rotate] if inheritance_hash[:Rotate]
 						(catalogs[:Resources] ||= {}).update( inheritance_hash[:Resources], &( self.class.method(:hash_update_proc_for_old) ) ) if inheritance_hash[:Resources]
 						(catalogs[:ColorSpace] ||= {}).update( inheritance_hash[:ColorSpace], &( self.class.method(:hash_update_proc_for_old) ) ) if inheritance_hash[:ColorSpace]
 
 
-						# avoide references on MediaBox and CropBox
+						# avoide references on MediaBox, CropBox and Rotate
 						catalogs[:MediaBox] = catalogs[:MediaBox][:referenced_object][:indirect_without_dictionary] if catalogs[:MediaBox].is_a?(Hash) && catalogs[:MediaBox][:referenced_object].is_a?(Hash) && catalogs[:MediaBox][:referenced_object][:indirect_without_dictionary]
 						catalogs[:CropBox] = catalogs[:CropBox][:referenced_object][:indirect_without_dictionary] if catalogs[:CropBox].is_a?(Hash) && catalogs[:CropBox][:referenced_object].is_a?(Hash) && catalogs[:CropBox][:referenced_object][:indirect_without_dictionary]
+						catalogs[:Rotate] = catalogs[:Rotate][:referenced_object][:indirect_without_dictionary] if catalogs[:Rotate].is_a?(Hash) && catalogs[:Rotate][:referenced_object].is_a?(Hash) && catalogs[:Rotate][:referenced_object][:indirect_without_dictionary]
 
 						page_list << catalogs
 					when :Pages
@@ -375,7 +378,7 @@ module CombinePDF
 		# - :start_at a Fixnum that sets the number for first page number. also accepts a letter ("a") for letter numbering. defaults to 1.
 		# - :margin_from_height a number (PDF points) for the top and buttom margins. defaults to 45.
 		# - :margin_from_side a number (PDF points) for the left and right margins. defaults to 15.
-		# the options Hash can also take all the options for PDFWriter.textbox.
+		# the options Hash can also take all the options for PDFWriter#textbox.
 		# defaults to font: :Helvetica, font_size: 12 and no box (:border_width => 0, :box_color => nil).
 		def number_pages(options = {})
 			opt = {

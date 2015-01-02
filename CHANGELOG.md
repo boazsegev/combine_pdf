@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.1.12
+
+**fix**: fix for page rotation inheritance.
+
+***
+
 Change log v.0.1.11
 
 **fix**: fixed a bug where Page Resources and ColorSpace data wouldn't be inherited correctly from the Catalog and Pages parent objects. This issue could cause pages to render without all their content intact. This issue is now fixed (although more testing should be done for multiple inheritance).
