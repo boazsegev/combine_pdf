@@ -6,6 +6,8 @@ Change log v.0.1.12
 
 **fix**: fix for page rotation inheritance.
 
+**fix**: fix for the issue reported by Diyei Gomi that showed how certain PDF files, when stamped one on top of the other, can result in a malformed PDF being Rendered. The issue was probably caused by parsing errors introduced while parsing hex strings (a case sensitive method was used by mistake and this is now corrected). This release contains a patch, but it is yet unknown if the issue is fully fxed.
+
 ***
 
 Change log v.0.1.11

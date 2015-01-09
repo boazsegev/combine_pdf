@@ -216,7 +216,13 @@ module CombinePDF
 					end
 				else
 					unless catalogs[:Type] == :Page
-						# set inheritance, when applicable
+						# # set inheritance, when applicable, and delete older data
+						# inheritance_hash[:MediaBox] = catalogs.delete(:MediaBox) if catalogs[:MediaBox]
+						# inheritance_hash[:CropBox] = catalogs.delete(:CropBox) if catalogs[:CropBox]
+						# inheritance_hash[:Rotate] = catalogs.delete(:Rotate) if catalogs[:Rotate]
+						# (inheritance_hash[:Resources] ||= {}).update( ( catalogs[:Resources][:referenced_object] ? catalogs.delete(:Resources)[:referenced_object] : catalogs.delete(:Resources) ), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:Resources]
+						# (inheritance_hash[:ColorSpace] ||= {}).update( ( catalogs[:ColorSpace][:referenced_object] ? catalogs.delete(:ColorSpace)[:referenced_object] : catalogs.delete(:ColorSpace) ), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:ColorSpace]
+						# old - set inheritance, when applicable
 						inheritance_hash[:MediaBox] = catalogs[:MediaBox] if catalogs[:MediaBox]
 						inheritance_hash[:CropBox] = catalogs[:CropBox] if catalogs[:CropBox]
 						inheritance_hash[:Rotate] = catalogs[:Rotate] if catalogs[:Rotate]

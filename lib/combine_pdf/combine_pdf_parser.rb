@@ -176,7 +176,7 @@ module CombinePDF
 				##########################################
 				## parse a Hex String
 				##########################################
-				when str = @scanner.scan(/<[0-9a-f]+>/)
+				when str = @scanner.scan(/<[0-9a-fA-F]+>/)
 					# warn "Found a hex string"
 					out << [str[1..-2]].pack('H*')
 				##########################################
