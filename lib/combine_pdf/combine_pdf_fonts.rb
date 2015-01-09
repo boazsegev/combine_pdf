@@ -85,6 +85,12 @@ module CombinePDF
 	module Fonts
 		module_function
 
+		# returns a list containing the registered font names
+		def fonts_list
+			initiate_library
+			FONTS_LIBRARY.keys			
+		end
+
 		# gets a font from the fonts library
 		def get_font(name = :Helvetica)
 			initiate_library

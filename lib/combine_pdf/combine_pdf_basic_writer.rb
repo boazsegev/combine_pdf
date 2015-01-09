@@ -41,7 +41,7 @@ module CombinePDF
 		def initialize(mediabox = [0, 0, 595.3, 841.9])
 			# indirect_reference_id, :indirect_generation_number
 			@contents = ""
-			@base_font_name = "Writer" + SecureRandom.urlsafe_base64(7) + "PDF"
+			@base_font_name = "Writer" + SecureRandom.hex(7) + "PDF"
 			self[:Type] = :Page
 			self[:indirect_reference_id] = 0
 			self[:Resources] = {}
@@ -141,7 +141,10 @@ module CombinePDF
 				end
 				box_graphic_state = graphic_state box_graphic_state # adds the graphic state to Resources and gets the reference
 				box_stream << "#{PDFOperations._object_to_pdf box_graphic_state} gs\n"
-				box_stream << "DeviceRGB CS\nDeviceRGB cs\n"
+
+				# the following line was removed for Acrobat Reader compatability
+				# box_stream << "DeviceRGB CS\nDeviceRGB cs\n"
+
 				if options[:box_color]
 					box_stream << "#{options[:box_color].join(' ')} rg\n"
 				end
@@ -231,7 +234,10 @@ module CombinePDF
 				text_stream << "q\n"
 				text_graphic_state = graphic_state({ca: options[:opacity], CA: options[:opacity], LW: options[:stroke_width].to_f, LC: 2, LJ: 1,  LD: 0, CTM: options[:ctm]})
 				text_stream << "#{PDFOperations._object_to_pdf text_graphic_state} gs\n"
-				text_stream << "DeviceRGB CS\nDeviceRGB cs\n"
+
+				# the following line was removed for Acrobat Reader compatability
+				# text_stream << "DeviceRGB CS\nDeviceRGB cs\n"
+
 				# set text render mode
 				if options[:font_color]
 					text_stream << "#{options[:font_color].join(' ')} rg\n"
@@ -253,7 +259,7 @@ module CombinePDF
 				encode(text, fonts).each do |encoded|
 					text_stream << "BT\n" # the Begine Text marker			
 					text_stream << PDFOperations._format_name_to_pdf(set_font encoded[0]) # Set font name
-					text_stream << " #{font_size} Tf\n" # set font size and add font operator
+					text_stream << " #{font_size.round 3} Tf\n" # set font size and add font operator
 					text_stream << "#{x.round 4} #{y.round 4} Td\n" # set location for text object
 					text_stream << (  encoded[1] ) # insert the encoded string to the stream
 					text_stream << " Tj\n" # the Text object operator and the End Text marker
@@ -345,7 +351,7 @@ module CombinePDF
 			#return name
 			name
 		end
-		# register or get a registered graphoc state dictionary.
+		# register or get a registered graphic state dictionary.
 		# the method returns the name of the graphos state, for use in a content stream.
 		def graphic_state(graphic_state_dictionary = {})
 			# if the graphic state exists, return it's name
@@ -358,7 +364,7 @@ module CombinePDF
 			# set graphic state type
 			graphic_state_dictionary[:Type] = :ExtGState
 			# set a secure name for the graphic state
-			name = (SecureRandom.urlsafe_base64(9)).to_sym
+			name = (SecureRandom.hex(9)).to_sym
 			# add object to reasource
 			resources[:ExtGState][name] = graphic_state_dictionary
 			#return name

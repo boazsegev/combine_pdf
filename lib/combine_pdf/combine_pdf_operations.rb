@@ -129,7 +129,7 @@ module CombinePDF
 			resources.each do |k,v|
 				if v.is_a?(Hash)
 					new_dictionary = {}
-					new_name = "Combine" + SecureRandom.urlsafe_base64() + "PDF"
+					new_name = "Combine" + SecureRandom.hex(7) + "PDF"
 					i = 1
 					v.each do |old_key, value|
 						new_key = (new_name + i.to_s).to_sym
@@ -153,7 +153,8 @@ module CombinePDF
 				end
 				# patch back to PDF defaults, for OCRed PDF files.
 				# stream[:raw_stream_content] = "q\nq\nq\nDeviceRGB CS\nDeviceRGB cs\n0 0 0 rg\n0 0 0 RG\n0 Tr\n%s\nQ\nQ\nQ\n" % stream[:raw_stream_content]
-				stream[:raw_stream_content] = "q\nq\nq\nDeviceRGB CS\nDeviceRGB cs\n0 0 0 rg\n0 0 0 RG\n0 Tr\n1 0 0 1 0 0 cm\n%s\nQ\nQ\nQ\n" % stream[:raw_stream_content]
+				# the following was removed for Acrobat Reader compatability: DeviceRGB CS\nDeviceRGB cs\n
+				stream[:raw_stream_content] = "q\nq\nq\n0 0 0 rg\n0 0 0 RG\n0 Tr\n1 0 0 1 0 0 cm\n%s\nQ\nQ\nQ\n" % stream[:raw_stream_content]
 			end
 
 			new_page
