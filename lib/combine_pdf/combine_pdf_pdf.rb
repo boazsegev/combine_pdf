@@ -232,22 +232,22 @@ module CombinePDF
 
 					case catalogs[:Type]
 					when :Page
-						holder = self
-						if secure_injection
-							catalogs.define_singleton_method("<<".to_sym) do |obj|
-								obj = PDFOperations.copy_and_secure_for_injection obj
-								PDFOperations.inject_to_page self, obj
-								holder.add_referenced self # add new referenced objects
-								self
-							end
-						else
-							catalogs.define_singleton_method("<<".to_sym) do |obj|
-								obj = PDFOperations.create_deep_copy obj
-								PDFOperations.inject_to_page self, obj
-								holder.add_referenced self # add new referenced objects
-								self
-							end
-						end
+						# holder = self
+						# if secure_injection
+						# 	catalogs.define_singleton_method("<<".to_sym) do |obj|
+						# 		obj = PDFOperations.copy_and_secure_for_injection obj
+						# 		PDFOperations.inject_to_page self, obj
+						# 		holder.add_referenced self # add new referenced objects
+						# 		self
+						# 	end
+						# else
+						# 	catalogs.define_singleton_method("<<".to_sym) do |obj|
+						# 		obj = PDFOperations.create_deep_copy obj
+						# 		PDFOperations.inject_to_page self, obj
+						# 		holder.add_referenced self # add new referenced objects
+						# 		self
+						# 	end
+						# end
 
 						# inheritance 
 						catalogs[:MediaBox] ||= inheritance_hash[:MediaBox] if inheritance_hash[:MediaBox]
@@ -261,6 +261,9 @@ module CombinePDF
 						catalogs[:MediaBox] = catalogs[:MediaBox][:referenced_object][:indirect_without_dictionary] if catalogs[:MediaBox].is_a?(Hash) && catalogs[:MediaBox][:referenced_object].is_a?(Hash) && catalogs[:MediaBox][:referenced_object][:indirect_without_dictionary]
 						catalogs[:CropBox] = catalogs[:CropBox][:referenced_object][:indirect_without_dictionary] if catalogs[:CropBox].is_a?(Hash) && catalogs[:CropBox][:referenced_object].is_a?(Hash) && catalogs[:CropBox][:referenced_object][:indirect_without_dictionary]
 						catalogs[:Rotate] = catalogs[:Rotate][:referenced_object][:indirect_without_dictionary] if catalogs[:Rotate].is_a?(Hash) && catalogs[:Rotate][:referenced_object].is_a?(Hash) && catalogs[:Rotate][:referenced_object][:indirect_without_dictionary]
+
+						catalogs.instance_eval {extend Page_Methods}
+						catalogs.secure_injection = secure_injection
 
 						page_list << catalogs
 					when :Pages

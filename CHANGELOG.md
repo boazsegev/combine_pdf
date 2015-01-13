@@ -2,6 +2,14 @@
 
 ***
 
+Change log v.0.1.14
+
+**changes**: changed the way the PDF Page objects are 'injected' with their methods, so that the PDF#pages method is faster and more methods can be injected into the Hash object. For instance, textbox can now be called on an existing page without creating a PDFWriter object and 'stumping' the new data.
+
+(the number_pages method hasn't been update to use this new feature as of yet)
+
+***
+
 Change log v.0.1.13
 
 **fix**: fix for Acrobat Reader compatablity (by removing color-space declarations). Should solve issue #13 , reported originaly by Imanol and Diyei Gomi.

@@ -9,6 +9,7 @@ require 'rc4'
 
 
 load "combine_pdf/combine_pdf_operations.rb"
+load "combine_pdf/combine_pdf_page.rb"
 load "combine_pdf/combine_pdf_basic_writer.rb"
 load "combine_pdf/combine_pdf_decrypt.rb"
 load "combine_pdf/combine_pdf_fonts.rb"
