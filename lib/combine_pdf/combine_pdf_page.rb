@@ -105,7 +105,7 @@ module CombinePDF
 				border_width: 0,
 				box_radius: 0,
 				opacity: 1,
-				ctm: [1,0,0,1,0,0]
+				ctm: nil # ~= [1,0,0,1,0,0]
 			}
 			options.update properties
 			# reset the length and height to meaningful values, if negative
@@ -125,7 +125,8 @@ module CombinePDF
 
 				# set graphic state for the box
 				box_stream << "q\n"
-				box_graphic_state = { ca: options[:opacity], CA: options[:opacity], LW: options[:border_width], LC: 0, LJ: 0,  LD: 0, CTM: options[:ctm]}
+				box_stream << "#{options[:ctm].join ' '} cm\n" if options[:ctm]
+				box_graphic_state = { ca: options[:opacity], CA: options[:opacity], LW: options[:border_width], LC: 0, LJ: 0,  LD: 0}
 				if options[:box_radius] != 0 # if the text box has rounded corners
 					box_graphic_state[:LC], box_graphic_state[:LJ] =  2, 1
 				end
@@ -222,7 +223,8 @@ module CombinePDF
 
 				# set graphic state for text
 				text_stream << "q\n"
-				text_graphic_state = graphic_state({ca: options[:opacity], CA: options[:opacity], LW: options[:stroke_width].to_f, LC: 2, LJ: 1,  LD: 0, CTM: options[:ctm]})
+				text_stream << "#{options[:ctm].join ' '} cm\n" if options[:ctm]
+				text_graphic_state = graphic_state({ca: options[:opacity], CA: options[:opacity], LW: options[:stroke_width].to_f, LC: 2, LJ: 1,  LD: 0 })
 				text_stream << "#{PDFOperations._object_to_pdf text_graphic_state} gs\n"
 
 				# the following line was removed for Acrobat Reader compatability

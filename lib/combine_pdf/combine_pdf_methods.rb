@@ -150,6 +150,36 @@ module CombinePDF
 		create_table options
 	end
 
+	# calculate a CTM value for a specific transformation.
+	#
+	# this could be used to apply transformation in #textbox and to convert visual
+	# rotation values into actual rotation transformation.
+	#
+	# this method accepts a Hash containing any of the following parameters:
+	#
+	# deg:: the clockwise rotation to be applied, in degrees
+	# tx:: the x translation to be applied.
+	# ty:: the y translation to be applied.
+	# sx:: the x scaling to be applied.
+	# sy:: the y scaling to be applied.
+	#
+	# * scaling will be applied after the transformation is applied.
+	#
+	def calc_ctm parameters
+		p = {deg: 0, tx: 0, ty: 0, sx: 1, sy: 1}.merge parameters
+		r = p[:deg] * Math::PI / 180
+		s = Math.sin(r)
+		c = Math.cos(r)
+		# start with tranlation matrix
+		m = Matrix[ [1,0,0], [0,1,0], [ p[:tx], p[:ty], 1] ]
+		# then rotate
+		m = m * Matrix[ [c, s, 0], [-s, c, 0], [0, 0, 1]] if parameters[:deg]
+		# then scale
+		m = m * Matrix[ [p[:sx], 0, 0], [0, p[:sy], 0], [0,0,1] ] if parameters[:sx] || parameters[:sy]
+		# flaten array and round to 6 digits
+		m.to_a.flatten.values_at(0,1,3,4,6,7).map! {|f| f.round 6}
+	end
+
 	# adds a correctly formatted font object to the font library.
 	#
 	# registered fonts will remain in the library and will only be embeded in

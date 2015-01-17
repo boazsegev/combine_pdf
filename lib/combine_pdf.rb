@@ -3,6 +3,7 @@
 require 'zlib'
 require 'securerandom'
 require 'strscan'
+require 'matrix'
 
 #require the RC4 Gem
 require 'rc4'
