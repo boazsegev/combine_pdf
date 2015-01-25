@@ -332,8 +332,8 @@ module CombinePDF
 			end
 			# reset the Rotate property
 			self.delete :Rotate
-			# re-initialize the content stream, so that future inserts aren't rotated
-			init_contents
+			# disconnect the content stream, so that future inserts aren't rotated
+			@contents = false #init_contents
 
 			# always return self, for chaining.
 			self

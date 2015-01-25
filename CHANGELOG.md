@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.1.15
+
+**features**: added new PDF#Page API to deal with page rotation and orientation. see the docs for more info.
+
+***
+
 Change log v.0.1.14
 
 **changes**: changed the way the PDF Page objects are 'injected' with their methods, so that the PDF#pages method is faster and more methods can be injected into the Hash object. For instance, textbox can now be called on an existing page without creating a PDFWriter object and 'stumping' the new data.
