@@ -357,18 +357,22 @@ module CombinePDF
 		# get or set (by clockwise rotation) the page's orientation
 		#
 		# accepts one optional parameter:
-		# fource:: to get the orientation, pass nil. to set the orientatiom, set fource to either :portrait or :landscape. defaults to nil (get orientation).
+		# force:: to get the orientation, pass nil. to set the orientatiom, set fource to either :portrait or :landscape. defaults to nil (get orientation).
+		# clockwise:: sets the rotation directions. defaults to true (clockwise rotation).
 		#
 		# returns the current orientation (:portrait or :landscape) if used to get the orientation.
 		# otherwise, if used to set the orientation, returns the page object to allow method chaining.
 		#
 		# * Notice: a square page always returns the :portrait value and is ignored when trying to set the orientation.
-		def orientation force = nil
+		def orientation force = nil, clockwise = true
 			a = self[:CropBox] || self[:MediaBox]
 			unless force
 				return (a[2] - a[0] > a[3] - a[1]) ? :landscape : :portrait
 			end
-			rotate_right unless orientation == force || (a[2] - a[0] == a[3] - a[1])
+			unless orientation == force || (a[2] - a[0] == a[3] - a[1])
+				self[:Rotate] = 0;
+				clockwise ? rotate_right : rotate_left
+			end
 			self
 		end
 
