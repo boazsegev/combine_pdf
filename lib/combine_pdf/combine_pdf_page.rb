@@ -301,6 +301,82 @@ module CombinePDF
 			self[:Resources]
 		end
 
+		# This method moves the Page[:Rotate] property into the page's data stream, so that
+		# "what you see is what you get".
+		#
+		# This is usful in cases where there might be less control over the source PDF files,
+		# and the user assums that the PDF page's data is the same as the PDF's pages
+		# on screen display (Rotate rotates a page but leaves the data in the original orientation).
+		#
+		# The method returns the page object, thus allowing method chaining (i.e. `page[:Rotate] = 90; page.textbox('hello!').fix_rotation.textbox('hello!')`)
+		def fix_rotation
+			return self if self[:Rotate].to_f == 0.0 || mediabox.nil?
+			# calculate the rotation
+			r = self[:Rotate].to_f * Math::PI / 180
+			s = Math.sin(r).round 6
+			c = Math.cos(r).round 6
+			ctm = [c, s, -s, c]
+			# calculate the translation (move the origin of x,y to the new origin).
+			x = mediabox[2] - mediabox[0]
+			y = mediabox[3] - mediabox[1]
+			ctm.push( ( (x*c).abs - x*c + (y*s).abs + y*s )/2 , ( (x*s).abs - x*s + (y*c).abs - y*c )/2 )
+
+			# insert the rotation stream into the current content stream
+			insert_object "q\n#{ctm.join ' '} cm\n", 0
+			# close the rotation stream
+			insert_object CONTENT_CONTAINER_END
+			# reset the mediabox and cropbox values - THIS IS ONLY FOR ORIENTATION CHANGE...
+			if ((self[:Rotate].to_f / 90)%2) != 0
+				self[:MediaBox] = self[:MediaBox].values_at(1,0,3,2)
+				self[:CropBox] = self[:CropBox].values_at(1,0,3,2) if self[:CropBox]
+			end
+			# reset the Rotate property
+			self.delete :Rotate
+			# re-initialize the content stream, so that future inserts aren't rotated
+			init_contents
+
+			# always return self, for chaining.
+			self
+		end
+
+		# rotate the page 90 degrees counter clockwise
+		def rotate_left
+			self[:Rotate] = self[:Rotate].to_f + 90
+			fix_rotation
+		end
+		# rotate the page 90 degrees clockwise
+		def rotate_right
+			self[:Rotate] = self[:Rotate].to_f - 90
+			fix_rotation
+		end
+		# rotate the page by 180 degrees
+		def rotate_180
+			self[:Rotate] = self[:Rotate].to_f +180
+			fix_rotation
+		end
+		# get or set (by clockwise rotation) the page's orientation
+		#
+		# accepts one optional parameter:
+		# fource:: to get the orientation, pass nil. to set the orientatiom, set fource to either :portrait or :landscape. defaults to nil (get orientation).
+		#
+		# returns the current orientation (:portrait or :landscape) if used to get the orientation.
+		# otherwise, if used to set the orientation, returns the page object to allow method chaining.
+		#
+		# * Notice: a square page always returns the :portrait value and is ignored when trying to set the orientation.
+		def orientation force = nil
+			a = self[:CropBox] || self[:MediaBox]
+			unless force
+				return (a[2] - a[0] > a[3] - a[1]) ? :landscape : :portrait
+			end
+			rotate_right unless orientation == force || (a[2] - a[0] == a[3] - a[1])
+			self
+		end
+
+
+
+		###################################
+		# protected methods
+
 		protected
 
 		# accessor (getter) for the stream in the :Contents element of the page
@@ -311,16 +387,23 @@ module CombinePDF
 		#initializes the content stream in case it was not initialized before
 		def init_contents
 			@contents = ''
-			c_obj = { is_reference_only: true , referenced_object: {indirect_reference_id: 0, raw_stream_content: @contents} }
-			if self[:Contents].is_a?(Array)
-				self[:Contents] << c_obj
-			elsif self[:Contents].nil?
-				self[:Contents] = c_obj
-			else
-				self[:Contents] = [ self[:Contents], c_obj ]
-			end
-				
+			insert_object @contents
 			@contents
+		end
+
+		# adds a string or an object to the content stream, at the location indicated
+		#
+		# accepts:
+		# object:: can be a string or a hash object
+		# location:: can be any numeral related to the possition in the :Contents array. defaults to -1 == insert at the end.
+		def insert_object object, location = -1
+			object = { is_reference_only: true , referenced_object: {indirect_reference_id: 0, raw_stream_content: object} } if object.is_a?(String)
+			raise TypeError, "expected a String or Hash object." unless object.is_a?(Hash)
+			unless self[:Contents].is_a?(Array)
+				self[:Contents] = [ self[:Contents] ].compact
+			end
+			self[:Contents].insert location, object
+			self
 		end
 
 		#returns the basic font name used internally
