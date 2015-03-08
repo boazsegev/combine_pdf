@@ -140,7 +140,7 @@ module CombinePDF
 			xref = []
 			indirect_object_count = 1 #the first object is the null object
 			#write head (version and binanry-code)
-			out << "%PDF-#{@version.to_s}\n%\x00\x00\x00\x00".force_encoding(Encoding::ASCII_8BIT)
+			out << "%PDF-#{@version.to_s}\n%\xFF\xFF\xFF\xFF\xFF\x00\x00\x00\x00".force_encoding(Encoding::ASCII_8BIT)
 
 			#collect objects and set xref table locations
 			loc = 0

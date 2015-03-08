@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.1.16
+
+**fix?**: Compatability reports came in showing that some email servers convery new-line (\n) characters to CRLF (\r\n) - corrupting the binary code in the PDF files. This version attemps to fix this by adding more binary characters to the first comment line of the PDF file (right after the header). Most email programs and Antivirus programs should preserve the original EOL character once they recognize the file as binary.
+
+***
+
 Change log v.0.1.15
 
 **features**: added new PDF#Page API to deal with page rotation and orientation. see the docs for more info.
