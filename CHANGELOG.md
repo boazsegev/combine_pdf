@@ -2,6 +2,16 @@
 
 ***
 
+Change log v.0.1.17
+
+**feature**: Although it was possible to create and add empty PDF pages (at any location), it is now even easier with one method call to add empty pages at the end of a PDF object. It's also possible to add text to these empty pages or stamp them with different content.
+
+**fix?**: a possible multi-threading issue might have existed where to threads saving PDF data at the same time might corrupt PDF data (although this theoretical issue was never reported and probably never encountered). The PDF streams should now be a bit more thread safe, as long as no two threads attempt to render the same PDF object at the same time.
+
+**fix?**: Thank to Roma, who reported issue #14, we are now working on a fix of a mysterious issue with textboxes which could effect page numbering and textboxes on certain PDF files. It is unknown at this time if the issue is resolved and the fix is awaiting confirmation. The issue effected only some PDF files and not others.
+
+***
+
 Change log v.0.1.16
 
 **fix?**: Compatability reports came in showing that some email servers convery new-line (\n) characters to CRLF (\r\n) - corrupting the binary code in the PDF files. This version attemps to fix this by adding more binary characters to the first comment line of the PDF file (right after the header). Most email programs and Antivirus programs should preserve the original EOL character once they recognize the file as binary.

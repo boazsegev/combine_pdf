@@ -40,13 +40,15 @@ module CombinePDF
 
 		# accessor (getter) for the :MediaBox element of the page
 		def mediabox
-			self[:MediaBox]
+			self[:MediaBox].is_a?(Array) ? self[:MediaBox] : self[:MediaBox][:referenced_object]
 		end
-		# accessor (setter) for the :MediaBox element of the page
-		# dimensions:: an Array consisting of four numbers (can be floats) setting the size of the media box.
-		def mediabox=(dimensions = [0.0, 0.0, 612.0, 792.0])
-			self[:MediaBox] = dimensions
+
+		# accessor (getter) for the :Resources element of the page
+		def resources
+			self[:Resources] ||= {}
+			self[:Resources][:referenced_object] || self[:Resources]
 		end
+
 
 		# This method adds a simple text box to the Page represented by the PDFWriter class.
 		# This function takes two values:
@@ -194,7 +196,7 @@ module CombinePDF
 			# each unit (1) is 1/72 Inch
 			# create text stream
 			text_stream = ""
-			if text.to_s != "" && options[:font_size] != 0 && (options[:font_color] || options[:stroke_color])
+			if !text.to_s.empty? && options[:font_size] != 0 && (options[:font_color] || options[:stroke_color])
 				# compute x and y position for text
 				x = options[:x] + (options[:width]*options[:text_padding])
 				y = options[:y] + (options[:height]*options[:text_padding])
@@ -296,11 +298,6 @@ module CombinePDF
 		end
 
 
-		# accessor (getter) for the :Resources element of the page
-		def resources
-			self[:Resources]
-		end
-
 		# This method moves the Page[:Rotate] property into the page's data stream, so that
 		# "what you see is what you get".
 		#
@@ -324,7 +321,7 @@ module CombinePDF
 			# insert the rotation stream into the current content stream
 			insert_object "q\n#{ctm.join ' '} cm\n", 0
 			# close the rotation stream
-			insert_object CONTENT_CONTAINER_END
+			insert_object PDFOperations.create_deep_copy(CONTENT_CONTAINER_END)
 			# reset the mediabox and cropbox values - THIS IS ONLY FOR ORIENTATION CHANGE...
 			if ((self[:Rotate].to_f / 90)%2) != 0
 				self[:MediaBox] = self[:MediaBox].values_at(1,0,3,2)
@@ -390,6 +387,11 @@ module CombinePDF
 		end
 		#initializes the content stream in case it was not initialized before
 		def init_contents
+			# wrap content streams
+			insert_object 'q', 0
+			insert_object 'Q'
+
+			# Prep content
 			@contents = ''
 			insert_object @contents
 			@contents

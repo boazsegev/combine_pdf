@@ -82,16 +82,16 @@ module CombinePDF
 
 			if top # if this is a stamp (overlay)
 				page[:Contents] = original_contents
-				page[:Contents].unshift CONTENT_CONTAINER_START.dup
-				page[:Contents].push CONTENT_CONTAINER_MIDDLE.dup
+				page[:Contents].unshift create_deep_copy(CONTENT_CONTAINER_START)
+				page[:Contents].push create_deep_copy(CONTENT_CONTAINER_MIDDLE)
 				page[:Contents].push *stream_contents
-				page[:Contents].push CONTENT_CONTAINER_END.dup
+				page[:Contents].push create_deep_copy(CONTENT_CONTAINER_END)
 			else #if this was a watermark (underlay? would be lost if the page was scanned, as white might not be transparent)
 				page[:Contents] = stream_contents
-				page[:Contents].unshift CONTENT_CONTAINER_START.dup
-				page[:Contents].push CONTENT_CONTAINER_MIDDLE.dup
+				page[:Contents].unshift create_deep_copy(CONTENT_CONTAINER_START)
+				page[:Contents].push create_deep_copy(CONTENT_CONTAINER_MIDDLE)
 				page[:Contents].push *original_contents
-				page[:Contents].push CONTENT_CONTAINER_END.dup
+				page[:Contents].push create_deep_copy(CONTENT_CONTAINER_END)
 			end
 
 			page
@@ -198,7 +198,7 @@ module CombinePDF
 			elsif object.is_a?(String)
 				return object.dup
 			else
-				return object # objects that aren't Strings, Arrays or Hashes (such as Symbols and Fixnums) aren't pointers in Ruby and are always copied.
+				return object # objects that aren't Strings, Arrays or Hashes (such as Symbols and Fixnums) won't be edited inplace.
 			end
 		end
 		# removes id and generation number values, for better comparrison

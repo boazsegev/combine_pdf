@@ -314,6 +314,7 @@ module CombinePDF
 				return self
 			end
 			insert -1, data
+			self
 		end
 
 		# add the pages (or file) to the BEGINNING of the PDF (combine/merge) and RETURNS SELF for nesting operators.
@@ -357,6 +358,7 @@ module CombinePDF
 				location = page_count
 			end
 			pages_array.insert location, pages_to_add
+			pages_array.flatten!
 			pages_array
 		end
 
@@ -452,6 +454,13 @@ module CombinePDF
 				page << stamp
 				page_number = page_number.succ
 			end
+		end
+
+		# adds a new page to the end of the PDF object.
+		#
+		# returns the new page object.
+		def new_page(mediabox = [0, 0, 595.3, 841.9])
+			insert(-1, PDFWriter.new(mediabox) ).last
 		end
 
 		# get the title for the pdf
