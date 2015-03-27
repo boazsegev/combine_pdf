@@ -74,44 +74,44 @@ module CombinePDF
 				end
 			end
 			raise "root is unknown - cannot determine if file is Encrypted" if @root_object == {}
-			PDFOperations.change_references_to_actual_values @parsed, @root_object
 
 			if @root_object[:Encrypt]
+				PDFOperations.change_references_to_actual_values @parsed, @root_object
 				warn "PDF is Encrypted! Attempting to unencrypt - not yet fully supported."
 				decryptor = PDFDecrypt.new @parsed, @root_object
 				decryptor.decrypt
 				#do we really need to apply to @parsed? No, there is no need.
 			end
-			if @version >= 1.5 # code placement for object streams
-				## search for objects streams
-				object_streams = @parsed.select {|obj| obj.is_a?(Hash) && obj[:Type] == :ObjStm}
-				unless object_streams.empty?
-					warn "PDF 1.5 Object streams found - they are not fully supported! attempting to extract objects."
-					
-					object_streams.each do |o|
-						## un-encode (using the correct filter) the object streams
-						PDFFilter.inflate_object o 
-						## extract objects from stream to top level arry @parsed
-						@scanner = StringScanner.new o[:raw_stream_content]
-						stream_data = _parse_
-						id_array = []
-						while stream_data[0].is_a? Fixnum
-							id_array << stream_data.shift
-							stream_data.shift
-						end
-						while id_array[0] && stream_data[0]
-							stream_data[0] = {indirect_without_dictionary: stream_data[0]} unless stream_data[0].is_a?(Hash)
-							stream_data[0][:indirect_reference_id] = id_array.shift
-							stream_data[0][:indirect_generation_number] = 0
-							@parsed << stream_data.shift
-						end
+
+			## search for objects streams
+			object_streams = @parsed.select {|obj| obj.is_a?(Hash) && obj[:Type] == :ObjStm}
+			unless object_streams.empty?
+				warn "PDF 1.5 Object streams found - they are not fully supported! attempting to extract objects."
+				
+				object_streams.each do |o|
+					## un-encode (using the correct filter) the object streams
+					PDFFilter.inflate_object o 
+					## extract objects from stream to top level arry @parsed
+					@scanner = StringScanner.new o[:raw_stream_content]
+					stream_data = _parse_
+					id_array = []
+					while stream_data[0].is_a? Fixnum
+						id_array << stream_data.shift
+						stream_data.shift
 					end
-					# ## remove object streams
-					@parsed.reject! {|obj| object_streams << obj if obj.is_a?(Hash) && obj[:Type] == :ObjStm}
-					# ## remove XREF dictionaries
-					@parsed.reject! {|obj| object_streams << obj if obj.is_a?(Hash) && obj[:Type] == :XRef}
+					while id_array[0] && stream_data[0]
+						stream_data[0] = {indirect_without_dictionary: stream_data[0]} unless stream_data[0].is_a?(Hash)
+						stream_data[0][:indirect_reference_id] = id_array.shift
+						stream_data[0][:indirect_generation_number] = 0
+						@parsed << stream_data.shift
+					end
 				end
+				# ## remove object streams
+				@parsed.reject! {|obj| object_streams << obj if obj.is_a?(Hash) && obj[:Type] == :ObjStm}
+				# ## remove XREF dictionaries
+				@parsed.reject! {|obj| object_streams << obj if obj.is_a?(Hash) && obj[:Type] == :XRef}
 			end
+
 			PDFOperations.change_references_to_actual_values @parsed, @root_object
 			@info_object = @root_object[:Info]
 			if @info_object && @info_object.is_a?(Hash)
