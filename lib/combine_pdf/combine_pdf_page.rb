@@ -43,6 +43,22 @@ module CombinePDF
 			self[:MediaBox].is_a?(Array) ? self[:MediaBox] : self[:MediaBox][:referenced_object]
 		end
 
+		# accessor (setter) for the :CropBox element of the page
+		# dimensions:: an Array consisting of four numbers (can be floats) setting the size of the media box.
+		def cropbox=(dimensions = [0.0, 0.0, 612.0, 792.0])
+			self[:CropBox] = dimensions
+		end
+
+		# accessor (getter) for the :CropBox element of the page
+		def cropbox
+			(self[:CropBox].is_a?(Array) || self[:CropBox].nil?) ? self[:CropBox] : self[:CropBox][:referenced_object]
+		end
+
+		# get page size
+		def page_size
+			cropbox || mediabox			
+		end
+
 		# accessor (getter) for the :Resources element of the page
 		def resources
 			self[:Resources] ||= {}
@@ -373,6 +389,104 @@ module CombinePDF
 			self
 		end
 
+
+		# Writes a table to the current page, removing(!) the written rows from the table_data Array.
+		#
+		# since the table_data Array is updated, it is possible to call this method a few times,
+		# each time creating or moving to the next page, until table_data.empty? returns true.
+		#
+		# accepts a Hash with any of the following keys as well as any of the PDFWriter#textbox options:
+		# headers:: an Array of strings with the headers (will be repeated every page).
+		# table_data:: as Array of Arrays, each containing a string for each column. the first row sets the number of columns. extra columns will be ignored.
+		# font:: a registered or standard font name (see PDFWriter). defaults to nil (:Helvetica).
+		# header_font:: a registered or standard font name for the headers (see PDFWriter). defaults to nil (the font for all the table rows).
+		# max_font_size:: the maximum font size. if the string doesn't fit, it will be resized. defaults to 14.
+		# column_widths:: an array of relative column widths ([1,2] will display only the first two columns, the second twice as big as the first). defaults to nil (even widths).
+		# header_color:: the header color. defaults to [0.8, 0.8, 0.8] (light gray).
+		# main_color:: main row color. defaults to nil (transparent / white).
+		# alternate_color:: alternate row color. defaults to [0.95, 0.95, 0.95] (very light gray).
+		# font_color:: font color. defaults to [0,0,0] (black).
+		# border_color:: border color. defaults to [0,0,0] (black).
+		# border_width:: border width in PDF units. defaults to 1.
+		# header_align:: the header text alignment within each column (:right, :left, :center). defaults to :center.
+		# row_align:: the row text alignment within each column. defaults to :left (:right for RTL table).
+		# direction:: the table's writing direction (:ltr or :rtl). this reffers to the direction of the columns and doesn't effect text (rtl text is automatically recognized). defaults to :ltr.
+		# max_rows:: the maximum number of rows to actually draw, INCLUDING the header row. deafults to 25.
+		# xy:: an Array specifying the top-left corner of the table. defaulte to [page_width*0.1, page_height*0.9].
+		# size:: an Array specifying the height and the width of the table.  defaulte to [page_width*0.8, page_height*0.8].
+		def write_table(options = {})
+			defaults = {
+				headers: nil,
+				table_data: [[]],
+				font: nil,
+				header_font: nil,
+				max_font_size: 14,
+				column_widths: nil,
+				header_color: [0.8, 0.8, 0.8],
+				main_color: nil,
+				alternate_color: [0.95, 0.95, 0.95],
+				font_color: [0,0,0],
+				border_color: [0,0,0],
+				border_width: 1,
+				header_align: :center,
+				row_align: nil,
+				direction: :ltr,
+				max_rows: 25,
+				xy: nil,
+				size: nil
+			}
+			options = defaults.merge options
+			raise "method call error! not enough rows allowed to create table" if (options[:max_rows].to_i < 1 && options[:headers]) || (options[:max_rows].to_i <= 0)
+			options[:header_font] ||= options[:font]
+			options[:row_align] ||= ( (options[:direction] == :rtl) ? :right : :left )
+			options[:xy] ||= [( (page_size[2]-page_size[0])*0.1 ), ( (page_size[3]-page_size[1])*0.9 )]
+			options[:size] ||= [( (page_size[2]-page_size[0])*0.8 ), ( (page_size[3]-page_size[1])*0.8 )]
+			# assert table_data is an array of arrays
+			return false unless (options[:table_data].select {|r| !r.is_a?(Array) }).empty?
+			# compute sizes
+			top = options[:xy][1]
+			height = options[:size][1] / options[:max_rows]
+			from_side = options[:xy][0]
+			width = options[:size][0]
+			columns = options[:table_data][0].length
+			column_widths = []
+			columns.times {|i| column_widths << (width/columns) }
+			if options[:column_widths]
+				scale = 0
+				options[:column_widths].each {|w| scale += w}
+				column_widths = []
+				options[:column_widths].each { |w|  column_widths << (width*w/scale) }
+			end
+			column_widths = column_widths.reverse if options[:direction] == :rtl
+			# set count and start writing the data
+			row_number = 1
+
+			until (options[:table_data].empty? ||  row_number > options[:max_rows])
+				# add headers
+				if options[:headers] && row_number == 1
+					x = from_side
+					headers = options[:headers]
+					headers = headers.reverse if options[:direction] == :rtl
+					column_widths.each_index do |i|
+						text = headers[i].to_s
+						textbox text, {x: x, y: (top - (height*row_number)), width: column_widths[i], height: height, box_color: options[:header_color], text_align: options[:header_align] }.merge(options).merge({font: options[:header_font]})
+						x += column_widths[i]
+					end
+					row_number += 1
+				end
+				x = from_side
+				row_data = options[:table_data].shift
+				row_data = row_data.reverse if options[:direction] == :rtl
+				column_widths.each_index do |i|
+					text = row_data[i].to_s
+					box_color = (options[:alternate_color] && ( (row_number.odd? && options[:headers]) || row_number.even? ) ) ? options[:alternate_color] : options[:main_color]
+					textbox text, {x: x, y: (top - (height*row_number)), width: column_widths[i], height: height, box_color: box_color, text_align: options[:row_align]}.merge(options)
+					x += column_widths[i]
+				end			
+				row_number += 1
+			end
+			self
+		end
 
 
 		###################################

@@ -3,6 +3,13 @@
 ***
 
 Change log v.0.1.18
+(pre-release)
+
+**feature**: added a #write_table method to the PDF pages, allowing tables to be written on existing PDF pages. This is a destructive method (it changes the table_data array). Read the documentation before using this method.
+
+***
+
+Change log v.0.1.18
 
 **fix**: Thank to Stefan, who reported issue #15 , we discovered that in some cases PDF files presented the wrong PDF standard version, causing an error while attempting to parse their data. The issue has been fixed by allowing the parser to search for PDF Object Streams even when the PDF file claims a PDF version below 1.5. 
 
