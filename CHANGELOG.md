@@ -2,10 +2,20 @@
 
 ***
 
-Change log v.0.1.18
+Change log v.0.1.20
 (pre-release)
 
-**feature**: added a #write_table method to the PDF pages, allowing tables to be written on existing PDF pages. This is a destructive method (it changes the table_data array). Read the documentation before using this method.
+No changes yet.
+
+***
+
+Change log v.0.1.19
+
+**fix**: merged @espinosa's fix for issue #16 which affected windows machines.
+
+**feature**: added a #write_table method to the PDF pages, allowing tables to be written on existing PDF pages. This is a destructive method (it changes the table_data array by removing any rows written to the page and leaving the rest of the data untouched, for future writing). Read the documentation before using this method.
+
+**update**: stricter parsing for PDF Stream Objects is now enforced. The stricter parsing is NOT final, as it walks a fine line between allowing non-conforming PDF files to be read and risking an error while reading a correctly structured file which has PDF keywords intentionaly embedded in a correctly structured object stream (keywords which would be normally ignored as expected, but which will be recognized as relevant if the parser is less strict about the structure of the PDF file).
 
 ***
 
