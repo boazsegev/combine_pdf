@@ -12,7 +12,7 @@ module CombinePDF
 	def load(file_name = "")
 		raise TypeError, "couldn't parse and data, expecting type String" unless file_name.is_a?(String) || file_name.is_a?(Pathname)
 		return PDF.new() if file_name == ''
-		PDF.new( PDFParser.new(  IO.read(file_name).force_encoding(Encoding::ASCII_8BIT) ) )
+		PDF.new( PDFParser.new(  IO.read(file_name, mode: 'rb').force_encoding(Encoding::ASCII_8BIT) ) )
 	end
 	def new(file_name = "")
 		load(file_name)

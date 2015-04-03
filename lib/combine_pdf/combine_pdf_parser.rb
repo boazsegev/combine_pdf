@@ -153,8 +153,8 @@ module CombinePDF
 				##########################################
 				## parse a Stream
 				##########################################
-				when @scanner.scan(/stream(\r\n|\r|\n)/)
-					str = @scanner.scan_until(/(\r\n|\r|\n)endstream/)
+				when @scanner.scan(/stream[\r]?[\n]/)
+					str = @scanner.scan_until(/endstream/)
 					# raise error if the stream doesn't end.
 					raise "Parsing Error: PDF file error - a stream object wasn't properly colsed using 'endstream'!" unless str
 					# need to remove end of stream
