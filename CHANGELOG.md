@@ -2,10 +2,16 @@
 
 ***
 
-Change log v.0.1.20
+Change log v.0.1.21
 (pre-release)
 
 No changes yet.
+
+***
+
+Change log v.0.1.20
+
+**fix**: due to some PDF files not conforming to the required EOL marker in the endstream object specifications, the parser is now back to a non-strict parsing mode for PDF Stream Objects. Conforming files weren't found to be effected and although it is unlikely, it is possible that they might be effected if the stream object would contain the 'endstream' keyword without the required EOL marker and without intending to end the stream object.
 
 ***
 
