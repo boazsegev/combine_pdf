@@ -15,7 +15,7 @@ module CombinePDF
 		PDF.new( PDFParser.new(  IO.read(file_name, mode: 'rb').force_encoding(Encoding::ASCII_8BIT) ) )
 	end
 	def new(file_name = "")
-		load(file_name)
+		load(file_name) rescue parse(file_name)
 	end
 
 	# Create a PDF object from a raw PDF data (parsing the data).
