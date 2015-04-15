@@ -149,12 +149,13 @@ module CombinePDF
 				indirect_object_count += 1
 				xref << loc
 				out << PDFOperations._object_to_pdf(o)
-				loc += out.last.length + 1
+				loc += out.last.bytesize + 1
 			end
-			xref_location = 0
-			out.each { |line| xref_location += line.bytesize + 1}
-			out << "xref\n\r0 #{(indirect_object_count).to_s}\n\r0000000000 65535 f \n\r"
-			xref.each {|offset| out << ( out.pop + ("%010d 00000 n \n\r" % offset) ) }
+			xref_location = loc
+			# xref_location = 0
+			# out.each { |line| xref_location += line.bytesize + 1}
+			out << "xref\n0 #{(indirect_object_count).to_s}\n0000000000 65535 f \n"
+			xref.each {|offset| out << ( out.pop + ("%010d 00000 n \n" % offset) ) }
 			out << out.pop + "trailer"
 			out << "<<\n/Root #{false || "#{catalog[:indirect_reference_id]} #{catalog[:indirect_generation_number]} R"}"
 			out << "/Size #{indirect_object_count.to_s}"

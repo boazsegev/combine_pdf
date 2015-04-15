@@ -3,9 +3,8 @@
 ***
 
 Change log v.0.1.21
-(pre-release)
 
-No changes yet.
+**fix**: an attempted fix for issue #19, where the xref table wasn't read on Acrobat Reader, probably due to a double EOL marker at the end of each entry.
 
 ***
 
