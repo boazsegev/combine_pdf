@@ -508,7 +508,7 @@ module CombinePDF
 			when object.is_a?(Hash)
 				if object[:is_reference_only] && object[:referenced_object]
 					found_at = @objects.find_index object[:referenced_object]
-					if found_at
+					if found_at && !(object[:referenced_object].is_a?(Hash) && object[:referenced_object][:Type] == :Page)
 						#if the objects are equal, they might still be different objects!
 						# so, we need to make sure they are the same object for the pointers to effect id numbering
 						# and formatting operations.
