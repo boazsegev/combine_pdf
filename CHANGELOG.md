@@ -2,10 +2,9 @@
 
 ***
 
-Change log v.0.1.21
-(pre-release)
+Change log v.0.1.22
 
-**fix**: final fix for issue #19, where Acrobat Reader would raise an error if page objects in the Catalog were copied by reference instead of copied in full and each was assigned different a unique object id. (possibly an Acrobat Reader Issue)
+**fix**: a tested fix for issue #19, where Acrobat Reader would raise an error if page objects in the Catalog were copied by reference instead of copied in full and each was assigned different a unique object id. (possibly an Acrobat Reader Issue workaround) The issue was resolved by exempting page objects from the duplication reduction algorithm, and in this way, forcing duplicates to be copied rather then referenced in the Catalog object.
 
 ***
 
