@@ -416,8 +416,8 @@ module CombinePDF
 				box_height = text_dimantions[1] * 2
 				opt[:width] = box_width
 				opt[:height] = box_height
-				from_height = 45
-				from_side = 15
+				from_height = opt[:margin_from_height]
+				from_side = opt[:margin_from_side]
 				page_width = mediabox[2]
 				page_height = mediabox[3]
 				center_position = (page_width - box_width)/2
