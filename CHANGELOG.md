@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.1.23
+
+**fix**: @kruszczynski fixed an issue with CombinePDF::PDF#number_pages where the page numbering margines were ignored and only the default values were used. Thank you @kruszczynski .
+
+***
+
 Change log v.0.1.22
 
 **fix**: a tested fix for issue #19, where Acrobat Reader would raise an error if page objects in the Catalog were copied by reference instead of copied in full and each was assigned different a unique object id. (possibly an Acrobat Reader Issue workaround) The issue was resolved by exempting page objects from the duplication reduction algorithm, and in this way, forcing duplicates to be copied rather then referenced in the Catalog object.
