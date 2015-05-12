@@ -6,7 +6,7 @@ Change log v.0.2.0
 
 Refractoring of code and API overhall.
 
-Any code relying on advanced API calls might be broken.
+Any code relying on inner/advanced API calls might be broken.
 
 ***
 

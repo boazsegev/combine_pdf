@@ -216,7 +216,7 @@ module CombinePDF
 					hash_with_references[k] = v unless hash_with_references[k]
 				end
 			end
-			hash_with_references		
+			hash_with_references
 		end
 		def change_connected_references_to_actual_values(hash_with_references = {})
 			if hash_with_references.is_a?(Hash)

@@ -34,7 +34,7 @@ module CombinePDF
 							0x2F, 0x0C, 0xA9, 0xFE, 0x64, 0x53, 0x69, 0x7A ]
 			@key_crypt_first_iv_store = nil
 			@encryption_iv = nil
-			PDFOperations.change_references_to_actual_values @objects, @encryption_dictionary
+			change_references_to_actual_values @encryption_dictionary
 		end
 
 		# call this to start the decryption.
@@ -142,6 +142,9 @@ module CombinePDF
 			cipher.padding = 0
 			(cipher.update(encrypted) + cipher.final).unpack("C*")
 		end
+
+		protected
+
 		def _perform_decrypt_proc_ (object, decrypt_proc, encrypted_id = nil, encrypted_generation = nil, encrypted_filter = nil)
 			case
 			when object.is_a?(Array)
@@ -153,7 +156,7 @@ module CombinePDF
 				if object[:raw_stream_content]
 					stream_length = object[:Length]
 					if stream_length.is_a?(Hash) && stream_length[:is_reference_only]
-						stream_length = PDFOperations.get_refernced_object( @objects, stream_length)[:indirect_without_dictionary]
+						stream_length = get_refernced_object(stream_length)[:indirect_without_dictionary]
 					end
 					actual_length = object[:raw_stream_content].length
 					warn "Stream registeded length was #{object[:Length].to_s} and the actual length was #{actual_length}." if actual_length < stream_length
@@ -174,6 +177,36 @@ module CombinePDF
 			warn "Data raising exception:\n #{object.to_s.split(',').join("\n")}"
 			raise "File is encrypted - not supported."			
 		end
+
+		def change_references_to_actual_values(hash_with_references = {})
+			hash_with_references.each do |k,v|
+				if v.is_a?(Hash) && v[:is_reference_only]
+					hash_with_references[k] = get_refernced_object(v)
+					hash_with_references[k] = hash_with_references[k][:indirect_without_dictionary] if hash_with_references[k].is_a?(Hash) && hash_with_references[k][:indirect_without_dictionary]
+					warn "Couldn't connect all values from references - didn't find reference #{hash_with_references}!!!" if hash_with_references[k] == nil
+					hash_with_references[k] = v unless hash_with_references[k]
+				end
+			end
+			hash_with_references
+		end
+		def get_refernced_object(reference_hash = {})
+			@objects.each do |stored_object|
+				return stored_object if ( stored_object.is_a?(Hash) &&
+					reference_hash[:indirect_reference_id] == stored_object[:indirect_reference_id] &&
+					reference_hash[:indirect_generation_number] == stored_object[:indirect_generation_number] )
+			end
+			warn "didn't find reference #{reference_hash}"
+			nil		
+		end
+
+
+		# # returns the PDF Object Hash holding the acutal data (if exists) or the original hash (if it wasn't a reference)
+		# #
+		# # works only AFTER references have been connected.
+		# def get_referenced object
+		# 	object[:referenced_object] || object
+		# end
+
 	end
 	#####################################################
 	## The following isn't my code!!!!
