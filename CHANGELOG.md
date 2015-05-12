@@ -2,6 +2,14 @@
 
 ***
 
+Change log v.0.2.0
+
+Refractoring of code and API overhall.
+
+Any code relying on advanced API calls might be broken.
+
+***
+
 Change log v.0.1.23
 
 **fix**: @kruszczynski fixed an issue with CombinePDF::PDF#number_pages where the page numbering margines were ignored and only the default values were used. Thank you @kruszczynski .

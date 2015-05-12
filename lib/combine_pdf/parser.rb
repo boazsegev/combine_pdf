@@ -44,12 +44,13 @@ module CombinePDF
 		#
 		# string:: the data to be parsed, as a String object.
 		def initialize (string)
-			raise TypeError, "couldn't parse and data, expecting type String" unless string.is_a? String
+			raise TypeError, "couldn't parse data, expecting type String" unless string.is_a? String
 			@string_to_parse = string.force_encoding(Encoding::ASCII_8BIT)
 			@literal_strings = []
 			@hex_strings = []
 			@streams = []
 			@parsed = []
+			@references = []
 			@root_object = {}
 			@info_object = {}
 			@version = nil
@@ -58,6 +59,7 @@ module CombinePDF
 
 		# parse the data in the new parser (the data already set through the initialize / new method)
 		def parse
+			return [] if @string_to_parse.empty?
 			return @parsed unless @parsed.empty?
 			@scanner = StringScanner.new @string_to_parse
 			@scanner.pos = 0
@@ -76,7 +78,7 @@ module CombinePDF
 			raise "root is unknown - cannot determine if file is Encrypted" if @root_object == {}
 
 			if @root_object[:Encrypt]
-				PDFOperations.change_references_to_actual_values @parsed, @root_object
+				change_references_to_actual_values @root_object
 				warn "PDF is Encrypted! Attempting to unencrypt - not yet fully supported."
 				decryptor = PDFDecrypt.new @parsed, @root_object
 				decryptor.decrypt
@@ -106,21 +108,32 @@ module CombinePDF
 						@parsed << stream_data.shift
 					end
 				end
-				# ## remove object streams
-				@parsed.reject! {|obj| object_streams << obj if obj.is_a?(Hash) && obj[:Type] == :ObjStm}
-				# ## remove XREF dictionaries
-				@parsed.reject! {|obj| object_streams << obj if obj.is_a?(Hash) && obj[:Type] == :XRef}
 			end
 
-			PDFOperations.change_references_to_actual_values @parsed, @root_object
-			@info_object = @root_object[:Info]
+			
+			# serialize_objects_and_references.catalog_pages
+
+			# Benchmark.bm do |bm|
+			# 	bm.report("serialize") {1000.times {serialize_objects_and_references} }
+			# 	bm.report("serialize - old") {1000.times {old_serialize_objects_and_references} }
+			# 	bm.report("catalog") {1000.times {catalog_pages} }
+			# end
+
+			serialize_objects_and_references.catalog_pages
+
+			@info_object = @root_object[:Info] ? (@root_object[:Info][:referenced_object] || @root_object[:Info]) : flase
 			if @info_object && @info_object.is_a?(Hash)
 				@parsed.delete @info_object
-				PDFOperations.change_references_to_actual_values @parsed, @info_object
-				PRIVATE_HASH_KEYS.each {|key| @info_object.delete key}
+				CombinePDF::PDF::PRIVATE_HASH_KEYS.each {|key| @info_object.delete key}
+				@info_object.each {|k, v| @info_object = v[:referenced_object] if v.is_a?(Hash) && v[:referenced_object]}
 			else
 				@info_object = {}
 			end
+			# # # ## remove object streams - if they exist
+			# @parsed.reject! {|obj| object_streams << obj if obj.is_a?(Hash) && obj[:Type] == :ObjStm}
+			# # # ## remove XREF dictionaries - if they exist
+			# @parsed.reject! {|obj| object_streams << obj if obj.is_a?(Hash) && obj[:Type] == :XRef}
+
 			@parsed
 		end
 
@@ -286,6 +299,7 @@ module CombinePDF
 				##########################################
 				when @scanner.scan(/R/)
 					out << { is_reference_only: true, indirect_generation_number: out.pop, indirect_reference_id: out.pop}
+					@references << out.last
 				##########################################
 				## Parse Bool - true and after false
 				##########################################
@@ -329,5 +343,168 @@ module CombinePDF
 			end
 			out
 		end
+
+		protected
+
+
+
+		# resets cataloging and pages
+		def catalog_pages(catalogs = nil, secure_injection = true, inheritance_hash = {})
+			unless catalogs
+
+				if root_object[:Root]
+					catalogs = root_object[:Root][:referenced_object] || root_object[:Root]
+				else
+					catalogs = (@parsed.select {|obj| obj[:Type] == :Catalog}).last
+				end
+				@parsed.delete_if {|obj| obj[:Type] == :Catalog}
+				@parsed << catalogs
+
+				raise "Unknown error - parsed data doesn't contain a cataloged object!" unless catalogs
+			end
+			case 
+			when catalogs.is_a?(Array)
+				catalogs.each {|c| catalog_pages(c, secure_injection, inheritance_hash ) unless c.nil?}
+			when catalogs.is_a?(Hash)
+				if catalogs[:is_reference_only]
+					if catalogs[:referenced_object]
+						catalog_pages(catalogs[:referenced_object], secure_injection, inheritance_hash)
+					else
+						warn "couldn't follow reference!!! #{catalogs} not found!"
+					end
+				else
+					unless catalogs[:Type] == :Page
+						inheritance_hash[:MediaBox] = catalogs[:MediaBox] if catalogs[:MediaBox]
+						inheritance_hash[:CropBox] = catalogs[:CropBox] if catalogs[:CropBox]
+						inheritance_hash[:Rotate] = catalogs[:Rotate] if catalogs[:Rotate]
+						(inheritance_hash[:Resources] ||= {}).update( (catalogs[:Resources][:referenced_object] || catalogs[:Resources]), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:Resources]
+						(inheritance_hash[:ColorSpace] ||= {}).update( (catalogs[:ColorSpace][:referenced_object] || catalogs[:ColorSpace]), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:ColorSpace]
+					end
+
+					case catalogs[:Type]
+					when :Page
+
+						catalogs[:MediaBox] ||= inheritance_hash[:MediaBox] if inheritance_hash[:MediaBox]
+						catalogs[:CropBox] ||= inheritance_hash[:CropBox] if inheritance_hash[:CropBox]
+						catalogs[:Rotate] ||= inheritance_hash[:Rotate] if inheritance_hash[:Rotate]
+						(catalogs[:Resources] ||= {}).update( inheritance_hash[:Resources], &( self.class.method(:hash_update_proc_for_old) ) ) if inheritance_hash[:Resources]
+						(catalogs[:ColorSpace] ||= {}).update( inheritance_hash[:ColorSpace], &( self.class.method(:hash_update_proc_for_old) ) ) if inheritance_hash[:ColorSpace]
+
+
+						# avoide references on MediaBox, CropBox and Rotate
+						catalogs[:MediaBox] = catalogs[:MediaBox][:referenced_object][:indirect_without_dictionary] if catalogs[:MediaBox].is_a?(Hash) && catalogs[:MediaBox][:referenced_object].is_a?(Hash) && catalogs[:MediaBox][:referenced_object][:indirect_without_dictionary]
+						catalogs[:CropBox] = catalogs[:CropBox][:referenced_object][:indirect_without_dictionary] if catalogs[:CropBox].is_a?(Hash) && catalogs[:CropBox][:referenced_object].is_a?(Hash) && catalogs[:CropBox][:referenced_object][:indirect_without_dictionary]
+						catalogs[:Rotate] = catalogs[:Rotate][:referenced_object][:indirect_without_dictionary] if catalogs[:Rotate].is_a?(Hash) && catalogs[:Rotate][:referenced_object].is_a?(Hash) && catalogs[:Rotate][:referenced_object][:indirect_without_dictionary]
+
+						catalogs.instance_eval {extend Page_Methods}
+						catalogs.secure_injection = secure_injection
+					when :Pages
+						catalog_pages(catalogs[:Kids], secure_injection, inheritance_hash.dup ) unless catalogs[:Kids].nil?
+					when :Catalog
+						catalog_pages(catalogs[:Pages], secure_injection, inheritance_hash.dup ) unless catalogs[:Pages].nil?
+					end
+				end
+			end
+			self
+		end
+
+		# fails!
+		def change_references_to_actual_values(hash_with_references = {})
+			hash_with_references.each do |k,v|
+				if v.is_a?(Hash) && v[:is_reference_only]
+					hash_with_references[k] = get_refernced_object(v)
+					hash_with_references[k] = hash_with_references[k][:indirect_without_dictionary] if hash_with_references[k].is_a?(Hash) && hash_with_references[k][:indirect_without_dictionary]
+					warn "Couldn't connect all values from references - didn't find reference #{hash_with_references}!!!" if hash_with_references[k] == nil
+					hash_with_references[k] = v unless hash_with_references[k]
+				end
+			end
+			hash_with_references
+		end
+
+		def get_refernced_object(reference_hash = {})
+			@parsed.each do |stored_object|
+				return stored_object if ( stored_object.is_a?(Hash) &&
+					reference_hash[:indirect_reference_id] == stored_object[:indirect_reference_id] &&
+					reference_hash[:indirect_generation_number] == stored_object[:indirect_generation_number] )
+			end
+			warn "didn't find reference #{reference_hash}"
+			nil
+		end
+
+		# @private
+		# connects references and objects, according to their reference id's.
+		#
+		# should be moved to the parser's workflow.
+		#
+		def serialize_objects_and_references
+			obj_dir = {}
+			@parsed.each {|o| obj_dir[ [ o.delete(:indirect_reference_id), o.delete(:indirect_generation_number) ] ] = o }
+			# @parsed.each {|o| obj_dir[ [ o.[](:indirect_reference_id), o.[](:indirect_generation_number) ] ] = o }
+			@references.each do |obj|
+				obj[:referenced_object] = obj_dir[ [obj[:indirect_reference_id], obj[:indirect_generation_number] ]   ]
+				warn "couldn't connect a reference!!! could be a null or removed (empty) object, Silent error!!!\n Object raising issue: #{obj.to_s}" unless obj[:referenced_object]
+				obj.delete(:indirect_reference_id); obj.delete(:indirect_generation_number)
+			end
+			self
+		end
+
+		# @private
+		# this method reviews a Hash and updates it by merging Hash data,
+		# preffering the old over the new.
+		def self.hash_update_proc_for_old key, old_data, new_data
+			if old_data.is_a? Hash
+				old_data.merge( new_data, &self.method(:hash_update_proc_for_old) )
+			else
+				old_data
+			end
+		end
+		# @private
+		# this method reviews a Hash an updates it by merging Hash data,
+		# preffering the new over the old.
+		def self.hash_update_proc_for_new key, old_data, new_data
+			if old_data.is_a? Hash
+				old_data.merge( new_data, &self.method(:hash_update_proc_for_new) )
+			else
+				new_data
+			end
+		end
+
+		# # @private
+		# # connects references and objects, according to their reference id's.
+		# #
+		# # should be moved to the parser's workflow.
+		# #
+		# def old_serialize_objects_and_references(object = nil)
+		# 	objects_reference_hash = {}
+		# 	# @parsed.each {|o| objects_reference_hash[ [ o.delete(:indirect_reference_id), o.delete(:indirect_generation_number) ] ] = o }
+		# 	@parsed.each {|o| objects_reference_hash[ [ o.[](:indirect_reference_id), o.[](:indirect_generation_number) ] ] = o }
+		# 	each_object(@parsed) do |obj|
+		# 		if obj[:is_reference_only]
+		# 			obj[:referenced_object] = objects_reference_hash[ [obj[:indirect_reference_id], obj[:indirect_generation_number] ]   ]
+		# 			warn "couldn't connect a reference!!! could be a null or removed (empty) object, Silent error!!!\n Object raising issue: #{obj.to_s}" unless obj[:referenced_object]
+		# 			# obj.delete(:indirect_reference_id); obj.delete(:indirect_generation_number)
+		# 		end
+		# 	end
+		# 	self
+		# end
+
+		# # run block of code on evey PDF object (PDF objects are class Hash)
+		# def each_object(object, limit_references = true, already_visited = {}, &block)
+		# 	unless limit_references
+		# 		already_visited[object.object_id] = true
+		# 	end
+		# 	case
+		# 	when object.is_a?(Array)
+		# 		object.each {|obj| each_object(obj, limit_references, already_visited, &block)}
+		# 	when object.is_a?(Hash)
+		# 		yield(object)
+		# 		unless limit_references && object[:is_reference_only]
+		# 			object.each do |k,v|
+		# 				each_object(v, limit_references, already_visited, &block) unless already_visited[v.object_id]
+		# 			end
+		# 		end
+		# 	end
+		# end
+
 	end
 end

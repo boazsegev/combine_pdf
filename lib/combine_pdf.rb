@@ -9,17 +9,20 @@ require 'matrix'
 require 'rc4'
 
 
-load "combine_pdf/combine_pdf_operations.rb"
-load "combine_pdf/combine_pdf_page.rb"
-load "combine_pdf/combine_pdf_basic_writer.rb"
-load "combine_pdf/combine_pdf_decrypt.rb"
-load "combine_pdf/combine_pdf_fonts.rb"
-load "combine_pdf/combine_pdf_filter.rb"
-load "combine_pdf/combine_pdf_parser.rb"
-load "combine_pdf/combine_pdf_pdf.rb"
-require "combine_pdf/version"
+load "combine_pdf/api.rb"
+load "combine_pdf/renderer.rb"
+load "combine_pdf/page_methods.rb"
+load "combine_pdf/basic_writer.rb"
+load "combine_pdf/decrypt.rb"
+load "combine_pdf/fonts.rb"
+load "combine_pdf/filter.rb"
+load "combine_pdf/parser.rb"
+load "combine_pdf/pdf_public.rb"
+load "combine_pdf/pdf_protected.rb"
 
-load "combine_pdf/combine_pdf_methods.rb"
+# load "combine_pdf/operations.rb"
+
+load "combine_pdf/version.rb"
 
 
 # This is a pure ruby library to combine/merge, stmap/overlay and number PDF files - as well as to create tables (ment for indexing combined files).
