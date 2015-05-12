@@ -334,7 +334,7 @@ module CombinePDF
 
 		# add PDF pages (or PDF files) into a specific location.
 		#
-		# returns the new pages Array
+		# returns the new pages Array! (unlike `#<<`, doesn't return self!)
 		#
 		# location:: the location for the added page(s). Could be any number. negative numbers represent a count backwards (-1 being the end of the page array and 0 being the begining). if the location is beyond bounds, the pages will be added to the end of the PDF object (or at the begining, if the out of bounds was a negative number).
 		# data:: a PDF page, a PDF file (CombinePDF.new "filname.pdf") or an array of pages (CombinePDF.new("filname.pdf").pages[0..3]).
@@ -506,6 +506,7 @@ module CombinePDF
 				object.each {|it| add_referenced(it)}
 				return true
 			when object.is_a?(Hash)
+				# first if statement is actually a workaround for a bug in Acrobat Reader, regarding duplicate pages.
 				if object[:is_reference_only] && object[:referenced_object] && object[:referenced_object].is_a?(Hash) && object[:referenced_object][:Type] == :Page
 					@objects << object[:referenced_object]
 				elsif object[:is_reference_only] && object[:referenced_object]
@@ -519,7 +520,7 @@ module CombinePDF
 						return true
 					else
 						# @objects.include? object[:referenced_object] is bound to be false
-						#the object wasn't found - add it to the @objects array
+						# the object wasn't found - add it to the @objects array
 						@objects << object[:referenced_object]
 					end
 
