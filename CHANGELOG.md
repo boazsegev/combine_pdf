@@ -8,6 +8,10 @@ Refractoring of code and API overhall.
 
 Any code relying on inner/advanced API calls might be broken.
 
+**fix**: fixed an object numbering issue introduced by duplicating pages. The issue didn't seem to effect readers nor performance.
+
+**fix**: combine_pdf will now properly raise an error when Optional Content Groups (OCG's) are implemented in a PDF file. Page extraction isn't supported for PDF files with OCG's.
+
 ***
 
 Change log v.0.1.23

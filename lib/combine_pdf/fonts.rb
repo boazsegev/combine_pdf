@@ -18,6 +18,7 @@ module CombinePDF
 
 
 	module Fonts
+		extend Renderer
 
 		protected
 
@@ -53,7 +54,7 @@ module CombinePDF
 			# This function translate a unicode string, to a character glyph ID stream.
 			def encode text
 				# FixMe: embed RTL text convertion
-				return PDFOperations._format_string_to_pdf(text) unless self.cmap
+				return format_string_to_pdf(text) unless self.cmap
 				coded_array = text.chars.map do |c|
 					if self.cmap[c]
 						self.cmap[c]
@@ -212,7 +213,7 @@ module CombinePDF
 				to_unicode = font_object[:ToUnicode]
 				to_unicode = to_unicode[:referenced_object] if to_unicode[:is_reference_only]
 				# deflate the cmap file stream before parsing
-				to_unicode = PDFOperations.create_deep_copy to_unicode
+				to_unicode = create_deep_copy to_unicode
 				CombinePDF::PDFFilter.inflate_object to_unicode
 				# parse the deflated stream
 				cmap = self.parse_cmap to_unicode[:raw_stream_content]
@@ -241,7 +242,7 @@ module CombinePDF
 			if old_widths[:W]
 				old_widths = old_widths[:W]
 				old_widths = old_widths[:referenced_object][:indirect_without_dictionary] if old_widths[:is_reference_only]
-				old_widths = PDFOperations.create_deep_copy old_widths
+				old_widths = create_deep_copy old_widths
 				while old_widths[0] do
 					a = old_widths.shift
 					b = old_widths.shift

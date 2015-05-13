@@ -79,7 +79,7 @@ module CombinePDF
 
 			if @root_object[:Encrypt]
 				change_references_to_actual_values @root_object
-				warn "PDF is Encrypted! Attempting to unencrypt - not yet fully supported."
+				warn "PDF is Encrypted! Attempting to decrypt - not yet fully supported."
 				decryptor = PDFDecrypt.new @parsed, @root_object
 				decryptor.decrypt
 				#do we really need to apply to @parsed? No, there is no need.
@@ -202,7 +202,7 @@ module CombinePDF
 				##########################################
 				when @scanner.scan(/\(/)
 					# warn "Found a literal string"
-					str = ''
+					str = ''.force_encoding(Encoding::ASCII_8BIT)
 					count = 1
 					while count > 0 && @scanner.rest? do
 						str += @scanner.scan_until(/[\(\)]/).to_s
@@ -222,8 +222,8 @@ module CombinePDF
 						end
 					end
 					# The PDF formatted string is: str[0..-2]
-					# now staring to convert to regular string
-					str_bytes = str[0..-2].bytes.to_a
+					# now starting to convert to regular string
+					str_bytes = str.force_encoding(Encoding::ASCII_8BIT)[0..-2].bytes.to_a
 					str = []
 					until str_bytes.empty?
 						case str_bytes[0]
@@ -273,7 +273,7 @@ module CombinePDF
 							str << str_bytes.shift
 						end
 					end
-					out << str.pack('C*')
+					out << str.pack('C*').force_encoding(Encoding::ASCII_8BIT)
 				##########################################
 				## Parse a comment
 				##########################################
@@ -374,11 +374,16 @@ module CombinePDF
 					end
 				else
 					unless catalogs[:Type] == :Page
+						raise "Optional Content PDF files aren't supported and their pages cannot be safely extracted." if catalogs[:AS] || catalogs[:OCProperties]
 						inheritance_hash[:MediaBox] = catalogs[:MediaBox] if catalogs[:MediaBox]
 						inheritance_hash[:CropBox] = catalogs[:CropBox] if catalogs[:CropBox]
 						inheritance_hash[:Rotate] = catalogs[:Rotate] if catalogs[:Rotate]
 						(inheritance_hash[:Resources] ||= {}).update( (catalogs[:Resources][:referenced_object] || catalogs[:Resources]), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:Resources]
 						(inheritance_hash[:ColorSpace] ||= {}).update( (catalogs[:ColorSpace][:referenced_object] || catalogs[:ColorSpace]), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:ColorSpace]
+
+						# inheritance_hash[:Order] = catalogs[:Order] if catalogs[:Order]
+						# inheritance_hash[:OCProperties] = catalogs[:OCProperties] if catalogs[:OCProperties]
+						# inheritance_hash[:AS] = catalogs[:AS] if catalogs[:AS]
 					end
 
 					case catalogs[:Type]
@@ -389,6 +394,9 @@ module CombinePDF
 						catalogs[:Rotate] ||= inheritance_hash[:Rotate] if inheritance_hash[:Rotate]
 						(catalogs[:Resources] ||= {}).update( inheritance_hash[:Resources], &( self.class.method(:hash_update_proc_for_old) ) ) if inheritance_hash[:Resources]
 						(catalogs[:ColorSpace] ||= {}).update( inheritance_hash[:ColorSpace], &( self.class.method(:hash_update_proc_for_old) ) ) if inheritance_hash[:ColorSpace]
+						# catalogs[:Order] ||= inheritance_hash[:Order] if inheritance_hash[:Order]
+						# catalogs[:AS] ||= inheritance_hash[:AS] if inheritance_hash[:AS]
+						# catalogs[:OCProperties] ||= inheritance_hash[:OCProperties] if inheritance_hash[:OCProperties]
 
 
 						# avoide references on MediaBox, CropBox and Rotate

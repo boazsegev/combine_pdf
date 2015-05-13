@@ -35,7 +35,8 @@ module CombinePDF
 		end
 
 		def format_string_to_pdf(object)
-			if @string_output == :literal #if format is set to Literal
+			object.force_encoding(Encoding::ASCII_8BIT)
+			if !object.force_encoding(Encoding::ASCII_8BIT).match(/[^D\:\d\+\-\Z\']/) #if format is set to Literal
 				#### can be better...
 				replacement_hash = {
 					"\x0A" => "\\n",
@@ -129,6 +130,27 @@ module CombinePDF
 
 		def actual_object obj
 			obj.is_a?(Hash) ? (obj[:referenced_object] || obj) : obj
+		end
+
+		# Ruby normally assigns pointes.
+		# noramlly:
+		#   a = [1,2,3] # => [1,2,3]
+		#   b = a # => [1,2,3]
+		#   a << 4 # => [1,2,3,4]
+		#   b # => [1,2,3,4]
+		# This method makes sure that the memory is copied instead of a pointer assigned.
+		# this works using recursion, so that arrays and hashes within arrays and hashes are also copied and not pointed to.
+		# One needs to be careful of infinit loops using this function.
+		def create_deep_copy object
+			if object.is_a?(Array)
+				return object.map { |e|  create_deep_copy e  }
+			elsif object.is_a?(Hash)
+				return {}.tap {|out|  object.each {|k,v| out[create_deep_copy(k)] = create_deep_copy(v) unless k == :Parent} }
+			elsif object.is_a?(String)
+				return object.dup
+			else
+				return object # objects that aren't Strings, Arrays or Hashes (such as Symbols and Fixnums) won't be edited inplace.
+			end
 		end
 	end
 end

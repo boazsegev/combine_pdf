@@ -83,12 +83,6 @@ module CombinePDF
 		# use, for example:
 		#   pdf.info[:Title] = "title"
 		attr_reader :info
-		# gets/sets the string output format (PDF files store strings in to type of formats).
-		#
-		# Accepts:
-		# - :literal
-		# - :hex
-		attr_accessor :string_output
 		# set/get the PDF version of the file (1.1-1.7) - shuold be type Float.
 		attr_accessor :version
 
@@ -107,7 +101,6 @@ module CombinePDF
 			@info = parser.info_object || {}
 
 			# general globals
-			@string_output = :literal
 			@set_start_id = 1
 			@info[:Producer] = "Ruby CombinePDF #{CombinePDF::VERSION} Library by B. Segev"
 			@info.delete :CreationDate
@@ -215,10 +208,7 @@ module CombinePDF
 		# catalogs:: a catalog, or an Array of catalog objects. defaults to the existing catalog.
 		def pages(catalogs = nil)
 			page_list = []
-			if catalogs == nil
-				catalogs = @objects.select {|obj| obj.is_a?(Hash) && obj[:Type] == :Catalog}
-				catalogs ||= @objects.select {|obj| obj.is_a?(Hash) && obj[:Type] == :Page}
-			end
+			catalogs ||= get_existing_catalogs
 
 			if catalogs.is_a?(Array)
 				catalogs.each {|c| page_list.push *( pages(c) ) unless c.nil?}

@@ -34,7 +34,11 @@ module CombinePDF
 			when object.is_a?(Hash)
 				# first if statement is actually a workaround for a bug in Acrobat Reader, regarding duplicate pages.
 				if object[:is_reference_only] && object[:referenced_object] && object[:referenced_object].is_a?(Hash) && object[:referenced_object][:Type] == :Page
-					@objects << object[:referenced_object]
+					if @objects.find_index object[:referenced_object]
+						@objects << object[:referenced_object].dup
+					else
+						@objects << object[:referenced_object]
+					end
 				elsif object[:is_reference_only] && object[:referenced_object]
 					found_at = @objects.find_index object[:referenced_object]
 					if found_at
@@ -108,6 +112,10 @@ module CombinePDF
 			@objects << catalog
 			add_referenced catalog
 			catalog
+		end
+
+		def get_existing_catalogs
+			(@objects.select {|obj| obj.is_a?(Hash) && obj[:Type] == :Catalog}) || (@objects.select {|obj| obj.is_a?(Hash) && obj[:Type] == :Page})
 		end
 
 
