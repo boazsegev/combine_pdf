@@ -85,12 +85,16 @@ module CombinePDF
 		attr_reader :info
 		# set/get the PDF version of the file (1.1-1.7) - shuold be type Float.
 		attr_accessor :version
+		# the viewer_preferences attribute is a Hash that sets the ViewerPreferences data for the PDF.
+		# use, for example:
+		#   pdf.viewer_preferences[:HideMenubar] = true
+		attr_reader :viewer_preferences
 
 		def initialize (parser = nil)
 			# default before setting
 			@objects = []
-			@version = 0 
-			@info = {}
+			@version = 0
+			@viewer_preferences, @info  = {}, {}
 			parser ||= PDFParser.new("")
 			raise TypeError, "initialization error, expecting CombinePDF::PDFParser or nil, but got #{parser.class.name}" unless parser.is_a? PDFParser
 			@objects = parser.parse

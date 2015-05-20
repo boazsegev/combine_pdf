@@ -85,6 +85,7 @@ module CombinePDF
 
 			# build new Catalog object
 			catalog_object = {Type: :Catalog, Pages: {referenced_object: pages_object, is_reference_only: true} }
+			catalog_object[:ViewerPreferences] = @viewer_preferences unless @viewer_preferences.empty?
 
 			# point old Pages pointers to new Pages object
 			## first point known pages objects - enough?
