@@ -121,7 +121,7 @@ module CombinePDF
 
 			serialize_objects_and_references.catalog_pages
 
-			@info_object = @root_object[:Info] ? (@root_object[:Info][:referenced_object] || @root_object[:Info]) : flase
+			@info_object = @root_object[:Info] ? (@root_object[:Info][:referenced_object] || @root_object[:Info]) : false
 			if @info_object && @info_object.is_a?(Hash)
 				@parsed.delete @info_object
 				CombinePDF::PDF::PRIVATE_HASH_KEYS.each {|key| @info_object.delete key}
