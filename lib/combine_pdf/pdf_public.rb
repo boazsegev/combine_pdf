@@ -20,15 +20,15 @@ module CombinePDF
 	# == Combine/Merge PDF files or Pages
 	# To combine PDF files (or data):
 	#   pdf = CombinePDF.new
-	#   pdf << CombinePDF.new("file1.pdf") # one way to combine, very fast.
-	#   pdf << CombinePDF.new("file2.pdf")
+	#   pdf << CombinePDF.load("file1.pdf") # one way to combine, very fast.
+	#   pdf << CombinePDF.load("file2.pdf")
 	#   pdf.save "combined.pdf"
 	# or even a one liner:
-	#   (CombinePDF.new("file1.pdf") << CombinePDF.new("file2.pdf") << CombinePDF.new("file3.pdf")).save("combined.pdf")
+	#   (CombinePDF.load("file1.pdf") << CombinePDF.load("file2.pdf") << CombinePDF.load("file3.pdf")).save("combined.pdf")
 	# you can also add just odd or even pages:
 	#   pdf = CombinePDF.new
 	#   i = 0
-	#   CombinePDF.new("file.pdf").pages.each do |page|
+	#   CombinePDF.load("file.pdf").pages.each do |page|
 	#     i += 1
 	#     pdf << page if i.even?
 	#   end
@@ -39,8 +39,8 @@ module CombinePDF
 	# after that, add the content to each of the pages in your existing PDF.
 	#
 	# in this example, we will add a company logo to each page:
-	#   company_logo = CombinePDF.new("company_logo.pdf").pages[0]
-	#   pdf = CombinePDF.new "content_file.pdf"
+	#   company_logo = CombinePDF.load("company_logo.pdf").pages[0]
+	#   pdf = CombinePDF.load "content_file.pdf"
 	#   pdf.pages.each {|page| page << company_logo} # notice the << operator is on a page and not a PDF object.
 	#   pdf.save "content_with_logo.pdf"
 	# Notice the << operator is on a page and not a PDF object. The << operator acts differently on PDF objects and on Pages.
@@ -50,7 +50,7 @@ module CombinePDF
 	#
 	# == Page Numbering
 	# adding page numbers to a PDF object or file is as simple as can be:
-	#   pdf = CombinePDF.new "file_to_number.pdf"
+	#   pdf = CombinePDF.load "file_to_number.pdf"
 	#   pdf.number_pages
 	#   pdf.save "file_with_numbering.pdf"
 	#
@@ -60,7 +60,7 @@ module CombinePDF
 	# Loading PDF data can be done from file system or directly from the memory.
 	#
 	# Loading data from a file is easy:
-	#   pdf = CombinePDF.new("file.pdf")
+	#   pdf = CombinePDF.load("file.pdf")
 	# you can also parse PDF files from memory:
 	#   pdf_data = IO.read 'file.pdf' # for this demo, load a file to memory
 	#   pdf = CombinePDF.parse(pdf_data)

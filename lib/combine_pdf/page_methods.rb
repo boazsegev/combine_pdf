@@ -10,7 +10,7 @@
 
 module CombinePDF
 
-	# This module injects methods into existing page objects
+	# This module injects page editing methods into existing page objects and the PDFWriter objects.
 	module Page_Methods
 		include Renderer
 

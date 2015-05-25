@@ -12,7 +12,7 @@ module CombinePDF
 
 	# Limited Unicode Support (font dependent)!
 	#
-	# The PDFWriter class is a subclass of Hash and represents a PDF Page object.
+	# The PDFWriter class is a subclass of Hash and represents a PDF Page object. 
 	#
 	# Writing on this Page is done using the textbox function.
 	#
@@ -23,15 +23,15 @@ module CombinePDF
 	#
 	# We can either insert the PDFWriter as a new page:
 	#   pdf = CombinePDF.new
-	#   new_page = PDFWriter.new
+	#   new_page = CombinePDF.create_page # => PDFWriter object
 	#   new_page.textbox "some text"
 	#   pdf << new_page
 	#   pdf.save "file_with_new_page.pdf"
-	# Or we can insert the PDFWriter as an overlay (stamp / watermark) over existing pages:
+	#
+	# Or we can use the Page_Methods methods to write an overlay (stamp / watermark) over existing pages:
 	#   pdf = CombinePDF.new
 	#   new_page = PDFWriter.new "some_file.pdf"
-	#   new_page.textbox "some text"
-	#   pdf.pages.each {|page| page << new_page }
+	#   pdf.pages.each {|page| page.textbox "Draft", opacity: 0.4 }
 	#   pdf.save "stamped_file.pdf"
 	class PDFWriter < Hash
 
