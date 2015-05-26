@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Boaz Segev"]
   spec.email         = ["boaz@2be.co.il"]
   spec.summary       = %q{Combine, stamp and watermark PDF files in pure Ruby.}
-  spec.description   = %q{A nifty gem, in pure Ruby, to parse PDF files and combine (merge) them with other PDF files, number the pages, watermark them or stamp them, create tables or basic text objects etc` (all using the PDF file format).}
+  spec.description   = %q{A nifty gem, in pure Ruby, to parse PDF files and combine (merge) them with other PDF files, number the pages, watermark them or stamp them, create tables, add basic text objects etc` (all using the PDF file format).}
   spec.homepage      = "https://github.com/boazsegev/combine_pdf"
   spec.license       = "MIT"
 
