@@ -18,6 +18,7 @@ module CombinePDF
 
 
 	module Fonts
+		extend Renderer
 
 		protected
 
@@ -53,7 +54,7 @@ module CombinePDF
 			# This function translate a unicode string, to a character glyph ID stream.
 			def encode text
 				# FixMe: embed RTL text convertion
-				return PDFOperations._format_string_to_pdf(text) unless self.cmap
+				return format_string_to_pdf(text) unless self.cmap
 				coded_array = text.chars.map do |c|
 					if self.cmap[c]
 						self.cmap[c]
@@ -91,14 +92,24 @@ module CombinePDF
 			FONTS_LIBRARY.keys			
 		end
 
-		# gets a font from the fonts library
-		def get_font(name = :Helvetica)
+		# gets the original font object from the fonts library (this allows you to edit the font).
+		def get_original_font(name = :Helvetica)
 			initiate_library
 			FONTS_LIBRARY[name]
 		end
 
+		# gets a copy of the font object from the fonts library (this allows you to use the font as an object is a PDF file, without altering the original registered font).
+		def get_font(name = :Helvetica)
+			initiate_library
+			font = FONTS_LIBRARY[name]
+			return nil unless font
+			font = font.dup
+			font[:referenced_object] = font[:referenced_object].dup if font[:referenced_object]
+			font
+		end
+
 		# adds a correctly formatted font object to the font library.
-		# font_name:: a Symbol with the name of the font. if the fonts exists, it will be overwritten!
+		# font_name:: a Symbol with the name of the font. if the fonts name exists, the font will be overwritten!
 		# font_metrics:: a Hash of ont metrics, of the format char => {wx: char_width, boundingbox: [left_x, buttom_y, right_x, top_y]} where i == character code (i.e. 32 for space). The Hash should contain a special value :missing for the metrics of missing characters. an optional :wy will be supported in the future, for up to down fonts.
 		# font_pdf_object:: a Hash in the internal format recognized by CombinePDF, that represents the font object.
 		# font_cmap:: a CMap dictionary Hash) which maps unicode characters to the hex CID for the font (i.e. {"a" => "61", "z" => "7a" }).
@@ -125,9 +136,9 @@ module CombinePDF
 			merged_metrics = {}
 			# merge the metrics last to first (so that important fonts override secondary fonts)
 			fonts.length.downto(1).each do |i|
-				f = get_font(fonts[i-1])
+				f = get_original_font(fonts[i-1])
 				if f && f.metrics
-					merged_metrics.update( get_font(fonts[i-1]).metrics)
+					merged_metrics.update( get_original_font(fonts[i-1]).metrics)
 				else
 					warn "metrics of font not found!"
 				end
@@ -212,7 +223,7 @@ module CombinePDF
 				to_unicode = font_object[:ToUnicode]
 				to_unicode = to_unicode[:referenced_object] if to_unicode[:is_reference_only]
 				# deflate the cmap file stream before parsing
-				to_unicode = PDFOperations.create_deep_copy to_unicode
+				to_unicode = create_deep_copy to_unicode
 				CombinePDF::PDFFilter.inflate_object to_unicode
 				# parse the deflated stream
 				cmap = self.parse_cmap to_unicode[:raw_stream_content]
@@ -241,7 +252,7 @@ module CombinePDF
 			if old_widths[:W]
 				old_widths = old_widths[:W]
 				old_widths = old_widths[:referenced_object][:indirect_without_dictionary] if old_widths[:is_reference_only]
-				old_widths = PDFOperations.create_deep_copy old_widths
+				old_widths = create_deep_copy old_widths
 				while old_widths[0] do
 					a = old_widths.shift
 					b = old_widths.shift

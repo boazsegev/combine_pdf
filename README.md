@@ -15,15 +15,15 @@ To combine PDF files (or data):
 
 ```ruby
 pdf = CombinePDF.new
-pdf << CombinePDF.new("file1.pdf") # one way to combine, very fast.
-pdf << CombinePDF.new("file2.pdf")
+pdf << CombinePDF.load("file1.pdf") # one way to combine, very fast.
+pdf << CombinePDF.load("file2.pdf")
 pdf.save "combined.pdf"
 ```
 
 Or even a one liner:
 
 ```ruby
-(CombinePDF.new("file1.pdf") << CombinePDF.new("file2.pdf") << CombinePDF.new("file3.pdf")).save("combined.pdf")
+(CombinePDF.load("file1.pdf") << CombinePDF.load("file2.pdf") << CombinePDF.load("file3.pdf")).save("combined.pdf")
 ```
 
 you can also add just odd or even pages:
@@ -31,7 +31,7 @@ you can also add just odd or even pages:
 ```ruby
 pdf = CombinePDF.new
 i = 0
-CombinePDF.new("file.pdf").pages.each do |page|
+CombinePDF.load("file.pdf").pages.each do |page|
   i += 1
   pdf << page if i.even?
 end
@@ -46,8 +46,8 @@ To add content to existing PDF pages, first import the new content from an exist
 In this example, we will add a company logo to each page:
 
 ```ruby
-company_logo = CombinePDF.new("company_logo.pdf").pages[0]
-pdf = CombinePDF.new "content_file.pdf"
+company_logo = CombinePDF.load("company_logo.pdf").pages[0]
+pdf = CombinePDF.load "content_file.pdf"
 pdf.pages.each {|page| page << company_logo} # notice the << operator is on a page and not a PDF object.
 pdf.save "content_with_logo.pdf"
 ```
@@ -65,7 +65,7 @@ pdf.pages(nil, false).each {|page| page << stamp_page}
 adding page numbers to a PDF object or file is as simple as can be:
 
 ```ruby
-pdf = CombinePDF.new "file_to_number.pdf"
+pdf = CombinePDF.load "file_to_number.pdf"
 pdf.number_pages
 pdf.save "file_with_numbering.pdf"
 ```
@@ -79,7 +79,7 @@ Loading PDF data can be done from file system or directly from the memory.
 Loading data from a file is easy:
 
 ```ruby
-pdf = CombinePDF.new("file.pdf")
+pdf = CombinePDF.load("file.pdf")
 ```
 
 you can also parse PDF files from memory:

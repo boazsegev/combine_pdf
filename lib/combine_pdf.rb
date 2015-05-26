@@ -9,17 +9,20 @@ require 'matrix'
 require 'rc4'
 
 
-load "combine_pdf/combine_pdf_operations.rb"
-load "combine_pdf/combine_pdf_page.rb"
-load "combine_pdf/combine_pdf_basic_writer.rb"
-load "combine_pdf/combine_pdf_decrypt.rb"
-load "combine_pdf/combine_pdf_fonts.rb"
-load "combine_pdf/combine_pdf_filter.rb"
-load "combine_pdf/combine_pdf_parser.rb"
-load "combine_pdf/combine_pdf_pdf.rb"
-require "combine_pdf/version"
+load "combine_pdf/api.rb"
+load "combine_pdf/renderer.rb"
+load "combine_pdf/page_methods.rb"
+load "combine_pdf/basic_writer.rb"
+load "combine_pdf/decrypt.rb"
+load "combine_pdf/fonts.rb"
+load "combine_pdf/filter.rb"
+load "combine_pdf/parser.rb"
+load "combine_pdf/pdf_public.rb"
+load "combine_pdf/pdf_protected.rb"
 
-load "combine_pdf/combine_pdf_methods.rb"
+# load "combine_pdf/operations.rb"
+
+load "combine_pdf/version.rb"
 
 
 # This is a pure ruby library to combine/merge, stmap/overlay and number PDF files - as well as to create tables (ment for indexing combined files).
@@ -33,22 +36,22 @@ load "combine_pdf/combine_pdf_methods.rb"
 # Loading PDF data can be done from file system or directly from the memory.
 #
 # Load data from a file:
-#   pdf = CombinePDF.new("file.pdf")
+#   pdf = CombinePDF.load("file.pdf")
 # parse PDF files from memory:
 #   pdf = CombinePDF.parse(pdf_data)
 #
 # == Combine/Merge PDF files or Pages
 # To combine PDF files (or data):
 #   pdf = CombinePDF.new
-#   pdf << CombinePDF.new("file1.pdf")
-#   pdf << CombinePDF.new("file2.pdf")
+#   pdf << CombinePDF.load("file1.pdf")
+#   pdf << CombinePDF.load("file2.pdf")
 #   pdf.save "combined.pdf"
 #
 # It is possible to add only specific pages.
 # in this example, only even pages will be added:
 #   pdf = CombinePDF.new
 #   i = 0
-#   CombinePDF.new("file.pdf").pages.each do |page|
+#   CombinePDF.load("file.pdf").pages.each do |page|
 #     i += 1
 #     pdf << page if i.even?
 #   end
@@ -56,14 +59,14 @@ load "combine_pdf/combine_pdf_methods.rb"
 # Notice that adding the whole file is faster then adding each page seperately.
 # == Add content to existing pages (Stamp / Watermark)
 # It is possible "stamp" one PDF page using another PDF page. In this example, a company logo will be stamped over each page:
-#   company_logo = CombinePDF.new("company_logo.pdf").pages[0]
-#   pdf = CombinePDF.new "content_file.pdf"
+#   company_logo = CombinePDF.load("company_logo.pdf").pages[0]
+#   pdf = CombinePDF.load "content_file.pdf"
 #   pdf.pages.each {|page| page << company_logo}
 #   pdf.save "content_with_logo.pdf"
 # Notice the << operator is on a page and not a PDF object. The << operator acts differently on PDF objects and on Pages.
 # == Page Numbering
 # It is possible to number the pages. in this example we will add very simple numbering:
-#   pdf = CombinePDF.new "file_to_number.pdf"
+#   pdf = CombinePDF.load "file_to_number.pdf"
 #   pdf.number_pages
 #   pdf.save "file_with_numbering.pdf"
 #
@@ -73,13 +76,13 @@ load "combine_pdf/combine_pdf_methods.rb"
 #
 # in this example, all the PDF pages will be stamped, along the top, with a red box, with blue text, stating "Draft, page #".
 # here is the easy way (we can even use "number_pages" without page numbers, if we wish):
-#   pdf = CombinePDF.new "file_to_stamp.pdf"
+#   pdf = CombinePDF.load "file_to_stamp.pdf"
 #   pdf.number_pages number_format: " - Draft, page %d - ", number_location: [:top], font_color: [0,0,1], box_color: [0.4,0,0], opacity: 0.75, font_size:16
 #   pdf.save "draft.pdf"
 #
 # in this example we will add a first page with the word "Draft", in red over a colored background:
 #
-#   pdf = CombinePDF.new "file.pdf"
+#   pdf = CombinePDF.load "file.pdf"
 #   pdf_first_page = pdf.pages[0]
 #   mediabox = page[:CropBox] || page[:MediaBox] #copy page size
 #   title_page = CombinePDF.create_page mediabox #make title page same size as first page

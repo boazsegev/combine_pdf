@@ -6,15 +6,6 @@ module CombinePDF
 	################################################################
 
 
-	# lists the Hash keys used for PDF objects
-	#
-	# the CombinePDF library doesn't use special classes for its objects (PDFPage class, PDFStream class or anything like that).
-	#
-	# there is only one PDF class which represents the whole of the PDF file.
-	#
-	# this Hash lists the private Hash keys that the CombinePDF library uses to
-	# differentiate between complex PDF objects.
-	PRIVATE_HASH_KEYS = [:indirect_reference_id, :indirect_generation_number, :raw_stream_content, :is_reference_only, :referenced_object, :indirect_without_dictionary]
 
 	# holds a simple content stream that starts a PDF graphic state container - used for wrapping malformed PDF content streams.
 	CONTENT_CONTAINER_START = { is_reference_only: true , referenced_object: {indirect_reference_id: 0, raw_stream_content: 'q'} }
@@ -225,7 +216,7 @@ module CombinePDF
 					hash_with_references[k] = v unless hash_with_references[k]
 				end
 			end
-			hash_with_references		
+			hash_with_references
 		end
 		def change_connected_references_to_actual_values(hash_with_references = {})
 			if hash_with_references.is_a?(Hash)
