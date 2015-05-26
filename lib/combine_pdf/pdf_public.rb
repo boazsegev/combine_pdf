@@ -373,33 +373,24 @@ module CombinePDF
 				left_position = from_side
 				right_position = page_width - from_side - box_width
 				top_position = page_height - from_height
-				buttom_position = from_height + box_height
-				x = center_position
-				y = top_position
+				bottom_position = from_height + box_height
 				if opt[:number_location].include? :top
-					 page.textbox text, {x: x, y: y }.merge(opt)
+					 page.textbox text, {x: center_position, y: top_position }.merge(opt)
 				end
-				y = buttom_position #bottom position
 				if opt[:number_location].include? :bottom
-					 page.textbox text, {x: x, y: y }.merge(opt)
+					 page.textbox text, {x: center_position, y: bottom_position }.merge(opt)
 				end
-				y = top_position #top position
-				x = left_position # left posotion
 				if opt[:number_location].include? :top_left
-					 page.textbox text, {x: x, y: y }.merge(opt)
+					 page.textbox text, {x: left_position, y: top_position }.merge(opt)
 				end
-				y = buttom_position #bottom position
 				if opt[:number_location].include? :bottom_left
-					 page.textbox text, {x: x, y: y }.merge(opt)
+					 page.textbox text, {x: left_position, y: bottom_position }.merge(opt)
 				end
-				x = right_position # right posotion
-				y = top_position #top position
 				if opt[:number_location].include? :top_right
-					 page.textbox text, {x: x, y: y }.merge(opt)
+					 page.textbox text, {x: right_position, y: top_position }.merge(opt)
 				end
-				y = buttom_position #bottom position
 				if opt[:number_location].include? :bottom_right
-					 page.textbox text, {x: x, y: y }.merge(opt)
+					 page.textbox text, {x: right_position, y: bottom_position }.merge(opt)
 				end
 				page_number = page_number.succ
 			end

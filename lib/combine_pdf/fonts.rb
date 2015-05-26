@@ -92,14 +92,24 @@ module CombinePDF
 			FONTS_LIBRARY.keys			
 		end
 
-		# gets a font from the fonts library
-		def get_font(name = :Helvetica)
+		# gets the original font object from the fonts library (this allows you to edit the font).
+		def get_original_font(name = :Helvetica)
 			initiate_library
 			FONTS_LIBRARY[name]
 		end
 
+		# gets a copy of the font object from the fonts library (this allows you to use the font as an object is a PDF file, without altering the original registered font).
+		def get_font(name = :Helvetica)
+			initiate_library
+			font = FONTS_LIBRARY[name]
+			return nil unless font
+			font = font.dup
+			font[:referenced_object] = font[:referenced_object].dup if font[:referenced_object]
+			font
+		end
+
 		# adds a correctly formatted font object to the font library.
-		# font_name:: a Symbol with the name of the font. if the fonts exists, it will be overwritten!
+		# font_name:: a Symbol with the name of the font. if the fonts name exists, the font will be overwritten!
 		# font_metrics:: a Hash of ont metrics, of the format char => {wx: char_width, boundingbox: [left_x, buttom_y, right_x, top_y]} where i == character code (i.e. 32 for space). The Hash should contain a special value :missing for the metrics of missing characters. an optional :wy will be supported in the future, for up to down fonts.
 		# font_pdf_object:: a Hash in the internal format recognized by CombinePDF, that represents the font object.
 		# font_cmap:: a CMap dictionary Hash) which maps unicode characters to the hex CID for the font (i.e. {"a" => "61", "z" => "7a" }).
@@ -126,9 +136,9 @@ module CombinePDF
 			merged_metrics = {}
 			# merge the metrics last to first (so that important fonts override secondary fonts)
 			fonts.length.downto(1).each do |i|
-				f = get_font(fonts[i-1])
+				f = get_original_font(fonts[i-1])
 				if f && f.metrics
-					merged_metrics.update( get_font(fonts[i-1]).metrics)
+					merged_metrics.update( get_original_font(fonts[i-1]).metrics)
 				else
 					warn "metrics of font not found!"
 				end

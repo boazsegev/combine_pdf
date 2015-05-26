@@ -581,10 +581,10 @@ module CombinePDF
 		end
 		#initializes the content stream in case it was not initialized before
 		def init_contents
+			self[:Contents].delete({ is_reference_only: true , referenced_object: {indirect_reference_id: 0, raw_stream_content: ''} })
 			# wrap content streams
 			insert_content 'q', 0
 			insert_content 'Q'
-			self[:Contents].delete({ is_reference_only: true , referenced_object: {indirect_reference_id: 0, raw_stream_content: ''} })
 
 			# Prep content
 			@contents = ''
