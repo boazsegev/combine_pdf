@@ -2,6 +2,18 @@
 
 ***
 
+Change log v.0.2.1
+
+**fix**: better page stamping... or, at least more secure (we hope).
+
+**feature**: added the PDF#stamp shortcut method. Credit to Tania (@taniarv) for the concept.
+
+**fix**: possible string encoding issues could have arose when strings were rendered to PDF format. Credit to Tania (@taniarv) for exposing the issue.
+
+**feature**: Metadata is now easiyer to set by allowing fast access to the Information header when using PDF#save and PDF#to_pdf. Credit to Tania (@taniarv) for code.
+
+***
+
 Change log v.0.2.0
 
 Refractoring of code and API overhall.

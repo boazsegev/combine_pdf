@@ -149,8 +149,8 @@ module CombinePDF
 		# file_name:: is a string or path object for the output.
 		#
 		# **Notice!** if the file exists, it **WILL** be overwritten.
-		def save(file_name)
-			IO.binwrite file_name, to_pdf
+		def save(file_name, options = {})
+			IO.binwrite file_name, to_pdf(options)
 		end
 
 		# Formats the data to PDF formats and returns a binary string that represents the PDF file content.
@@ -158,7 +158,7 @@ module CombinePDF
 		# This method is used by the save(file_name) method to save the content to a file.
 		#
 		# use this to export the PDF file without saving to disk (such as sending through HTTP ect').
-		def to_pdf
+		def to_pdf options = {}
 			#reset version if not specified
 			@version = 1.5 if @version.to_f == 0.0
 			#set creation date for merged file
@@ -193,6 +193,9 @@ module CombinePDF
 			out << "/Size #{indirect_object_count.to_s}"
 			if @info.is_a?(Hash)
 				PRIVATE_HASH_KEYS.each {|key| @info.delete key} # make sure the dictionary is rendered inline, without stream
+				@info[:CreationDate] = @info[:ModDate] = Time.now.strftime "D:%Y%m%d%H%M%S%:::z'00"
+				@info[:Subject] = options[:subject] if options[:subject]
+				@info[:Producer] = options[:producer] if options[:producer]
 				out << "/Info #{object_to_pdf @info}"
 			end
 			out << ">>\nstartxref\n#{xref_location.to_s}\n%%EOF"
@@ -336,16 +339,16 @@ module CombinePDF
 		#
 		# options:: a Hash of options setting the behavior and format of the page numbers:
 		# - :number_format a string representing the format for page number. defaults to ' - %s - ' (allows for letter numbering as well, such as "a", "b"...).
-		# - :number_location an Array containing the location for the page numbers, can be :top, :buttom, :top_left, :top_right, :bottom_left, :bottom_right. defaults to [:top, :buttom].
+		# - :location an Array containing the location for the page numbers, can be :top, :buttom, :top_left, :top_right, :bottom_left, :bottom_right or :center (:center == full page). defaults to [:top, :buttom].
 		# - :start_at a Fixnum that sets the number for first page number. also accepts a letter ("a") for letter numbering. defaults to 1.
 		# - :margin_from_height a number (PDF points) for the top and buttom margins. defaults to 45.
 		# - :margin_from_side a number (PDF points) for the left and right margins. defaults to 15.
-		# the options Hash can also take all the options for PDFWriter#textbox.
+		# - :page_range a range of pages to be numbered (i.e. (2..-1) ) defaults to all the pages (nil). Remember to set the :start_at to the correct value.
+		# the options Hash can also take all the options for {Page_Methods#textbox}.
 		# defaults to font: :Helvetica, font_size: 12 and no box (:border_width => 0, :box_color => nil).
 		def number_pages(options = {})
 			opt = {
 				number_format: ' - %s - ',
-				number_location: [:top, :bottom],
 				start_at: 1,
 				font_size: 12,
 				font: :Helvetica,
@@ -353,12 +356,15 @@ module CombinePDF
 				margin_from_side: 15
 			}
 			opt.update options
+			opt[:number_location] ||= opt[:stamp_location] ||= opt[:location] ||= [:top, :bottom]
 			page_number = opt[:start_at]
-			pages.each do |page|
+			format_repeater = opt[:number_format].count('%')
+			(opt[:page_range] ? pages[opt[:page_range]] : pages).each do |page|
 				# Get page dimensions
 				mediabox = page[:CropBox] || page[:MediaBox] || [0, 0, 595.3, 841.9]
 				# set stamp text
-				text = opt[:number_format] % page_number
+				text = opt[:number_format] % (Array.new(format_repeater) {page_number})
+				# text = opt[:number_format] % page_number
 				# compute locations for text boxes
 				text_dimantions = page.dimensions_of( text, opt[:font], opt[:font_size] )
 				box_width = text_dimantions[0] * 1.2
@@ -392,7 +398,35 @@ module CombinePDF
 				if opt[:number_location].include? :bottom_right
 					 page.textbox text, {x: right_position, y: bottom_position }.merge(opt)
 				end
+				if opt[:number_location].include? :center
+					 page.textbox text, opt
+				end
 				page_number = page_number.succ
+			end
+
+		end
+		# This method stamps all (or some) of the pages is the PDF with the requested stamp.
+		#
+		# The method accept:
+		# stamp:: either a String or a PDF page. If this is a String, you can add formating to add page numbering (i.e. "page number %i"). otherwise remember to escape any percent ('%') sign (i.e. "page \%number not shown\%").
+		# options:: an options Hash.
+		#
+		# If the stamp is a String, than all the options used by {#number_pages} or {Page_Methods#textbox} can be used.
+		#
+		# If the stamp is a PDF page, only :page_range and :underlay (to reverse-stamp) are valid options.
+		def stamp_pages stamp, options = {}
+			case stamp
+			when String
+				number_pages({number_format: stamp}.merge(options))
+			when Page_Methods
+				# stamp = stamp.copy(true) 
+				if options[:underlay]
+					(options[:page_range] ? pages[options[:page_range]] : pages).each {|p| p >> stamp}
+				else
+					(options[:page_range] ? pages[options[:page_range]] : pages).each {|p| p << stamp}
+				end
+			else
+				raise TypeError, "expecting a String or a PDF page as the stamp."
 			end
 		end
 

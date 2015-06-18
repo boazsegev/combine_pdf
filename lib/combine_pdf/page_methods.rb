@@ -73,15 +73,12 @@ module CombinePDF
 			if top # if this is a stamp (overlay)
 				insert_content CONTENT_CONTAINER_START, 0
 				insert_content CONTENT_CONTAINER_MIDDLE
-				obj[:Contents].each {|c| insert_content c }
+				self[:Contents].concat obj[:Contents]
 				insert_content CONTENT_CONTAINER_END
 			else #if this was a watermark (underlay? would be lost if the page was scanned, as white might not be transparent)
-				old_contents = self[:Contents]
-				self[:Contents] = []
-				insert_content CONTENT_CONTAINER_START
-				obj[:Contents].each {|c| insert_content c }
-				insert_content CONTENT_CONTAINER_MIDDLE
-				old_contents.each { |c| insert_content c }
+				insert_content CONTENT_CONTAINER_MIDDLE, 0
+				insert_content CONTENT_CONTAINER_START, 0
+				self[:Contents].insert 1, *obj[:Contents]
 				insert_content CONTENT_CONTAINER_END
 			end
 			init_contents

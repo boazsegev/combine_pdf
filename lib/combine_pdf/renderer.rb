@@ -34,11 +34,7 @@ module CombinePDF
 			end
 		end
 
-		def format_string_to_pdf(object)
-			object.force_encoding(Encoding::ASCII_8BIT)
-			if !object.force_encoding(Encoding::ASCII_8BIT).match(/[^D\:\d\+\-\Z\']/) #if format is set to Literal
-				#### can be better...
-				replacement_hash = {
+		STRING_REPLACEMENT_HASH = {
 					"\x0A" => "\\n",
 					"\x0D" => "\\r",
 					"\x09" => "\\t",
@@ -48,9 +44,13 @@ module CombinePDF
 					"\x29" => "\\)",
 					"\x5C" => "\\\\"
 				}
-				32.times {|i| replacement_hash[i.chr] ||= "\\#{i}"}
-				(256-128).times {|i| replacement_hash[(i + 127).chr] ||= "\\#{i+127}"}
-				("(" + ([].tap {|out| object.bytes.each {|byte| replacement_hash[ byte.chr ] ? (replacement_hash[ byte.chr ].bytes.each {|b| out << b}) : out << byte } }).pack('C*') + ")").force_encoding(Encoding::ASCII_8BIT)
+		32.times {|i| STRING_REPLACEMENT_HASH[i.chr] ||= "\\#{i}"}
+		(256-128).times {|i| STRING_REPLACEMENT_HASH[(i + 127).chr] ||= "\\#{i+127}"}
+
+		def format_string_to_pdf(object)
+			# object.force_encoding(Encoding::ASCII_8BIT)
+			if !object.match(/[^D\:\d\+\-\Z\']/) #if format is set to Literal
+				("(" + ([].tap {|out| object.bytes.each {|byte| STRING_REPLACEMENT_HASH[ byte.chr ] ? (STRING_REPLACEMENT_HASH[ byte.chr ].bytes.each {|b| out << b}) : out << byte } }).pack('C*') + ")").force_encoding(Encoding::ASCII_8BIT)
 			else
 				# A hexadecimal string shall be written as a sequence of hexadecimal digits (0–9 and either A–F or a–f)
 				# encoded as ASCII characters and enclosed within angle brackets (using LESS-THAN SIGN (3Ch) and GREATER- THAN SIGN (3Eh)). 
