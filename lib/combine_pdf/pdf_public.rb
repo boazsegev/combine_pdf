@@ -106,7 +106,7 @@ module CombinePDF
 
 			# general globals
 			@set_start_id = 1
-			@info[:Producer] = "Ruby CombinePDF #{CombinePDF::VERSION} Library by B. Segev"
+			@info[:Producer] = "Ruby CombinePDF #{CombinePDF::VERSION} Library"
 			@info.delete :CreationDate
 			@info.delete :ModDate
 		end
