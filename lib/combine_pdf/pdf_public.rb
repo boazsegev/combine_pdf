@@ -356,7 +356,7 @@ module CombinePDF
 				margin_from_side: 15
 			}
 			opt.update options
-			opt[:number_location] ||= opt[:stamp_location] ||= opt[:location] ||= [:top, :bottom]
+			opt[:location] ||= opt[:number_location] ||= opt[:stamp_location] ||= [:top, :bottom]
 			page_number = opt[:start_at]
 			format_repeater = opt[:number_format].count('%')
 			(opt[:page_range] ? pages[opt[:page_range]] : pages).each do |page|
@@ -380,25 +380,25 @@ module CombinePDF
 				right_position = page_width - from_side - box_width
 				top_position = page_height - from_height
 				bottom_position = from_height + box_height
-				if opt[:number_location].include? :top
+				if opt[:location].include? :top
 					 page.textbox text, {x: center_position, y: top_position }.merge(opt)
 				end
-				if opt[:number_location].include? :bottom
+				if opt[:location].include? :bottom
 					 page.textbox text, {x: center_position, y: bottom_position }.merge(opt)
 				end
-				if opt[:number_location].include? :top_left
+				if opt[:location].include? :top_left
 					 page.textbox text, {x: left_position, y: top_position }.merge(opt)
 				end
-				if opt[:number_location].include? :bottom_left
+				if opt[:location].include? :bottom_left
 					 page.textbox text, {x: left_position, y: bottom_position }.merge(opt)
 				end
-				if opt[:number_location].include? :top_right
+				if opt[:location].include? :top_right
 					 page.textbox text, {x: right_position, y: top_position }.merge(opt)
 				end
-				if opt[:number_location].include? :bottom_right
+				if opt[:location].include? :bottom_right
 					 page.textbox text, {x: right_position, y: bottom_position }.merge(opt)
 				end
-				if opt[:number_location].include? :center
+				if opt[:location].include? :center
 					 page.textbox text, opt
 				end
 				page_number = page_number.succ
@@ -411,12 +411,15 @@ module CombinePDF
 		# stamp:: either a String or a PDF page. If this is a String, you can add formating to add page numbering (i.e. "page number %i"). otherwise remember to escape any percent ('%') sign (i.e. "page \%number not shown\%").
 		# options:: an options Hash.
 		#
+		# If the stamp is a PDF page, only :page_range and :underlay (to reverse-stamp) are valid options.
+		#
 		# If the stamp is a String, than all the options used by {#number_pages} or {Page_Methods#textbox} can be used.
 		#
-		# If the stamp is a PDF page, only :page_range and :underlay (to reverse-stamp) are valid options.
+		# The default :location option is :center = meaning the stamp will be stamped all across the page unless the :x, :y, :width or :height options are specified.
 		def stamp_pages stamp, options = {}
 			case stamp
 			when String
+				options[:location] ||= [:center]
 				number_pages({number_format: stamp}.merge(options))
 			when Page_Methods
 				# stamp = stamp.copy(true) 
