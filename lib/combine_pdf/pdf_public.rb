@@ -363,6 +363,11 @@ module CombinePDF
 			just_center = [:center]
 			small_font_size = opt[:font_size] || 12
 
+			# some common computations can be done only once.
+			from_height = opt[:margin_from_height]
+			from_side = opt[:margin_from_side]
+			left_position = from_side
+
 			(opt[:page_range] ? pages[opt[:page_range]] : pages).each do |page|
 				# Get page dimensions
 				mediabox = page[:CropBox] || page[:MediaBox] || [0, 0, 595.3, 841.9]
@@ -384,20 +389,20 @@ module CombinePDF
 					add_opt = { font_size: small_font_size }.merge(opt)
 					# text = opt[:number_format] % page_number
 					# compute locations for text boxes
-					text_dimantions = page.dimensions_of( text, opt[:font], small_font_size )
+					text_dimantions = Fonts.dimensions_of( text, opt[:font], small_font_size )
 					box_width = text_dimantions[0] * 1.2
 					box_height = text_dimantions[1] * 2
-					add_opt[:width] ||= box_width
-					add_opt[:height] ||= box_height
-					from_height = add_opt[:margin_from_height]
-					from_side = add_opt[:margin_from_side]
 					page_width = mediabox[2]
 					page_height = mediabox[3]
+
+					add_opt[:width] ||= box_width
+					add_opt[:height] ||= box_height
+
 					center_position = (page_width - box_width)/2
-					left_position = from_side
 					right_position = page_width - from_side - box_width
 					top_position = page_height - from_height
 					bottom_position = from_height + box_height
+					
 					if opt[:location].include? :top
 						 page.textbox text, {x: center_position, y: top_position }.merge(add_opt)
 					end
