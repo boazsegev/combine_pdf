@@ -6,6 +6,8 @@ Change log v.0.2.2
 
 **fix**: fixed the default value for the :location attribute of PDF#stamp_pages(String, options). Now, instead of the default stamp being written at [:top, :bottom], it's default location will be set to [:center].
 
+**fix**: fixed the 'center' location in the page numbering, so that it wouldn't enforce a small font on an all page centered number.
+
 ***
 
 Change log v.0.2.1
