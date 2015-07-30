@@ -2,6 +2,13 @@
 
 ***
 
+Change log v.0.2.3
+
+**update**: a better general error message for CombinePDF.new
+
+
+***
+
 Change log v.0.2.2
 
 **fix**: fixed the default value for the :location attribute of PDF#stamp_pages(String, options). Now, instead of the default stamp being written at [:top, :bottom], it's default location will be set to [:center].

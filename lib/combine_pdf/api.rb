@@ -25,7 +25,12 @@ module CombinePDF
 	def new(string = false)
 		return PDF.new unless string
 		raise TypeError, "couldn't create PDF object, expecting type String" unless string.is_a?(String) || string.is_a?(Pathname)
-		(File.file? string rescue false) ? load(string) : parse(string)
+		begin
+			(File.file? string rescue false) ? load(string) : parse(string)
+		rescue => e
+			raise 'General PDF error - Use CombinePDF.load or CombinePDF.parse for a non-general error message (the requested file was not found OR the string received is not a valid PDF stream OR the file was found but not valid).'
+		end
+		
 	end
 
 	# Create a PDF object from a raw PDF data (parsing the data).
