@@ -35,7 +35,7 @@ module CombinePDF
 				# first if statement is actually a workaround for a bug in Acrobat Reader, regarding duplicate pages.
 				if object[:is_reference_only] && object[:referenced_object] && object[:referenced_object].is_a?(Hash) && object[:referenced_object][:Type] == :Page
 					if @objects.find_index object[:referenced_object]
-						@objects << object[:referenced_object].dup
+						@objects << (object[:referenced_object] = object[:referenced_object].dup)
 					else
 						@objects << object[:referenced_object]
 					end

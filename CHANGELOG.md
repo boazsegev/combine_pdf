@@ -8,6 +8,10 @@ Change log v.0.2.3
 
 **fix**: the `make_secure` now correctly sets the secure copy flag, as expected. For performance reasons it is better to use page.copy(true) for renaming conflicting resource identifiers, but if multiple secure copies are needed for some reason, using `make_secure` will now make sure each copy is secured independently.
 
+**fix**: the secure copy now worked as expected (it had issue with referenced resource dictionaries that was resolved by following the references).
+
+**fix**: fixed an object numbering issue introduced by duplicating pages as part of the Adobe Reader bug workaround. The issue was thought to have been fixed before but some PDF structures were not proprly addressed.
+
 ***
 
 Change log v.0.2.2

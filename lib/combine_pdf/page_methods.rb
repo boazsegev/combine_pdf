@@ -556,12 +556,12 @@ module CombinePDF
 				obj
 			end
 			if page_copy[:Resources]
-				page_copy[:Resources] = page_copy[:Resources].dup
-				page_copy[:Resources][:referenced_object] = page_copy[:Resources][:referenced_object].dup if page_copy[:Resources][:referenced_object]
-				page_res = page_copy.resources
+				page_res = page_copy[:Resources] = page_copy[:Resources].dup
+				page_res = page_copy[:Resources][:referenced_object] = page_copy[:Resources][:referenced_object].dup if page_copy[:Resources][:referenced_object]
 				page_res.each do |k, v|
-					page_res[k] = v.dup if v.is_a?(Array) || v.is_a?(Hash)
-					v[:referenced_object] = v[:referenced_object].dup if v.is_a?(Hash) && v[:referenced_object]
+					v = page_res[k] = v.dup if v.is_a?(Array) || v.is_a?(Hash)
+					v = v[:referenced_object] = v[:referenced_object].dup if v.is_a?(Hash) && v[:referenced_object]
+					v = v[:referenced_object] = v[:referenced_object].dup if v.is_a?(Hash) && v[:referenced_object]
 				end
 			end
 			return page_copy.instance_exec(secure || @secure_injection) { |s| secure_for_copy if s ; init_contents; self }
@@ -750,8 +750,13 @@ module CombinePDF
 			names_dictionary = {}
 
 			# travel every dictionary to pick up names (keys), change them and add them to the dictionary
-			self[:Resources].each do |k,v|
+			res = self.resources
+			res.each do |k,v|
 				if v.is_a?(Hash)
+					# if k == :XObject
+					# 	self[:Resources][k] = v.dup
+					# 	next
+					# end
 					new_dictionary = {}
 					new_name = "Combine" + SecureRandom.hex(7) + "PDF"
 					i = 1
@@ -761,7 +766,7 @@ module CombinePDF
 						new_dictionary[new_key] = value
 						i += 1
 					end
-					self[:Resources][k] = new_dictionary
+					res[k] = new_dictionary
 				end
 			end
 

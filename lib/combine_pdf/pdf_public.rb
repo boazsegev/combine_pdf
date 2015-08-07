@@ -303,6 +303,7 @@ module CombinePDF
 				warn "Shouldn't add objects to the file unless they are PDF objects or PDF pages (an Array or a single PDF page)."
 				return false # return false, which will also stop any chaining.
 			end
+			# pages_to_add.map! {|page| page.copy }
 			catalog = rebuild_catalog
 			pages_array = catalog[:Pages][:referenced_object][:Kids]
 			page_count = pages_array.length
