@@ -542,9 +542,10 @@ module CombinePDF
 			self
 		end
 
+		# creates a copy of the page. if the :secure flag is set to true, the resource indentifiers (fonts etc') will be renamed in order to secure their uniqueness.
+		def copy(secure = false)
 		# since only the Content streams are modified (Resource hashes are created anew),
 		# it should be safe (and a lot faster) to create a deep copy only for the content hashes and streams.
-		def copy(secure = false)
 			delete :Parent
 			prep_content_array
 			page_copy = self.clone
@@ -563,7 +564,7 @@ module CombinePDF
 					v[:referenced_object] = v[:referenced_object].dup if v.is_a?(Hash) && v[:referenced_object]
 				end
 			end
-			return page_copy.instance_exec(secure) { |s| secure_for_copy if s ; init_contents; self }
+			return page_copy.instance_exec(secure || @secure_injection) { |s| secure_for_copy if s ; init_contents; self }
 		end
 
 		###################################

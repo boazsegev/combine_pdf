@@ -6,6 +6,7 @@ Change log v.0.2.3
 
 **update**: a better general error message for CombinePDF.new
 
+**fix**: the `make_secure` now correctly sets the secure copy flag, as expected. For performance reasons it is better to use page.copy(true) for renaming conflicting resource identifiers, but if multiple secure copies are needed for some reason, using `make_secure` will now make sure each copy is secured independently.
 
 ***
 

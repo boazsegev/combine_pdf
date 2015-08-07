@@ -349,7 +349,7 @@ module CombinePDF
 
 
 		# resets cataloging and pages
-		def catalog_pages(catalogs = nil, secure_injection = true, inheritance_hash = {})
+		def catalog_pages(catalogs = nil, secure_injection = false, inheritance_hash = {})
 			unless catalogs
 
 				if root_object[:Root]
