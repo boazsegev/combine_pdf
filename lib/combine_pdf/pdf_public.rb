@@ -114,7 +114,9 @@ module CombinePDF
 		# adds a new page to the end of the PDF object.
 		#
 		# returns the new page object.
-		def new_page(mediabox = [0, 0, 595.3, 841.9], location = -1)
+		#
+		# unless the media box is specified, it defaults to US Letter: [0, 0, 612.0, 792.0]
+		def new_page(mediabox = [0, 0, 612.0, 792.0], location = -1)
 			p = PDFWriter.new(mediabox)
 			insert(-1, p )
 			p

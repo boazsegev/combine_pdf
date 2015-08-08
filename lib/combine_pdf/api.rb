@@ -47,10 +47,10 @@ module CombinePDF
 	# PDFWriter objects are used internally for numbering pages (by creating a PDF page
 	# with the page number and "stamping" it over the existing page).
 	#
-	# ::mediabox an Array representing the size of the PDF document. defaults to: [0.0, 0.0, 612.0, 792.0]
+	# ::mediabox an Array representing the size of the PDF document. defaults to: [0.0, 0.0, 612.0, 792.0] (US Letter)
 	#
 	# if the page is PDFWriter object as a stamp, the final size will be that of the original page.
-	def create_page(mediabox = [0, 0, 595.3, 841.9])
+	def create_page(mediabox = [0, 0, 612.0, 792.0])
 		PDFWriter.new mediabox
 	end
 

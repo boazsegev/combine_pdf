@@ -2,6 +2,14 @@
 
 ***
 
+Change log v.0.2.4
+
+**fixed**: Fixed the default page sizes which weren't as described in the documentation and now default to US Letter. The documentation was also fixed. No major version bump is declered since the defaults were faulty and weren't as described (fixed a bug, not changed the API).
+
+**feature**: added the `resize` page method, to allow resizing of pages with or without conserving the content's aspect ratio (defaults to conserving the aspect ratio).
+
+***
+
 Change log v.0.2.3
 
 **update**: a better general error message for CombinePDF.new

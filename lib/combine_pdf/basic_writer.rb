@@ -37,8 +37,8 @@ module CombinePDF
 
 		# create a new PDFWriter object.
 		#
-		# mediabox:: the PDF page size in PDF points. defaults to [0, 0, 595.3, 841.9] (A4)
-		def initialize(mediabox = [0, 0, 595.3, 841.9])
+		# mediabox:: the PDF page size in PDF points. defaults to [0, 0, 612.0, 792.0] (US Letter)
+		def initialize(mediabox = [0, 0, 612.0, 792.0])
 			# indirect_reference_id, :indirect_generation_number
 			@contents = ""
 			@base_font_name = "Writer" + SecureRandom.hex(7) + "PDF"
