@@ -418,11 +418,14 @@ module CombinePDF
 			c_size = c_cropbox || c_mediabox
 			x_ratio = 1.0 * (new_size[2]-new_size[0]) / (c_size[2]-c_size[0])
 			y_ratio = 1.0 * (new_size[3]-new_size[1]) / (c_size[3]-c_size[1])
-			self[:MediaBox] = [c_mediabox[0], c_mediabox[1], (c_mediabox[2] * x_ratio), (c_mediabox[3] * y_ratio)]
-			self[:CropBox] = [c_cropbox[0], c_cropbox[1], (c_cropbox[2] * x_ratio), (c_cropbox[3] * y_ratio)] if c_cropbox
+			x_move = new_size[0] - c_size[0]
+			y_move = new_size[1] - c_size[1]
+			self[:MediaBox] = [(c_mediabox[0] + x_move), (c_mediabox[1] + y_move), (c_mediabox[2] * x_ratio + x_move ), (c_mediabox[3] * y_ratio + y_move)]
+			self[:CropBox] = [(c_cropbox[0] + x_move), (c_cropbox[1] + y_move), (c_cropbox[2] * x_ratio + x_move), (c_cropbox[3] * y_ratio + y_move)] if c_cropbox
 			x_ratio = y_ratio = [x_ratio, y_ratio].min if conserve_aspect_ratio
 			# insert the rotation stream into the current content stream
-			insert_content "q\n#{x_ratio.round(4).to_s} 0 0 #{y_ratio.round(4).to_s} 0 0 cm\n", 0
+			# insert_content "q\n#{x_ratio.round(4).to_s} 0 0 #{y_ratio.round(4).to_s} 0 0 cm\n1 0 0 1 #{x_move} #{y_move} cm\n", 0
+			insert_content "q\n#{x_ratio.round(4).to_s} 0 0 #{y_ratio.round(4).to_s} #{x_move} #{y_move} cm\n", 0
 			# close the rotation stream
 			insert_content CONTENT_CONTAINER_END
 			# disconnect the content stream, so that future inserts aren't rotated
