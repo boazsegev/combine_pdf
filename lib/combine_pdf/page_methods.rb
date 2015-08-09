@@ -409,19 +409,20 @@ module CombinePDF
 		# resizes the page relative to it's current viewport (either the cropbox or the mediabox), setting the new viewport to the requested size.
 		#
 		# accepts:
-		# new_size:: an Array with four elements: [X0, Y0, X_max, Y_max]. In example, A4: [0, 0, 595, 842]
+		# new_size:: an Array with four elements: [X0, Y0, X_max, Y_max]. For example, A4: `[0, 0, 595, 842]`. It is important that the first two numbers are 0 unless a special effect is attempted. If the first two numbers change, the final result might not be the size requested, but the nearest possible transformation (calling the method again will allow a better resizing).
 		# conserve_aspect_ratio:: whether to keep the current content in the same aspect ratio or to allow streaching. Defaults to true - so that although the content is resized, it might not fill the new size completely.
 		def resize new_size = nil, conserve_aspect_ratio = true
 			return page_size unless new_size
 			c_mediabox = mediabox
 			c_cropbox = cropbox
 			c_size = c_cropbox || c_mediabox
-			x_ratio = 1.0 * (new_size[2]-new_size[0]) / (c_size[2]-c_size[0])
-			y_ratio = 1.0 * (new_size[3]-new_size[1]) / (c_size[3]-c_size[1])
+			x_ratio = 1.0 * (new_size[2]-new_size[0]) / (c_size[2])#-c_size[0])
+			y_ratio = 1.0 * (new_size[3]-new_size[1]) / (c_size[3])#-c_size[1])
 			x_move = new_size[0] - c_size[0]
 			y_move = new_size[1] - c_size[1]
-			self[:MediaBox] = [(c_mediabox[0] + x_move), (c_mediabox[1] + y_move), (c_mediabox[2] * x_ratio + x_move ), (c_mediabox[3] * y_ratio + y_move)]
-			self[:CropBox] = [(c_cropbox[0] + x_move), (c_cropbox[1] + y_move), (c_cropbox[2] * x_ratio + x_move), (c_cropbox[3] * y_ratio + y_move)] if c_cropbox
+			puts "ctm will be: #{x_ratio.round(4).to_s} 0 0 #{y_ratio.round(4).to_s} #{x_move} #{y_move}"
+			self[:MediaBox] = [(c_mediabox[0] + x_move), (c_mediabox[1] + y_move), ((c_mediabox[2] * x_ratio) + x_move ), ((c_mediabox[3] * y_ratio) + y_move)]
+			self[:CropBox] = [(c_cropbox[0] + x_move), (c_cropbox[1] + y_move), ((c_cropbox[2] * x_ratio) + x_move), ((c_cropbox[3] * y_ratio) + y_move)] if c_cropbox
 			x_ratio = y_ratio = [x_ratio, y_ratio].min if conserve_aspect_ratio
 			# insert the rotation stream into the current content stream
 			# insert_content "q\n#{x_ratio.round(4).to_s} 0 0 #{y_ratio.round(4).to_s} 0 0 cm\n1 0 0 1 #{x_move} #{y_move} cm\n", 0
