@@ -92,6 +92,23 @@ load "combine_pdf/version.rb"
 #
 # font support for the writer is still in the works and is limited to extracting know fonts by location of the 14 standard fonts.
 #
+# == Resizing pages
+#
+# Using the {http://www.prepressure.com/library/paper-size PDF standards for page sizes}, it is now possible to resize
+# existing PDF pages, as well as stretch and shrink their content to the new size.
+#
+#   pdf = CombinePDF.load "file.pdf"
+#   a4_size = [0, 0, 595, 842]
+#   # keep aspect ratio intact
+#   pdf.pages.each {|p| p.resize a4_size}
+#   pdf.save "a4.pdf"
+#
+#   pdf = CombinePDF.load "file.pdf"
+#   a4_squared = [0, 0, 595, 595]
+#   # stretch or shrink content to fit new size
+#   pdf.pages.each {|p| p.resize a4_squared, false}
+#   pdf.save "square.pdf"
+#
 # == Decryption & Filters
 #
 # Some PDF files are encrypted and some are compressed (the use of filters)... not all files can be opened, merged, stamped or used and stamps.
