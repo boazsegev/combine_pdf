@@ -17,6 +17,7 @@ module CombinePDF
 
 	# This is an internal class. you don't need it.
 	class PDFDecrypt
+		include CombinePDF::Renderer
 
 		# @!visibility private
 		
@@ -25,9 +26,9 @@ module CombinePDF
 		# root_dictionary:: the root PDF dictionary, containing the Encrypt dictionary.
 		def initialize objects=[], root_dictionary = {}
 			@objects = objects
-			@encryption_dictionary = root_dictionary[:Encrypt]
+			@encryption_dictionary = actual_object(root_dictionary[:Encrypt])
 			raise "Cannot decrypt an encrypted file without an encryption dictionary!" unless @encryption_dictionary
-			@root_dictionary = root_dictionary
+			@root_dictionary = actual_object(root_dictionary)
 			@padding_key = [ 0x28, 0xBF, 0x4E, 0x5E, 0x4E, 0x75, 0x8A, 0x41,
 							0x64, 0x00, 0x4E, 0x56, 0xFF, 0xFA, 0x01, 0x08,
 							0x2E, 0x2E, 0x00, 0xB6, 0xD0, 0x68, 0x3E, 0x80,
@@ -41,7 +42,7 @@ module CombinePDF
 		def decrypt
 			raise_encrypted_error @encryption_dictionary unless @encryption_dictionary[:Filter] == :Standard
 			@key = set_general_key
-			case @encryption_dictionary[:V]
+			case actual_object(@encryption_dictionary[:V])
 			when 1,2
 				# raise_encrypted_error
 				_perform_decrypt_proc_ @objects, self.method(:decrypt_RC4)
@@ -49,10 +50,10 @@ module CombinePDF
 				# raise unsupported error for now
 				raise_encrypted_error
 				# make sure CF is a Hash (as required by the PDF standard for this type of encryption).
-				raise_encrypted_error unless @encryption_dictionary[:CF].is_a?(Hash)
+				raise_encrypted_error unless actual_object(@encryption_dictionary[:CF]).is_a?(Hash)
 
 				# do nothing if there is no data to decrypt except embeded files...?
-				return true unless (@encryption_dictionary[:CF].values.select { |v| !v[:AuthEvent] || v[:AuthEvent] == :DocOpen } ).empty?
+				return true unless (actual_object(@encryption_dictionary[:CF]).values.select { |v| !v[:AuthEvent] || v[:AuthEvent] == :DocOpen } ).empty?
 
 				# attempt to decrypt all strings?
 				# attempt to decrypy all streams
@@ -63,6 +64,8 @@ module CombinePDF
 			end
 			#rebuild stream lengths?
 			@objects
+		rescue => e
+			raise_encrypted_error
 		end
 
 		protected
@@ -71,17 +74,17 @@ module CombinePDF
 			# 1) make sure the initial key is 32 byte long (if no password, uses padding).
 			key = (password.bytes[0..32].to_a + @padding_key)[0..31].to_a.pack('C*').force_encoding(Encoding::ASCII_8BIT)
 			# 2) add the value of the encryption dictionary’s O entry
-			key << @encryption_dictionary[:O].to_s
+			key << actual_object(@encryption_dictionary[:O]).to_s
 			# 3) Convert the integer value of the P entry to a 32-bit unsigned binary number
 			# and pass these bytes low-order byte first
-			key << [@encryption_dictionary[:P]].pack('i')
+			key << [actual_object(@encryption_dictionary[:P])].pack('i')
 			# 4) Pass the first element of the file’s file identifier array
 			# (the value of the ID entry in the document’s trailer dictionary
-			key << @root_dictionary[:ID][0]
+			key << actual_object(@root_dictionary[:ID])[0]
 			# # 4(a) (Security handlers of revision 4 or greater)
 			# # if document metadata is not being encrypted, add 4 bytes with the value 0xFFFFFFFF.
-			if @encryption_dictionary[:R] >= 4
-				unless @encryption_dictionary[:EncryptMetadata] == false #default is true and nil != false
+			if actual_object(@encryption_dictionary[:R]) >= 4
+				unless actual_object(@encryption_dictionary)[:EncryptMetadata] == false #default is true and nil != false
 					key << "\x00\x00\x00\x00"
 				else
 					key << "\xFF\xFF\xFF\xFF"
@@ -94,17 +97,17 @@ module CombinePDF
 			# pass the first n bytes of the output as input into a new MD5 hash,
 			# where n is the number of bytes of the encryption key as defined by the value of
 			# the encryption dictionary’s Length entry.
-			if @encryption_dictionary[:R] >= 3
+			if actual_object(@encryption_dictionary[:R]) >= 3
 				50.times do|i|
-					key = Digest::MD5.digest(key[0...@encryption_dictionary[:Length]])
+					key = Digest::MD5.digest(key[0...actual_object(@encryption_dictionary[:Length])])
 				end
 			end
 			# 6) Set the encryption key to the first n bytes of the output from the final MD5 hash,
 			# where n shall always be 5 for security handlers of revision 2 but,
 			# for security handlers of revision 3 or greater,
 			# shall depend on the value of the encryption dictionary’s Length entry.
-			if @encryption_dictionary[:R] >= 3
-				@key = key[0..(@encryption_dictionary[:Length]/8)]
+			if actual_object(@encryption_dictionary[:R]) >= 3
+				@key = key[0..(actual_object(@encryption_dictionary[:Length])/8)]
 			else
 				@key = key[0..4]
 			end
@@ -150,14 +153,11 @@ module CombinePDF
 			when object.is_a?(Array)
 				object.map! { |item| _perform_decrypt_proc_(item, decrypt_proc, encrypted_id, encrypted_generation, encrypted_filter) }
 			when object.is_a?(Hash)
-				encrypted_id ||= object[:indirect_reference_id]
-				encrypted_generation ||=  object[:indirect_generation_number]
-				encrypted_filter ||= object[:Filter]
+				encrypted_id ||= actual_object(object[:indirect_reference_id])
+				encrypted_generation ||=  actual_object(object[:indirect_generation_number])
+				encrypted_filter ||= actual_object(object[:Filter])
 				if object[:raw_stream_content]
-					stream_length = object[:Length]
-					if stream_length.is_a?(Hash) && stream_length[:is_reference_only]
-						stream_length = get_refernced_object(stream_length)[:indirect_without_dictionary]
-					end
+					stream_length = actual_object(object[:Length])
 					actual_length = object[:raw_stream_content].length
 					warn "Stream registeded length was #{object[:Length].to_s} and the actual length was #{actual_length}." if actual_length < stream_length
 					length = [ stream_length, actual_length].min

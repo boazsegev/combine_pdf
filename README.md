@@ -94,7 +94,7 @@ Loading from the memory is especially effective for importing PDF data recieved 
 Demo
 ====
 
-You can see a Demo for a ["Bates stumping web-app"](http://combine-pdf-demo.herokuapp.com/bates) and read through it's [code](http://combine-pdf-demo.herokuapp.com/code) . Good luck :)
+You can see a Demo for a ["Bates stumping web-app"](http://combine-pdf-demo.herokuapp.com/bates) and read through it's [code](https://github.com/boazsegev/combine_pdf_demo/blob/c9914588e4116dcfdaa37f85727f442b064e2b04/pdf_controller.rb) . Good luck :)
 
 Decryption & Filters
 ====================

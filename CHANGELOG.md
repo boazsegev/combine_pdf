@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.2.5
+
+**semi-fix**: make sure decryption is attempetd using actual values (vs. references). The code was updated for a similar result as should have been achived before.
+
+***
+
 Change log v.0.2.4
 
 **fixed**: Fixed the default page sizes which weren't as described in the documentation and now default to US Letter. The documentation was also fixed. No major version bump is declered since the defaults were faulty and weren't as described (fixed a bug, not changed the API).
