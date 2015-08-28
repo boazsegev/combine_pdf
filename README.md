@@ -91,6 +91,13 @@ pdf = CombinePDF.parse(pdf_data)
 
 Loading from the memory is especially effective for importing PDF data recieved through the internet or from a different authoring library such as Prawn.
 
+Similarly, you can output a string of PDF data using `.to_pdf`. For example, to let a user download the PDF from a Rails app:
+
+```
+# in a controller action
+send_data combined_file.to_pdf, filename: "combined.pdf", type: "application/pdf"
+```
+
 Demo
 ====
 
