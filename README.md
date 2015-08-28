@@ -72,7 +72,7 @@ pdf.save "file_with_numbering.pdf"
 
 Numbering can be done with many different options, with different formating, with or without a box object, and even with opacity values - see documentation.
 
-## Loading PDF data
+## Loading and Rendering PDF data
 
 Loading PDF data can be done from file system or directly from the memory.
 
@@ -82,21 +82,30 @@ Loading data from a file is easy:
 pdf = CombinePDF.load("file.pdf")
 ```
 
-you can also parse PDF files from memory:
+You can also parse PDF files from memory. Loading from the memory is especially effective for importing PDF data recieved through the internet or from a different authoring library such as Prawn:
 
 ```ruby
-pdf_data = IO.read 'file.pdf' # for this demo, load a file to memory
+pdf_data = prawn_pdf_document.render # Import PDF data from Prawn
 pdf = CombinePDF.parse(pdf_data)
 ```
 
-Loading from the memory is especially effective for importing PDF data recieved through the internet or from a different authoring library such as Prawn.
+Similarly, you can output a string of PDF data using `.to_pdf`. For example, to let a user download the PDF from a [Rails](http://rubyonrails.org) or [Plezi](https://github.com/boazsegev/plezi) app:
 
-Similarly, you can output a string of PDF data using `.to_pdf`. For example, to let a user download the PDF from a Rails app:
-
-```
+```ruby
 # in a controller action
 send_data combined_file.to_pdf, filename: "combined.pdf", type: "application/pdf"
 ```
+
+Or in [Sinatra](http://www.sinatrarb.com):
+
+```ruby
+# in your path's block
+status 200
+body combined_file.to_pdf
+headers 'content-type' => "application/pdf"
+```
+
+If you prefer to save the PDF data to a file, you can always use the `save` method as we did in our earlier examples.
 
 Demo
 ====
