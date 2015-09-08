@@ -331,10 +331,26 @@ module CombinePDF
 						@scanner.skip_until(/\%\%EOF/)
 					end
 					
-				when @scanner.scan(/[\s]+/) , @scanner.scan(/obj[\s]*/)
-					# do nothing
-					# warn "White Space, do nothing"
+				when @scanner.scan(/[\s]+/)
+					# Generally, do nothing
 					nil
+				when @scanner.scan(/obj[\s]*/)
+					# Fix wkhtmltopdf PDF authoring issue - missing 'endobj' keywords
+					unless out[-4].nil? || out[-4].is_a?(Hash)
+						keep = []
+						keep << out.pop
+						keep << out.pop
+
+						if out.last.is_a? Hash
+							out << out.pop.merge({indirect_generation_number: out.pop, indirect_reference_id: out.pop})
+						else
+							out << {indirect_without_dictionary: out.pop, indirect_generation_number: out.pop, indirect_reference_id: out.pop}
+						end
+						warn "'endobj' keyword was missing for Object ID: #{out.last[:indirect_reference_id]}, trying to auto-fix issue, but might fail."
+
+						out << keep.pop
+						out << keep.pop
+					end
 				else
 					# always advance 
 					# warn "Advnacing for unknown reason..."
@@ -454,6 +470,11 @@ module CombinePDF
 				obj.delete(:indirect_reference_id); obj.delete(:indirect_generation_number)
 			end
 			self
+		# rescue => e
+		# 	puts (@parsed.select {|o| !o.is_a?(Hash)})
+		# 	puts (@parsed)
+		# 	puts (@references)
+		# 	raise e
 		end
 
 		# @private

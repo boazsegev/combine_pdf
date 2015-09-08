@@ -4,6 +4,8 @@
 
 Change log v.0.2.5
 
+**feature**: circumvents an issue with 'wkhtmltopdf', where sometimes the `endobj` keyword would be missing, causing malformed PDF data. The parser will now attempt to auto-fix any `endobj` missing keywords.
+
 **semi-fix**: make sure decryption is attempetd using actual values (vs. references). The code was updated for a similar result as should have been achived before.
 
 ***
