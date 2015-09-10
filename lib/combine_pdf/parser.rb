@@ -65,9 +65,12 @@ module CombinePDF
 			@scanner.pos = 0
 			if @scanner.scan /\%PDF\-[\d\-\.]+/
 				@version = @scanner.matched.scan(/[\d\.]+/)[0].to_f
+				@scanner.skip_until /[\n\r]+/
+				# @scanner.skip /[^\d]*/
 			end
-
 			@parsed = _parse_
+
+			raise "Unknown PDF parsing error - maleformed PDF file?" unless (@parsed.select {|i| !i.is_a?(Hash)}).empty?
 
 			if @root_object == {}
 				xref_streams = @parsed.select {|obj| obj.is_a?(Hash) && obj[:Type] == :XRef}
@@ -323,7 +326,7 @@ module CombinePDF
 					if @scanner.matched[-1] == 'r'
 						if @scanner.skip_until(/<</)
 							data = _parse_
-							@root_object = {}
+							@root_object ||= {}
 							@root_object[data.shift] = data.shift while data[0]						
 						end
 						##########
