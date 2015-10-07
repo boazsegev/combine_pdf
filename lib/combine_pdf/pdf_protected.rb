@@ -110,6 +110,8 @@ module CombinePDF
 		def rebuild_catalog_and_objects
 			catalog = rebuild_catalog
 			@objects = []
+			@objects << @info
+			add_referenced @info
 			@objects << catalog
 			add_referenced catalog
 			catalog
