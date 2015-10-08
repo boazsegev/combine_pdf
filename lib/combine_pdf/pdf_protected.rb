@@ -25,15 +25,15 @@ module CombinePDF
 		# this function adds the references contained in "object", but DOESN'T add the object itself.
 		#
 		# this is used for internal operations, such as injectng data using the << operator.
-		def add_referenced(object)
+		def add_referenced(object, dup_pages = true)
 			# add references but not root
 			case 
 			when object.is_a?(Array)
-				object.each {|it| add_referenced(it)}
+				object.each {|it| add_referenced(it, dup_pages)}
 				return true
 			when object.is_a?(Hash)
 				# first if statement is actually a workaround for a bug in Acrobat Reader, regarding duplicate pages.
-				if object[:is_reference_only] && object[:referenced_object] && object[:referenced_object].is_a?(Hash) && object[:referenced_object][:Type] == :Page
+				if dup_pages && object[:is_reference_only] && object[:referenced_object] && object[:referenced_object].is_a?(Hash) && object[:referenced_object][:Type] == :Page
 					if @objects.find_index object[:referenced_object]
 						@objects << (object[:referenced_object] = object[:referenced_object].dup)
 					else
@@ -56,7 +56,7 @@ module CombinePDF
 
 				end
 				object.each do |k, v|
-					add_referenced(v) unless k == :Parent 
+					add_referenced(v, dup_pages) unless k == :Parent 
 				end
 			else
 				return false
@@ -84,7 +84,7 @@ module CombinePDF
 			pages_object = {Type: :Pages, Count: page_list.length, Kids: page_list.map {|p| {referenced_object: p, is_reference_only: true} } }
 
 			# build new Catalog object
-			catalog_object = {Type: :Catalog, Pages: {referenced_object: pages_object, is_reference_only: true} }
+			catalog_object = {Type: :Catalog, Pages: {referenced_object: pages_object, is_reference_only: true}, Names: {referenced_object: @names, is_reference_only: true} }
 			catalog_object[:ViewerPreferences] = @viewer_preferences unless @viewer_preferences.empty?
 
 			# point old Pages pointers to new Pages object
@@ -103,6 +103,10 @@ module CombinePDF
 			catalog_object
 		end
 
+		def names_object
+			@names
+		end
+
 		# @private
 		# this is an alternative to the rebuild_catalog catalog method
 		# this method is used by the to_pdf method, for streamlining the PDF output.
@@ -113,7 +117,8 @@ module CombinePDF
 			@objects << @info
 			add_referenced @info
 			@objects << catalog
-			add_referenced catalog
+			add_referenced catalog[:Pages]
+			add_referenced catalog[:Names], false
 			catalog
 		end
 

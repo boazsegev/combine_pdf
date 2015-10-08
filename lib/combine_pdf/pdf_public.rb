@@ -103,6 +103,7 @@ module CombinePDF
 			# set data from parser
 			@version = parser.version if parser.version.is_a? Float
 			@info = parser.info_object || {}
+			@names = parser.names_object || {}
 
 			# general globals
 			@set_start_id = 1
@@ -293,6 +294,7 @@ module CombinePDF
 			if data.is_a? PDF
 		 		@version = [@version, data.version].max
 				pages_to_add = data.pages
+				@names.update data.names_object, &::CombinePDF::PDFParser.method(:hash_update_proc_for_new)
 			elsif data.is_a?(Array) && (data.select {|o| !(o.is_a?(Hash) && o[:Type] == :Page) } ).empty?
 				pages_to_add = data
 			elsif data.is_a?(Hash) && data[:Type] == :Page
