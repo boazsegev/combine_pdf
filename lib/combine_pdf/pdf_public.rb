@@ -163,8 +163,10 @@ module CombinePDF
 		def to_pdf options = {}
 			#reset version if not specified
 			@version = 1.5 if @version.to_f == 0.0
-			#set creation date for merged file
-			@info[:CreationDate] = Time.now.strftime "D:%Y%m%d%H%M%S%:::z'00"
+			#set info for merged file
+			@info[:ModDate] = @info[:CreationDate] = Time.now.strftime "D:%Y%m%d%H%M%S%:::z'00"
+			@info[:Subject] = options[:subject] if options[:subject]
+			@info[:Producer] = options[:producer] if options[:producer]
 			#rebuild_catalog
 			catalog = rebuild_catalog_and_objects
 			# add ID and generation numbers to objects
@@ -193,13 +195,7 @@ module CombinePDF
 			out << out.pop + "trailer"
 			out << "<<\n/Root #{false || "#{catalog[:indirect_reference_id]} #{catalog[:indirect_generation_number]} R"}"
 			out << "/Size #{indirect_object_count.to_s}"
-			if @info.is_a?(Hash)
-				PRIVATE_HASH_KEYS.each {|key| @info.delete key} # make sure the dictionary is rendered inline, without stream
-				@info[:CreationDate] = @info[:ModDate] = Time.now.strftime "D:%Y%m%d%H%M%S%:::z'00"
-				@info[:Subject] = options[:subject] if options[:subject]
-				@info[:Producer] = options[:producer] if options[:producer]
-				out << "/Info #{object_to_pdf @info}"
-			end
+			out << "/Info #{@info[:indirect_reference_id]} #{@info[:indirect_generation_number]} R"
 			out << ">>\nstartxref\n#{xref_location.to_s}\n%%EOF"
 			# when finished, remove the numbering system and keep only pointers
 			remove_old_ids
