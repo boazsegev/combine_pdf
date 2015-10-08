@@ -2,6 +2,14 @@
 
 ***
 
+Change log v.0.2.6
+
+**fixed**: Hasan Iskandar fixed issue #30 - Output file cannot be saved from Adobe Reader with "Save As optimizes for Fast Web View" preference enabled. Thank you Hasan.
+
+**update**: More parsing error detection; Updated the endstream EOL marker indentifier for safer indentification.
+
+***
+
 Change log v.0.2.5
 
 **feature**: circumvents an issue with 'wkhtmltopdf', where sometimes the `endobj` keyword would be missing, causing malformed PDF data. The parser will now attempt to auto-fix any `endobj` missing keywords.
