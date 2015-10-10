@@ -294,7 +294,7 @@ module CombinePDF
 			if data.is_a? PDF
 		 		@version = [@version, data.version].max
 				pages_to_add = data.pages
-				@names.update data.names_object, &::CombinePDF::PDFParser.method(:hash_update_proc_for_new)
+				@names.update data.names_object, &self.class.method(:hash_merge_new_no_page)
 			elsif data.is_a?(Array) && (data.select {|o| !(o.is_a?(Hash) && o[:Type] == :Page) } ).empty?
 				pages_to_add = data
 			elsif data.is_a?(Hash) && data[:Type] == :Page

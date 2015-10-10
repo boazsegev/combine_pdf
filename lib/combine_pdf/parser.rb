@@ -54,6 +54,7 @@ module CombinePDF
 			@root_object = {}
 			@info_object = {}
 			@names_object = {}
+			@strings_dictionary = {} # all strings are one string
 			@version = nil
 			@scanner = nil
 		end
@@ -200,7 +201,7 @@ module CombinePDF
 				##########################################
 				when str = @scanner.scan(/<[0-9a-fA-F]+>/)
 					# warn "Found a hex string"
-					out << [str[1..-2]].pack('H*')
+					out << unify_string([str[1..-2]].pack('H*').force_encoding(Encoding::ASCII_8BIT))
 				##########################################
 				## parse a Literal String
 				##########################################
@@ -277,7 +278,7 @@ module CombinePDF
 							str << str_bytes.shift
 						end
 					end
-					out << str.pack('C*').force_encoding(Encoding::ASCII_8BIT)
+					out << unify_string(str.pack('C*').force_encoding(Encoding::ASCII_8BIT))
 				##########################################
 				## Parse a comment
 				##########################################
@@ -369,7 +370,7 @@ module CombinePDF
 
 
 		# resets cataloging and pages
-		def catalog_pages(catalogs = nil, secure_injection = false, inheritance_hash = {})
+		def catalog_pages(catalogs = nil, inheritance_hash = {})
 			unless catalogs
 
 				if root_object[:Root]
@@ -384,11 +385,11 @@ module CombinePDF
 			end
 			case 
 			when catalogs.is_a?(Array)
-				catalogs.each {|c| catalog_pages(c, secure_injection, inheritance_hash ) unless c.nil?}
+				catalogs.each {|c| catalog_pages(c, inheritance_hash ) unless c.nil?}
 			when catalogs.is_a?(Hash)
 				if catalogs[:is_reference_only]
 					if catalogs[:referenced_object]
-						catalog_pages(catalogs[:referenced_object], secure_injection, inheritance_hash)
+						catalog_pages(catalogs[:referenced_object], inheritance_hash)
 					else
 						warn "couldn't follow reference!!! #{catalogs} not found!"
 					end
@@ -425,13 +426,11 @@ module CombinePDF
 						catalogs[:Rotate] = catalogs[:Rotate][:referenced_object][:indirect_without_dictionary] if catalogs[:Rotate].is_a?(Hash) && catalogs[:Rotate][:referenced_object].is_a?(Hash) && catalogs[:Rotate][:referenced_object][:indirect_without_dictionary]
 
 						catalogs.instance_eval {extend Page_Methods}
-						catalogs.secure_injection = secure_injection
 					when :Pages
-						@names_object.update( (catalogs[:Names][:referenced_object] || catalogs[:Names]), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:Names]
-						catalog_pages(catalogs[:Kids], secure_injection, inheritance_hash.dup ) unless catalogs[:Kids].nil?
+						catalog_pages(catalogs[:Kids], inheritance_hash.dup ) unless catalogs[:Kids].nil?
 					when :Catalog
 						@names_object.update( (catalogs[:Names][:referenced_object] || catalogs[:Names]), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:Names]
-						catalog_pages(catalogs[:Pages], secure_injection, inheritance_hash.dup ) unless catalogs[:Pages].nil?
+						catalog_pages(catalogs[:Pages], inheritance_hash.dup ) unless catalogs[:Pages].nil?
 					end
 				end
 			end
@@ -476,11 +475,11 @@ module CombinePDF
 				obj.delete(:indirect_reference_id); obj.delete(:indirect_generation_number)
 			end
 			self
-		# rescue => e
-		# 	puts (@parsed.select {|o| !o.is_a?(Hash)})
-		# 	puts (@parsed)
-		# 	puts (@references)
-		# 	raise e
+		end
+
+		# All Strings are one String
+		def unify_string str
+			@strings_dictionary[str] ||= str
 		end
 
 		# @private

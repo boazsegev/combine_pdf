@@ -23,19 +23,23 @@ module CombinePDF
 
 		# accessor (getter) for the secure_injection setting
 		def secure_injection
+			warn "**Deprecation Warning**: the `Page_Methods#secure_injection`, `Page_Methods#make_unsecure` and `Page_Methods#make_secure` methods are deprecated. Use `Page_Methods#copy(true)` for safeguarding against font/resource conflicts when 'stamping' one PDF page over another."
 			@secure_injection
 		end
 		# accessor (setter) for the secure_injection setting
 		def secure_injection= safe
+			warn "**Deprecation Warning**: the `Page_Methods#secure_injection`, `Page_Methods#make_unsecure` and `Page_Methods#make_secure` methods are deprecated. Use `Page_Methods#copy(true)` for safeguarding against font/resource conflicts when 'stamping' one PDF page over another."
 			@secure_injection = safe
 		end
 		# sets secure_injection to `true` and returns self, allowing for chaining methods
 		def make_secure
+			warn "**Deprecation Warning**: the `Page_Methods#secure_injection`, `Page_Methods#make_unsecure` and `Page_Methods#make_secure` methods are deprecated. Use `Page_Methods#copy(true)` for safeguarding against font/resource conflicts when 'stamping' one PDF page over another."
 			@secure_injection = true
 			self
 		end
 		# sets secure_injection to `false` and returns self, allowing for chaining methods
 		def make_unsecure
+			warn "**Deprecation Warning**: the `Page_Methods#secure_injection`, `Page_Methods#make_unsecure` and `Page_Methods#make_secure` methods are deprecated. Use `Page_Methods#copy(true)` for safeguarding against font/resource conflicts when 'stamping' one PDF page over another."
 			@secure_injection = false
 			self
 		end

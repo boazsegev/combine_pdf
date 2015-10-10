@@ -2,6 +2,14 @@
 
 ***
 
+Change log v.0.2.7
+
+**Update**: Inner PDF links (links to pages within the PDF file) will now be preserved. This create conflicts if different links share the same name (i.e. two different links in two different files sharing the name 'Link1').
+
+**Deprecation Warning**: the `Page_Methods#secure_injection`, `Page_Methods#make_unsecure` and `Page_Methods#make_secure` methods are deprecated. Use `Page_Methods#copy(true)` for safeguarding against font/resource conflicts when "stamping" one PDF page over another.
+
+***
+
 Change log v.0.2.6
 
 **fixed**: Hasan Iskandar fixed issue #30 - Output file cannot be saved from Adobe Reader with "Save As optimizes for Fast Web View" preference enabled. Thank you Hasan.
