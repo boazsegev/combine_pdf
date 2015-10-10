@@ -115,6 +115,9 @@ module CombinePDF
 				end
 			end
 
+			# Strings were unified, we can let them go..
+			@strings_dictionary.clear
+
 			
 			# serialize_objects_and_references.catalog_pages
 
@@ -181,10 +184,10 @@ module CombinePDF
 					# need to remove end of stream
 					if out.last.is_a? Hash
 						# out.last[:raw_stream_content] = str[0...-10] #cuts only one EON char (\n or \r)
-						out.last[:raw_stream_content] = str.gsub(/[\n\r]?[\n\r]endstream\z/, "")
+						out.last[:raw_stream_content] = unify_string str.sub(/[\n\r]?[\n\r]endstream\z/, "").force_encoding(Encoding::ASCII_8BIT)
 					else
 						warn "Stream not attached to dictionary!"
-						out << str[0...-10].force_encoding(Encoding::ASCII_8BIT)
+						out << str.sub(/[\n\r]?[\n\r]endstream\z/, "").force_encoding(Encoding::ASCII_8BIT)
 					end
 				##########################################
 				## parse an Object after finished

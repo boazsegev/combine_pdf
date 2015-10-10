@@ -50,7 +50,7 @@ module CombinePDF
 						return true
 					else
 						# stop if page propegation is false
-						return true if dup_pages && object[:referenced_object][:Type] == :Page
+						return true if !dup_pages && object[:referenced_object][:Type] == :Page
 						# @objects.include? object[:referenced_object] is bound to be false
 						# the object wasn't found - add it to the @objects array
 						@objects << object[:referenced_object]
@@ -117,7 +117,7 @@ module CombinePDF
 		# there is no point is calling the method before preparing the output.
 		def rebuild_catalog_and_objects
 			catalog = rebuild_catalog
-			@objects = []
+			@objects.clear
 			@objects << @info
 			add_referenced @info
 			@objects << catalog
