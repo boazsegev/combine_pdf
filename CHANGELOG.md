@@ -4,7 +4,9 @@
 
 Change log v.0.2.7
 
-**Update**: Inner PDF links (links to pages within the PDF file) will now be preserved. This create conflicts if different links share the same name (i.e. two different links in two different files sharing the name 'Link1').
+**Fix**: Fixed an issue where a malformed PDF String could cause the parser to hang.
+
+**Update**: Inner PDF links (links to pages within the PDF file) will now be preserved when importing a whole PDF (although Outlines, for now, are discarede and their related links will be discarded as well). If the same destination page is inserted more than once (the first version will be preferred).
 
 **Deprecation Warning**: the `Page_Methods#secure_injection`, `Page_Methods#make_unsecure` and `Page_Methods#make_secure` methods are deprecated. Use `Page_Methods#copy(true)` for safeguarding against font/resource conflicts when "stamping" one PDF page over another.
 

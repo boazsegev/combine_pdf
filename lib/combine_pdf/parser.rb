@@ -213,14 +213,20 @@ module CombinePDF
 					str = ''.force_encoding(Encoding::ASCII_8BIT)
 					count = 1
 					while count > 0 && @scanner.rest? do
-						str += @scanner.scan_until(/[\(\)]/).to_s
+						scn = @scanner.scan_until(/[\(\)]/)
+						unless scn
+							warn "Unknown error parsing string at #{@scanner.pos} for string: #{str}!"
+							count = 0 # error
+							next
+						end
+
+						str += scn.to_s
 						seperator_count = 0
 						seperator_count += 1 while str[-2-seperator_count] == "\\"
 
 						case str[-1]
 						when '('
-							## The following solution fails when (string ends with this sign: \\)
-
+							## The following solution might fail when (string ends with this sign: \\)
 							count += 1 unless seperator_count.odd?
 						when ')'
 							count -= 1 unless seperator_count.odd?
