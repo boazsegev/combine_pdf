@@ -4,7 +4,7 @@
 
 Change log v.0.2.8
 
-* **Fix/Feature**:
+* **Fix/Feature**: (related to issue #32)
 
      Experience shows that it's very difficult to know when to use `page.copy` v.s. `page.copy(true)` before stamping one pdf pages on top (or under) another... So...
 
