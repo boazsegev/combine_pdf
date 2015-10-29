@@ -2,6 +2,20 @@
 
 ***
 
+Change log v.0.2.8
+
+* **Fix/Feature**:
+
+     Experience shows that it's very difficult to know when to use `page.copy` v.s. `page.copy(true)` before stamping one pdf pages on top (or under) another... So...
+
+     Now there is no longer any need for the guesswork. The process is automated for you.
+
+     The moment CombinePDF recognizes a resource name conflice between two pages (such as both pages using one font name to reference two different fonts), CombinePDF will intrusively rename the incoming page's resources. 
+
+     It is true that the intrusive resource renaming is somewhat risky and might require the inflation of some comperssed page data (resulting in bigger file sizes), but this is the only way to attempt and prevent PDF data curruption.
+
+***
+
 Change log v.0.2.7
 
 **Fix**: Fixed an issue where a malformed PDF String could cause the parser to hang.

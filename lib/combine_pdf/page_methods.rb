@@ -55,7 +55,7 @@ module CombinePDF
 			
 			raise TypeError, "couldn't inject data, expecting a PDF page (Hash type)" unless obj.is_a?(Page_Methods)
 
-			obj = obj.copy #obj.copy(secure_injection)
+			obj = obj.copy( should_secure?(obj) ) #obj.copy(secure_injection)
 
 			# following the reference chain and assigning a pointer to the correct Resouces object.
 			# (assignments of Strings, Arrays and Hashes are pointers in Ruby, unless the .dup method is called)
@@ -821,133 +821,14 @@ module CombinePDF
 			self
 		end
 
-
-
-# ################
-# ##
-
-# 		def inject_to_page page = {Type: :Page, MediaBox: [0,0,612.0,792.0], Resources: {}, Contents: []}, stream = nil, top = true
-# 			# make sure both the page reciving the new data and the injected page are of the correct data type.
-# 			return false unless page.is_a?(Hash) && stream.is_a?(Hash)
-
-# 			# following the reference chain and assigning a pointer to the correct Resouces object.
-# 			# (assignments of Strings, Arrays and Hashes are pointers in Ruby, unless the .dup method is called)
-# 			page[:Resources] ||= {}
-# 			original_resources = page[:Resources]
-# 			if original_resources[:is_reference_only]
-# 				original_resources = original_resources[:referenced_object]
-# 				raise "Couldn't tap into resources dictionary, as it is a reference and isn't linked." unless original_resources
-# 			end
-# 			original_contents = page[:Contents]
-# 			original_contents = [original_contents] unless original_contents.is_a? Array
-
-# 			stream[:Resources] ||= {}
-# 			stream_resources = stream[:Resources]
-# 			if stream_resources[:is_reference_only]
-# 				stream_resources = stream_resources[:referenced_object]
-# 				raise "Couldn't tap into resources dictionary, as it is a reference and isn't linked." unless stream_resources
-# 			end
-# 			stream_contents = stream[:Contents]
-# 			stream_contents = [stream_contents] unless stream_contents.is_a? Array
-
-# 			# collect keys as objects - this is to make sure that
-# 			# we are working on the actual resource data, rather then references
-# 			flatten_resources_dictionaries stream_resources
-# 			flatten_resources_dictionaries original_resources
-
-# 			# injecting each of the values in the injected Page
-# 			stream_resources.each do |key, new_val|
-# 				unless PRIVATE_HASH_KEYS.include? key # keep CombinePDF structual data intact.
-# 					if original_resources[key].nil?
-# 						original_resources[key] = new_val
-# 					elsif original_resources[key].is_a?(Hash) && new_val.is_a?(Hash)
-# 						new_val.update original_resources[key] # make sure the old values are respected
-# 						original_resources[key].update new_val # transfer old and new values to the injected page
-# 					end #Do nothing if array - ot is the PROC array, which is an issue
-# 				end
-# 			end
-# 			original_resources[:ProcSet] = [:PDF, :Text, :ImageB, :ImageC, :ImageI] # this was recommended by the ISO. 32000-1:2008
-
-# 			if top # if this is a stamp (overlay)
-# 				page[:Contents] = original_contents
-# 				page[:Contents].unshift create_deep_copy(CONTENT_CONTAINER_START)
-# 				page[:Contents].push create_deep_copy(CONTENT_CONTAINER_MIDDLE)
-# 				page[:Contents].push *stream_contents
-# 				page[:Contents].push create_deep_copy(CONTENT_CONTAINER_END)
-# 			else #if this was a watermark (underlay? would be lost if the page was scanned, as white might not be transparent)
-# 				page[:Contents] = stream_contents
-# 				page[:Contents].unshift create_deep_copy(CONTENT_CONTAINER_START)
-# 				page[:Contents].push create_deep_copy(CONTENT_CONTAINER_MIDDLE)
-# 				page[:Contents].push *original_contents
-# 				page[:Contents].push create_deep_copy(CONTENT_CONTAINER_END)
-# 			end
-
-# 			page
-# 		end
-# 		# copy_and_secure_for_injection(page)
-# 		# - page is a page in the pages array, i.e.
-# 		#   pdf.pages[0]
-# 		# takes a page object and:
-# 		#
-# 		# makes a deep copy of the page (Ruby defaults to pointers, so this will copy the memory).
-# 		#
-# 		# then it will rewrite the content stream with renamed resources, so as to avoid name conflicts.
-# 		def copy_and_secure_for_injection(page)
-# 			# copy page
-# 			new_page = create_deep_copy page
-
-# 			# initiate dictionary from old names to new names
-# 			names_dictionary = {}
-
-# 			# itirate through all keys that are name objects and give them new names (add to dic)
-# 			# this should be done for every dictionary in :Resources
-# 			# this is a few steps stage:
-
-# 			# 1. get resources object
-# 			resources = new_page[:Resources]
-# 			if resources[:is_reference_only]
-# 				resources = resources[:referenced_object]
-# 				raise "Couldn't tap into resources dictionary, as it is a reference and isn't linked." unless resources
-# 			end
-
-# 			# 2. establich direct access to dictionaries and remove reference values
-# 			flatten_resources_dictionaries resources
-
-# 			# 3. travel every dictionary to pick up names (keys), change them and add them to the dictionary
-# 			resources.each do |k,v|
-# 				if v.is_a?(Hash)
-# 					new_dictionary = {}
-# 					new_name = "Combine" + SecureRandom.hex(7) + "PDF"
-# 					i = 1
-# 					v.each do |old_key, value|
-# 						new_key = (new_name + i.to_s).to_sym
-# 						names_dictionary[old_key] = new_key
-# 						new_dictionary[new_key] = value
-# 						i += 1
-# 					end
-# 					resources[k] = new_dictionary
-# 				end
-# 			end
-
-# 			# now that we have replaced the names in the resources dictionaries,
-# 			# it is time to replace the names inside the stream
-# 			# we will need to make sure we have access to the stream injected
-# 			# we will user PDFFilter.inflate_object
-# 			(new_page[:Contents].is_a?(Array) ? new_page[:Contents] : [new_page[:Contents] ]).each do |c|
-# 				stream = c[:referenced_object]
-# 				PDFFilter.inflate_object stream
-# 				names_dictionary.each do |old_key, new_key|
-# 					stream[:raw_stream_content].gsub! _object_to_pdf(old_key), _object_to_pdf(new_key)  ##### PRAY(!) that the parsed datawill be correctly reproduced! 
-# 				end
-# 				# patch back to PDF defaults, for OCRed PDF files.
-# 				# stream[:raw_stream_content] = "q\nq\nq\nDeviceRGB CS\nDeviceRGB cs\n0 0 0 rg\n0 0 0 RG\n0 Tr\n%s\nQ\nQ\nQ\n" % stream[:raw_stream_content]
-# 				# the following was removed for Acrobat Reader compatability: DeviceRGB CS\nDeviceRGB cs\n
-# 				stream[:raw_stream_content] = "q\nq\nq\n0 0 0 rg\n0 0 0 RG\n0 Tr\n1 0 0 1 0 0 cm\n%s\nQ\nQ\nQ\n" % stream[:raw_stream_content]
-# 			end
-
-# 			new_page
-# 		end
-
+		# @return [true, false] returns true if there are two different resources sharing the same named reference.
+		def should_secure?(page)
+			# travel every dictionary to pick up names (keys), change them and add them to the dictionary
+			res = self.resources
+			foreign_res = page.resources
+			res.each {|k,v| v.keys.each {|name| return true if foreign_res[k][name] && foreign_res[k][name] != v[name]} if v.is_a?(Hash) }
+			false
+		end
 
 	end
 	
