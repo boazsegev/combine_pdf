@@ -1,5 +1,6 @@
 # CombinePDF - the ruby way for merging PDF files
 [![Gem Version](https://badge.fury.io/rb/combine_pdf.svg)](http://badge.fury.io/rb/combine_pdf)
+[![GitHub](https://img.shields.io/badge/GitHub-Open%20Source-blue.svg)](https://github.com/boazsegev/combine_pdf)
 
 CombinePDF is a nifty model, written in pure Ruby, to parse PDF files and combine (merge) them with other PDF files, watermark them or stamp them (all using the PDF file format and pure Ruby code).
 
