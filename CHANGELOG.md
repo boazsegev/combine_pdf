@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.2.9
+
+**Fix** hopefully fixed issue #33 ([NoMethodError undefined method `[]' for nil:NilClass](https://github.com/boazsegev/combine_pdf/issues/33)).
+
+***
+
 Change log v.0.2.8
 
 * **Fix/Feature**: (related to [issue #32](https://github.com/boazsegev/combine_pdf/issues/32))

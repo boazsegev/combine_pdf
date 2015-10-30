@@ -826,7 +826,7 @@ module CombinePDF
 			# travel every dictionary to pick up names (keys), change them and add them to the dictionary
 			res = self.resources
 			foreign_res = page.resources
-			res.each {|k,v| v.keys.each {|name| return true if foreign_res[k][name] && foreign_res[k][name] != v[name]} if v.is_a?(Hash) }
+			res.each {|k,v| v.keys.each {|name| return true if foreign_res[k] && foreign_res[k][name] && foreign_res[k][name] != v[name]} if v.is_a?(Hash) }
 			false
 		end
 
