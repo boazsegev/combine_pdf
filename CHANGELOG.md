@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.2.10
+
+**Fix**: fixed page stamping when the page's content was a referenced object instead or a direct array of content references. Credit to vitstradal for discovering the issue.
+
+***
+
 Change log v.0.2.9
 
 **Fix** hopefully fixed issue #33 ([NoMethodError undefined method `[]' for nil:NilClass](https://github.com/boazsegev/combine_pdf/issues/33)).

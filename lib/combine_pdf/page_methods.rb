@@ -613,6 +613,7 @@ module CombinePDF
 		end
 		#initializes the content stream in case it was not initialized before
 		def init_contents
+			self[:Contents] = self[:Contents][:referenced_object][:indirect_without_dictionary] if self[:Contents][:referenced_object] && self[:Contents][:referenced_object][:indirect_without_dictionary]
 			self[:Contents].delete({ is_reference_only: true , referenced_object: {indirect_reference_id: 0, raw_stream_content: ''} })
 			# wrap content streams
 			insert_content 'q', 0
@@ -634,6 +635,7 @@ module CombinePDF
 			raise TypeError, "expected a String or Hash object." unless object.is_a?(Hash)
 			prep_content_array
 			self[:Contents].insert location, object
+			self[:Contents].flatten!
 			self
 		end
 
