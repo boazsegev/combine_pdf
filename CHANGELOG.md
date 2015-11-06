@@ -6,6 +6,8 @@ Change log v.0.2.11
 
 **Fix**: fix for issue #35 , which was caused by the broken fix for issue #34. Credit to Davek Rupinski for pointing out the issue.
 
+**Fix**: fixed an issue with data and (file) sending, introduced when extending the `send_data` method to allow for big file uploads.
+
 ***
 
 Change log v.0.2.10
