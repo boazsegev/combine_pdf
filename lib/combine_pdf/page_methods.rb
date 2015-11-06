@@ -613,7 +613,7 @@ module CombinePDF
 		end
 		#initializes the content stream in case it was not initialized before
 		def init_contents
-			self[:Contents] = self[:Contents][:referenced_object][:indirect_without_dictionary] if self[:Contents][:referenced_object] && self[:Contents][:referenced_object][:indirect_without_dictionary]
+			self[:Contents] = self[:Contents][:referenced_object][:indirect_without_dictionary] if self[:Contents].is_a?(Hash) && self[:Contents][:referenced_object] && self[:Contents][:referenced_object].is_a?(Hash) && self[:Contents][:referenced_object][:indirect_without_dictionary]
 			self[:Contents].delete({ is_reference_only: true , referenced_object: {indirect_reference_id: 0, raw_stream_content: ''} })
 			# wrap content streams
 			insert_content 'q', 0

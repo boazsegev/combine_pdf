@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.2.11
+
+**Fix**: fix for issue #35 , which was caused by the broken fix for issue #34. Credit to Davek Rupinski for pointing out the issue.
+
+***
+
 Change log v.0.2.10
 
 **Fix**: fixed page stamping when the page's content was a referenced object instead or a direct array of content references. Credit to vitstradal for discovering the issue.
