@@ -67,10 +67,15 @@ module CombinePDF
 			@scanner.pos = 0
 			if @scanner.scan /\%PDF\-[\d\-\.]+/
 				@version = @scanner.matched.scan(/[\d\.]+/)[0].to_f
-				@scanner.skip_until /[\n\r]+/
-				# @scanner.skip /[^\d]*/
+				loop do
+					break unless @scanner.scan(/[^\d\r\n]+/)
+					break if @scanner.check(/([\d]+[\s]+[\d]+[\s]+obj[\n\r\s]+\<\<)|([\n\r]+)/)
+					break if @scanner.eos?
+					@scanner.pos += 1
+				end
 			end
 			@parsed = _parse_
+			# puts @parsed
 
 			raise "Unknown PDF parsing error - maleformed PDF file?" unless (@parsed.select {|i| !i.is_a?(Hash)}).empty?
 
@@ -151,7 +156,20 @@ module CombinePDF
 		def _parse_
 			out = []
 			str = ''
+			fresh = true
 			while @scanner.rest? do
+				# last ||= 0
+				# out.last.tap do |o|
+				# 	if o.is_a?(Hash)
+				# 		puts "[#{@scanner.pos}] Parser has a Dictionary (#{o.class.name}) with data:"
+				# 		o.each do |k, v|
+				# 			puts "    #{k}: is #{v.class.name} with data: #{v.to_s[0..4]}#{"..." if v.to_s.length > 5}"
+				# 		end
+				# 	else
+				# 		puts "[#{@scanner.pos}] Parser has #{o.class.name} with data: #{o.to_s[0..4]}#{"..." if o.to_s.length > 5}"
+				# 	end
+				# 	puts "next is #{@scanner.peek 8}"
+				# end unless (last == out.count) || (-1 == (last = out.count))
 				case
 				##########################################
 				## parse an Array
@@ -174,7 +192,8 @@ module CombinePDF
 				##########################################
 				## parse a Stream
 				##########################################
-				when @scanner.scan(/stream[\r]?[\n]/)
+				when @scanner.scan(/stream[\r\n]/)
+					@scanner.pos += 1 if @scanner.peek(1) == "\n".freeze && @scanner.matched[-1] != "\n".freeze
 					# the following was dicarded because some PDF files didn't have an EOL marker as required
 					# str = @scanner.scan_until(/(\r\n|\r|\n)endstream/)
 					# instead, a non-strict RegExp is used:
@@ -199,6 +218,8 @@ module CombinePDF
 					else
 						out << {indirect_without_dictionary: out.pop, indirect_generation_number: out.pop, indirect_reference_id: out.pop}
 					end
+					fresh = true
+					# puts "!!!!!!!!! Error with :indirect_reference_id\n\nObject #{out.last}  :indirect_reference_id = #{out.last[:indirect_reference_id]}" unless out.last[:indirect_reference_id].is_a?(Fixnum)
 				##########################################
 				## parse a Hex String
 				##########################################
@@ -293,7 +314,13 @@ module CombinePDF
 				##########################################
 				when str = @scanner.scan(/\%/)
 					#is a comment, skip until new line
-					@scanner.skip_until /[\n\r]+/
+					loop do
+						break unless @scanner.scan(/[^\d\r\n]+/)
+						break if @scanner.check(/([\d]+ [\d]+ obj)?[\n\r]+/)
+						break if @scanner.eos?
+						@scanner.pos += 1
+					end
+					# puts "AFTER COMMENT: #{@scanner.peek 8}"
 				##########################################
 				## Parse a Name
 				##########################################
@@ -333,7 +360,7 @@ module CombinePDF
 					##########
 					## get root object to check for encryption
 					@scanner.scan_until(/(trailer)|(\%EOF)/)
-
+					fresh = true
 					if @scanner.matched[-1] == 'r'
 						if @scanner.skip_until(/<</)
 							data = _parse_
@@ -350,10 +377,10 @@ module CombinePDF
 					nil
 				when @scanner.scan(/obj[\s]*/)
 					# Fix wkhtmltopdf PDF authoring issue - missing 'endobj' keywords
-					unless out[-4].nil? || out[-4].is_a?(Hash)
+					unless fresh || (out[-4].nil? || out[-4].is_a?(Hash))
 						keep = []
-						keep << out.pop
-						keep << out.pop
+						keep << out.pop # .tap {|i| puts "#{i} is an ID"} 
+						keep << out.pop # .tap {|i| puts "#{i} is a REF"} 
 
 						if out.last.is_a? Hash
 							out << out.pop.merge({indirect_generation_number: out.pop, indirect_reference_id: out.pop})
@@ -365,9 +392,11 @@ module CombinePDF
 						out << keep.pop
 						out << keep.pop
 					end
+					fresh = false
 				else
 					# always advance 
-					# warn "Advnacing for unknown reason..."
+					# warn "Advnacing for unknown reason... #{@scanner.peek(4)}" unless @scanner.peek(1) =~ /[\s\n]/
+					warn "Warning: parser advnacing for unknown reason. Potential data-loss."
 					@scanner.pos = @scanner.pos + 1
 				end
 			end

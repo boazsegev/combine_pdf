@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.2.12
+
+**Compatability**: fixed issue #36 reported by @vitstradal (thank you for reporting!) regarding PDF files composed by PaperPort. PaperPort (at least version 12) has an issue where PDF data will be placed within a PDF comment. PDF comments start with a "%" sign and end with an EOL marker ("\r" or "\n"). PaperPort ommitted the EOL marker, placing critical data within the comment. A work-around was found by parsing the comment's data and attempting to salvage the misplaced data. This workaround assumes that comments would not contain PDF parsable data at the very end of the comment's line... which is an unsafe assumption. hence, **please let me know if you find _any_ PDF files that worked before the workaround was introduced**.
+
+***
+
 Change log v.0.2.11
 
 **Fix**: fix for issue #35 , which was caused by the broken fix for issue #34. Credit to Davek Rupinski for pointing out the issue.
