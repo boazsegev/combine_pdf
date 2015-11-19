@@ -316,7 +316,7 @@ module CombinePDF
 					#is a comment, skip until new line
 					loop do
 						break unless @scanner.scan(/[^\d\r\n]+/)
-						break if @scanner.check(/([\d]+ [\d]+ obj)?[\n\r]+/)
+						break if @scanner.check(/([\d]+[\s]+[\d]+[\s]+obj[\n\r\s]+\<\<)|([\n\r]+)/)
 						break if @scanner.eos?
 						@scanner.pos += 1
 					end
