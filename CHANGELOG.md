@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.2.13
+
+**Minor**: a minor improvement on the compatability fix related to salvaging PDF data that was misplaced within a PDF comment. This improvement relates to the possibility that there might not be an EOL marker after the `obj` keyword (PaperPort does use an EOL after the `obj` keyword, so this isn't critical).
+
+***
+
 Change log v.0.2.12
 
 **Compatability**: fixed issue #36 reported by @vitstradal (thank you for reporting!) regarding PDF files composed by PaperPort. PaperPort (at least version 12) has an issue where PDF data will be placed within a PDF comment. PDF comments start with a "%" sign and end with an EOL marker ("\r" or "\n"). PaperPort ommitted the EOL marker, placing critical data within the comment. A work-around was found by parsing the comment's data and attempting to salvage the misplaced data. This workaround assumes that comments would not contain PDF parsable data at the very end of the comment's line... which is an unsafe assumption. hence, **please let me know if you find _any_ PDF files that worked before the workaround was introduced**.
