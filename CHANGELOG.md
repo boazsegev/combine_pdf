@@ -4,6 +4,10 @@
 
 Change log v.0.2.13
 
+**Fix** fixed issue # 37 reported by @sega (thank you for reporting!), regarding the insability to stamp one PDF page over another when one PDF page used a resource directory propegated with data and another page used a resource directory propegated with references. This was now resolved by checking for references before merging the data.
+
+**Compatability**: fixed an issue where PrimoPDF would ommit the required EOL marker before the `endstream`. This would cause malformed PDF files to be written and it is now resolved by allowing the required EOL to be optional.
+
 **Minor**: a minor improvement on the compatability fix related to salvaging PDF data that was misplaced within a PDF comment. This improvement relates to the possibility that there might not be an EOL marker after the `obj` keyword (PaperPort does use an EOL after the `obj` keyword, so this isn't critical).
 
 ***
