@@ -112,6 +112,8 @@ module CombinePDF
 					return out.join().force_encoding(Encoding::ASCII_8BIT)
 				end
 			end
+			# remove extra page references.
+			object[:Contents].delete({ is_reference_only: true , referenced_object: {indirect_reference_id: 0, raw_stream_content: ''} }) if object[:Type] == :Page
 			# correct stream length, if the object is a stream.
 			object[:Length] = object[:raw_stream_content].bytesize if object[:raw_stream_content]
 
@@ -122,6 +124,7 @@ module CombinePDF
 			object.each do |key, value|
 				out << "#{object_to_pdf key} #{object_to_pdf value}\n".force_encoding(Encoding::ASCII_8BIT) unless PDF::PRIVATE_HASH_KEYS.include? key
 			end
+			object.delete :Length
 			out << ">>".force_encoding(Encoding::ASCII_8BIT)
 			out << "\nstream\n#{object[:raw_stream_content]}\nendstream".force_encoding(Encoding::ASCII_8BIT) if object[:raw_stream_content]
 			out << "\nendobj\n" if object[:indirect_reference_id]
