@@ -67,8 +67,9 @@ module CombinePDF
 					if res[key].nil?
 						res[key] = new_val
 					elsif res[key].is_a?(Hash) && new_val.is_a?(Hash)
-						new_val.update resources[key] # make sure the old values are respected
-						res[key].update new_val # transfer old and new values to the injected page
+						new_val = new_val[:referenced_object] || new_val
+						new_val.update (res[key][:referenced_object] || res[key]) # make sure the old values are respected
+						(res[key][:referenced_object] || res[key]).update new_val # transfer old and new values to the injected page
 					end #Do nothing if array - ot is the PROC array, which is an issue
 				end
 			end
@@ -670,19 +671,20 @@ module CombinePDF
 		def set_font(font = :Helvetica)
 			# if the font exists, return it's name
 			resources[:Font] ||= {}
-			resources[:Font].each do |k,v|
+			fonts_res = resources[:Font][:referenced_object] || resources[:Font]
+			fonts_res.each do |k,v|
 				if v.is_a?(Fonts::Font) && v.name && v.name == font
 					return k
 				end
 			end
 			# set a secure name for the font
-			name = (base_font_name + (resources[:Font].length + 1).to_s).to_sym
+			name = (base_font_name + (fonts_res.length + 1).to_s).to_sym
 			# get font object
 			font_object = Fonts.get_font(font)
 			# return false if the font wan't found in the library.
 			return false unless font_object
 			# add object to reasource
-			resources[:Font][name] = font_object
+			fonts_res[name] = font_object
 			#return name
 			name
 		end
@@ -691,7 +693,8 @@ module CombinePDF
 		def graphic_state(graphic_state_dictionary = {})
 			# if the graphic state exists, return it's name
 			resources[:ExtGState] ||= {}
-			resources[:ExtGState].each do |k,v|
+			gs_res = resources[:ExtGState][:referenced_object] || resources[:ExtGState]
+			gs_res.each do |k,v|
 				if v.is_a?(Hash) && v == graphic_state_dictionary
 					return k
 				end
@@ -701,7 +704,7 @@ module CombinePDF
 			# set a secure name for the graphic state
 			name = (SecureRandom.hex(9)).to_sym
 			# add object to reasource
-			resources[:ExtGState][name] = graphic_state_dictionary
+			gs_res[name] = graphic_state_dictionary
 			#return name
 			name
 		end
@@ -796,7 +799,7 @@ module CombinePDF
 					new_dictionary = {}
 					new_name = "Combine" + SecureRandom.hex(7) + "PDF"
 					i = 1
-					v.each do |old_key, value|
+					actual_object(v).each do |old_key, value|
 						new_key = (new_name + i.to_s).to_sym
 						names_dictionary[old_key] = new_key
 						new_dictionary[new_key] = value
@@ -828,7 +831,7 @@ module CombinePDF
 			# travel every dictionary to pick up names (keys), change them and add them to the dictionary
 			res = self.resources
 			foreign_res = page.resources
-			res.each {|k,v| v.keys.each {|name| return true if foreign_res[k] && foreign_res[k][name] && foreign_res[k][name] != v[name]} if v.is_a?(Hash) }
+			res.each {|k,v| v.keys.each {|name| return true if foreign_res[k] && (foreign_res[k][:referenced_object] || foreign_res[k])[name] && (foreign_res[k][:referenced_object] || foreign_res[k])[name] != (v[:referenced_object] || v)[name]} if v.is_a?(Hash) }
 			false
 		end
 
