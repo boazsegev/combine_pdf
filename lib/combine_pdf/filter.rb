@@ -50,6 +50,8 @@ module CombinePDF
 			unless params_array.is_a?(Array)
 				params_array = [params_array]
 			end
+			object[:Filter] = filter_array
+			object[:DecodeParms] = params_array
 			while filter_array[0]
 				case filter_array[0]
 				when :FlateDecode
@@ -61,9 +63,11 @@ module CombinePDF
 						if (2..9).include? params_array[0][:Predictor].to_i
 							####
 							# prepare TIFF group
+							raise_unsupported_error params_array[0]
 						elsif (10..15).include? params_array[0][:Predictor].to_i == 2
 							####
 							# prepare PNG group
+							raise_unsupported_error params_array[0]
 						end
 					else
 						inflator = Zlib::Inflate.new
@@ -84,7 +88,8 @@ module CombinePDF
 				params_array.shift
 				filter_array.shift
 			end
-			object.delete(:Filter)
+			object.delete :Filter
+			object.delete :DecodeParms
 			true
 		end
 		
