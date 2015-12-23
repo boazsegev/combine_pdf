@@ -4,7 +4,7 @@
 
 Change log v.0.2.14
 
-**Fix**: Fix for issue #39, where certain comments could have caused the object after the comments to be ignored, resulting in parsing errors.
+**Fix**: Fix for issue #39, where certain comments could have caused the object after the comments to be ignored, resulting in parsing errors. Credit to @lgn21st for identifying the issue.
 
 ***
 
