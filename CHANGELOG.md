@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.2.14
+
+**Fix**: Fix for issue #39, where certain comments could have caused the object after the comments to be ignored, resulting in parsing errors.
+
+***
+
 Change log v.0.2.13
 
 **Fix** fixed issue # 37 reported by @sega (thank you for reporting!), regarding the insability to stamp one PDF page over another when one PDF page used a resource directory propegated with data and another page used a resource directory propegated with references. This was now resolved by checking for references before merging the data.

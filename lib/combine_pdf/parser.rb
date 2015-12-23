@@ -316,8 +316,8 @@ module CombinePDF
 					#is a comment, skip until new line
 					loop do
 						# break unless @scanner.scan(/[^\d\r\n]+/)
-						break if @scanner.scan(/[^\d]+[\r\n]+/) || @scanner.check(/([\d]+[\s]+[\d]+[\s]+obj[\n\r\s]+\<\<)|([\n\r]+)/) || @scanner.eos?
-						@scanner.pos += 1
+						break if @scanner.check(/([\d]+[\s]+[\d]+[\s]+obj[\n\r\s]+\<\<)|([\n\r]+)/) || @scanner.eos? # || @scanner.scan(/[^\d]+[\r\n]+/) || 
+						@scanner.scan(/[^\d\r\n]+/) || @scanner.pos += 1
 					end
 					# puts "AFTER COMMENT: #{@scanner.peek 8}"
 				##########################################
