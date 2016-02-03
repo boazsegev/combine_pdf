@@ -52,7 +52,7 @@ module CombinePDF
 			inject_page obj, false
 		end
 		def inject_page obj, top = true
-			
+
 			raise TypeError, "couldn't inject data, expecting a PDF page (Hash type)" unless obj.is_a?(Page_Methods)
 
 			obj = obj.copy( should_secure?(obj) ) #obj.copy(secure_injection)
@@ -115,7 +115,7 @@ module CombinePDF
 
 		# get page size
 		def page_size
-			cropbox || mediabox			
+			cropbox || mediabox
 		end
 
 		# accessor (getter) for the :Resources element of the page
@@ -223,7 +223,7 @@ module CombinePDF
 				radius = options[:box_radius]
 				half_radius = (radius.to_f / 2).round 4
 				## set starting point
-				box_stream << "#{options[:x] + radius} #{options[:y]} m\n" 
+				box_stream << "#{options[:x] + radius} #{options[:y]} m\n"
 				## buttom and right corner - first line and first corner
 				box_stream << "#{options[:x] + options[:width] - radius} #{options[:y]} l\n" #buttom
 				if options[:box_radius] != 0 # make first corner, if not straight.
@@ -326,7 +326,7 @@ module CombinePDF
 				# format text object(s)
 					# text_stream << "#{options[:font_color].join(' ')} rg\n" # sets the color state
 				encode_text(text, fonts).each do |encoded|
-					text_stream << "BT\n" # the Begine Text marker			
+					text_stream << "BT\n" # the Begine Text marker
 					text_stream << format_name_to_pdf(set_font encoded[0]) # Set font name
 					text_stream << " #{font_size.round 3} Tf\n" # set font size and add font operator
 					text_stream << "#{x.round 4} #{y.round 4} Td\n" # set location for text object
@@ -571,7 +571,7 @@ module CombinePDF
 					box_color = (options[:alternate_color] && ( (row_number.odd? && options[:headers]) || row_number.even? ) ) ? options[:alternate_color] : options[:main_color]
 					textbox text, {x: x, y: (top - (height*row_number)), width: column_widths[i], height: height, box_color: box_color, text_align: options[:row_align]}.merge(options)
 					x += column_widths[i]
-				end			
+				end
 				row_number += 1
 			end
 			self
@@ -729,7 +729,7 @@ module CombinePDF
 						#add to array
 						if out.last.nil? || out.last[0] != fonts[i]
 							out.last[1] << ">" unless out.last.nil?
-							out << [fonts[i], "<" , 0, 0] 
+							out << [fonts[i], "<" , 0, 0]
 						end
 						out.last[1] << ( fonts_array[i].cmap.nil? ? ( c.unpack("H*")[0] ) : (fonts_array[i].cmap[c]) )
 						if fonts_array[i].metrics[c]
@@ -817,7 +817,7 @@ module CombinePDF
 				stream = actual_object(c)
 				PDFFilter.inflate_object stream
 				names_dictionary.each do |old_key, new_key|
-					stream[:raw_stream_content].gsub! object_to_pdf(old_key), object_to_pdf(new_key)  ##### PRAY(!) that the parsed datawill be correctly reproduced! 
+					stream[:raw_stream_content].gsub! object_to_pdf(old_key), object_to_pdf(new_key)  ##### PRAY(!) that the parsed datawill be correctly reproduced!
 				end
 				# # # the following code isn't needed now that we wrap both the existing and incoming content streams.
 				# # patch back to PDF defaults, for OCRed PDF files.
@@ -831,15 +831,18 @@ module CombinePDF
 			# travel every dictionary to pick up names (keys), change them and add them to the dictionary
 			res = self.resources
 			foreign_res = page.resources
-			res.each {|k,v| v.keys.each {|name| return true if foreign_res[k] && (foreign_res[k][:referenced_object] || foreign_res[k])[name] && (foreign_res[k][:referenced_object] || foreign_res[k])[name] != (v[:referenced_object] || v)[name]} if v.is_a?(Hash) }
+			res.each do |k,v|
+				if actual_value(v).is_a?(Hash) && actual_value(foreign_res[k]).is_a?(Hash)
+					v.keys.each do |name| return true if actual_value(foreign_res[k]) && actual_value(foreign_res[k])[name] && actual_value(foreign_res[k])[name] != actual_value(v[k])[name]
+					end
+				else
+					return true if actual_value(v) != actual_value(foreign_res[k])
+				end
+			end
+
 			false
 		end
 
 	end
-	
+
 end
-
-
-
-
-

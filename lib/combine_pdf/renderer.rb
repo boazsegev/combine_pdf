@@ -53,7 +53,7 @@ module CombinePDF
 				("(" + ([].tap {|out| object.bytes.each {|byte| STRING_REPLACEMENT_HASH[ byte.chr ] ? (STRING_REPLACEMENT_HASH[ byte.chr ].bytes.each {|b| out << b}) : out << byte } }).pack('C*') + ")").force_encoding(Encoding::ASCII_8BIT)
 			else
 				# A hexadecimal string shall be written as a sequence of hexadecimal digits (0–9 and either A–F or a–f)
-				# encoded as ASCII characters and enclosed within angle brackets (using LESS-THAN SIGN (3Ch) and GREATER- THAN SIGN (3Eh)). 
+				# encoded as ASCII characters and enclosed within angle brackets (using LESS-THAN SIGN (3Ch) and GREATER- THAN SIGN (3Eh)).
 				("<" + object.unpack('H*')[0] + ">").force_encoding(Encoding::ASCII_8BIT)
 			end
 		end
@@ -83,7 +83,7 @@ module CombinePDF
 			# An array shall be written as a sequence of objects enclosed in SQUARE BRACKETS (using LEFT SQUARE BRACKET (5Bh) and RIGHT SQUARE BRACKET (5Dh)).
 			# EXAMPLE [549 3.14 false (Ralph) /SomeName]
 			("[" + (object.collect {|item| object_to_pdf(item)}).join(' ') + "]").force_encoding(Encoding::ASCII_8BIT)
-			
+
 		end
 
 		def format_hash_to_pdf(object)
@@ -133,6 +133,12 @@ module CombinePDF
 
 		def actual_object obj
 			obj.is_a?(Hash) ? (obj[:referenced_object] || obj) : obj
+		end
+
+		def actual_value obj
+			return obj unless obj.is_a?(Hash)
+			obj = obj[:referenced_object] || obj
+			obj[:indirect_without_dictionary] || obj
 		end
 
 		# Ruby normally assigns pointes.
