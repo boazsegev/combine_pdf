@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.2.15
+
+**Fix**: Fix for issue #22 where specific PDF files with nested references could cause page stamping to fail, raising an exception. Credit to @tomascharad for finding the issue.
+
+***
+
 Change log v.0.2.14
 
 **Fix**: Fix for issue #39, where certain comments could have caused the object after the comments to be ignored, resulting in parsing errors. Credit to @lgn21st for identifying the issue.
@@ -50,7 +56,7 @@ Change log v.0.2.8
 
      Now there is no longer any need for the guesswork. The process is automated for you.
 
-     The moment CombinePDF recognizes a resource name conflice between two pages (such as both pages using one font name to reference two different fonts), CombinePDF will intrusively rename the incoming page's resources. 
+     The moment CombinePDF recognizes a resource name conflice between two pages (such as both pages using one font name to reference two different fonts), CombinePDF will intrusively rename the incoming page's resources.
 
      It is true that the intrusive resource renaming is somewhat risky and might require the inflation of some comperssed page data (resulting in bigger file sizes), but this is the only way to attempt and prevent PDF data curruption.
 
@@ -170,7 +176,7 @@ Change log v.0.1.19
 
 Change log v.0.1.18
 
-**fix**: Thank to Stefan, who reported issue #15 , we discovered that in some cases PDF files presented the wrong PDF standard version, causing an error while attempting to parse their data. The issue has been fixed by allowing the parser to search for PDF Object Streams even when the PDF file claims a PDF version below 1.5. 
+**fix**: Thank to Stefan, who reported issue #15 , we discovered that in some cases PDF files presented the wrong PDF standard version, causing an error while attempting to parse their data. The issue has been fixed by allowing the parser to search for PDF Object Streams even when the PDF file claims a PDF version below 1.5.
 
 ***
 

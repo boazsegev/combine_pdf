@@ -615,7 +615,12 @@ module CombinePDF
 		#initializes the content stream in case it was not initialized before
 		def init_contents
 			self[:Contents] = self[:Contents][:referenced_object][:indirect_without_dictionary] if self[:Contents].is_a?(Hash) && self[:Contents][:referenced_object] && self[:Contents][:referenced_object].is_a?(Hash) && self[:Contents][:referenced_object][:indirect_without_dictionary]
+			self[:Contents] = [self[:Contents]] unless self[:Contents].is_a?(Array)
 			self[:Contents].delete({ is_reference_only: true , referenced_object: {indirect_reference_id: 0, raw_stream_content: ''} })
+			# un-nest any referenced arrays
+			self[:Contents].map! {|s| actual_value(s).is_a?(Array) ? actual_value(s) : s}
+			self[:Contents].flatten!
+			self[:Contents].compact!
 			# wrap content streams
 			insert_content 'q', 0
 			insert_content 'Q'
@@ -642,8 +647,11 @@ module CombinePDF
 
 		def prep_content_array
 			return self if self[:Contents].is_a?(Array)
-			self[:Contents] = self[:Contents][:referenced_object] if self[:Contents].is_a?(Hash) && self[:Contents][:referenced_object] && self[:Contents][:referenced_object].is_a?(Array)
-			self[:Contents] = [ self[:Contents] ].compact
+			init_contents
+			# self[:Contents] = self[:Contents][:referenced_object] if self[:Contents].is_a?(Hash) && self[:Contents][:referenced_object] && self[:Contents][:referenced_object].is_a?(Array)
+			# self[:Contents] = self[:Contents][:indirect_without_dictionary] if self[:Contents].is_a?(Hash) && self[:Contents][:indirect_without_dictionary] && self[:Contents][:indirect_without_dictionary].is_a?(Array)
+			# self[:Contents] = [self[:Contents]] unless self[:Contents].is_a?(Array)
+			# self[:Contents].compact!
 			self
 		end
 
@@ -791,7 +799,7 @@ module CombinePDF
 			# travel every dictionary to pick up names (keys), change them and add them to the dictionary
 			res = self.resources
 			res.each do |k,v|
-				if v.is_a?(Hash)
+				if actual_value(v).is_a?(Hash)
 					# if k == :XObject
 					# 	self[:Resources][k] = v.dup
 					# 	next
@@ -799,7 +807,7 @@ module CombinePDF
 					new_dictionary = {}
 					new_name = "Combine" + SecureRandom.hex(7) + "PDF"
 					i = 1
-					actual_object(v).each do |old_key, value|
+					actual_value(v).each do |old_key, value|
 						new_key = (new_name + i.to_s).to_sym
 						names_dictionary[old_key] = new_key
 						new_dictionary[new_key] = value
@@ -814,7 +822,7 @@ module CombinePDF
 			# we will need to make sure we have access to the stream injected
 			# we will user PDFFilter.inflate_object
 			self[:Contents].each do |c|
-				stream = actual_object(c)
+				stream = actual_value(c)
 				PDFFilter.inflate_object stream
 				names_dictionary.each do |old_key, new_key|
 					stream[:raw_stream_content].gsub! object_to_pdf(old_key), object_to_pdf(new_key)  ##### PRAY(!) that the parsed datawill be correctly reproduced!
@@ -834,12 +842,9 @@ module CombinePDF
 			res.each do |k,v|
 				if actual_value(v).is_a?(Hash) && actual_value(foreign_res[k]).is_a?(Hash)
 					v.keys.each do |name| return true if actual_value(foreign_res[k]) && actual_value(foreign_res[k])[name] && actual_value(foreign_res[k])[name] != actual_value(v[k])[name]
-					end
-				else
-					return true if actual_value(v) != actual_value(foreign_res[k])
+					end # else # Do nothing, this is taken care of elseware
 				end
 			end
-
 			false
 		end
 
