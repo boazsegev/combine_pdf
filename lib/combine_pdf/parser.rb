@@ -45,6 +45,14 @@ module CombinePDF
 		# string:: the data to be parsed, as a String object.
 		def initialize (string)
 			raise TypeError, "couldn't parse data, expecting type String" unless string.is_a? String
+			# ###
+			# # this bit is because of a funny issue where a PDF file containd arbitrary data after the last %%EOF marker...
+			# # it might be a memory hog that will affect the library's performance for an unlikely usecase.
+			# string.force_encoding(Encoding::ASCII_8BIT)
+			# last_eof = string.rindex "%%EOF"
+			# warn "PDF trailer contains unresolved data after the last %%EOF marker! This data is discarded" if(string[last_eof+5..-1] =~ /[^\s\r\n]/)
+			# string = string.byteslice(0,last_eof+5)
+			# ###
 			@string_to_parse = string.force_encoding(Encoding::ASCII_8BIT)
 			@literal_strings = []
 			@hex_strings = []
@@ -99,10 +107,10 @@ module CombinePDF
 			object_streams = @parsed.select {|obj| obj.is_a?(Hash) && obj[:Type] == :ObjStm}
 			unless object_streams.empty?
 				warn "PDF 1.5 Object streams found - they are not fully supported! attempting to extract objects."
-				
+
 				object_streams.each do |o|
 					## un-encode (using the correct filter) the object streams
-					PDFFilter.inflate_object o 
+					PDFFilter.inflate_object o
 					## extract objects from stream to top level arry @parsed
 					@scanner = StringScanner.new o[:raw_stream_content]
 					stream_data = _parse_
@@ -123,7 +131,7 @@ module CombinePDF
 			# Strings were unified, we can let them go..
 			@strings_dictionary.clear
 
-			
+
 			# serialize_objects_and_references.catalog_pages
 
 			# Benchmark.bm do |bm|
@@ -316,7 +324,7 @@ module CombinePDF
 					#is a comment, skip until new line
 					loop do
 						# break unless @scanner.scan(/[^\d\r\n]+/)
-						break if @scanner.check(/([\d]+[\s]+[\d]+[\s]+obj[\n\r\s]+\<\<)|([\n\r]+)/) || @scanner.eos? # || @scanner.scan(/[^\d]+[\r\n]+/) || 
+						break if @scanner.check(/([\d]+[\s]+[\d]+[\s]+obj[\n\r\s]+\<\<)|([\n\r]+)/) || @scanner.eos? # || @scanner.scan(/[^\d]+[\r\n]+/) ||
 						@scanner.scan(/[^\d\r\n]+/) || @scanner.pos += 1
 					end
 					# puts "AFTER COMMENT: #{@scanner.peek 8}"
@@ -364,13 +372,13 @@ module CombinePDF
 						if @scanner.skip_until(/<</)
 							data = _parse_
 							@root_object ||= {}
-							@root_object[data.shift] = data.shift while data[0]						
+							@root_object[data.shift] = data.shift while data[0]
 						end
 						##########
 						## skip untill end of segment, maked by %%EOF
 						@scanner.skip_until(/\%\%EOF/)
 					end
-					
+
 				when @scanner.scan(/[\s]+/)
 					# Generally, do nothing
 					nil
@@ -378,8 +386,8 @@ module CombinePDF
 					# Fix wkhtmltopdf PDF authoring issue - missing 'endobj' keywords
 					unless fresh || (out[-4].nil? || out[-4].is_a?(Hash))
 						keep = []
-						keep << out.pop # .tap {|i| puts "#{i} is an ID"} 
-						keep << out.pop # .tap {|i| puts "#{i} is a REF"} 
+						keep << out.pop # .tap {|i| puts "#{i} is an ID"}
+						keep << out.pop # .tap {|i| puts "#{i} is a REF"}
 
 						if out.last.is_a? Hash
 							out << out.pop.merge({indirect_generation_number: out.pop, indirect_reference_id: out.pop})
@@ -393,7 +401,7 @@ module CombinePDF
 					end
 					fresh = false
 				else
-					# always advance 
+					# always advance
 					# warn "Advnacing for unknown reason... #{@scanner.peek(4)}" unless @scanner.peek(1) =~ /[\s\n]/
 					warn "Warning: parser advnacing for unknown reason. Potential data-loss."
 					@scanner.pos = @scanner.pos + 1
@@ -420,7 +428,7 @@ module CombinePDF
 
 				raise "Unknown error - parsed data doesn't contain a cataloged object!" unless catalogs
 			end
-			case 
+			case
 			when catalogs.is_a?(Array)
 				catalogs.each {|c| catalog_pages(c, inheritance_hash ) unless c.nil?}
 			when catalogs.is_a?(Hash)
