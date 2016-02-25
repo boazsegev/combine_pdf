@@ -45,14 +45,6 @@ module CombinePDF
 		# string:: the data to be parsed, as a String object.
 		def initialize (string)
 			raise TypeError, "couldn't parse data, expecting type String" unless string.is_a? String
-			# ###
-			# # this bit is because of a funny issue where a PDF file containd arbitrary data after the last %%EOF marker...
-			# # it might be a memory hog that will affect the library's performance for an unlikely usecase.
-			# string.force_encoding(Encoding::ASCII_8BIT)
-			# last_eof = string.rindex "%%EOF"
-			# warn "PDF trailer contains unresolved data after the last %%EOF marker! This data is discarded" if(string[last_eof+5..-1] =~ /[^\s\r\n]/)
-			# string = string.byteslice(0,last_eof+5)
-			# ###
 			@string_to_parse = string.force_encoding(Encoding::ASCII_8BIT)
 			@literal_strings = []
 			@hex_strings = []
@@ -130,7 +122,6 @@ module CombinePDF
 
 			# Strings were unified, we can let them go..
 			@strings_dictionary.clear
-
 
 			# serialize_objects_and_references.catalog_pages
 
@@ -377,6 +368,11 @@ module CombinePDF
 						##########
 						## skip untill end of segment, maked by %%EOF
 						@scanner.skip_until(/\%\%EOF/)
+						##########
+						## If this was the last valid segment, ignore any trailing garbage
+						## (issue #49 resolution)
+						break unless @scanner.exist?(/\%\%EOF/)
+
 					end
 
 				when @scanner.scan(/[\s]+/)
