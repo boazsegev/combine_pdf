@@ -89,7 +89,7 @@ module CombinePDF
 		# returns a list containing the registered font names
 		def fonts_list
 			initiate_library
-			FONTS_LIBRARY.keys			
+			FONTS_LIBRARY.keys
 		end
 
 		# gets the original font object from the fonts library (this allows you to edit the font).
@@ -207,12 +207,15 @@ module CombinePDF
 		end
 
 		# Register a font that already exists in a pdf object into the font library.
-		# DOESN'T WORK YET!!!
+		#
+		# The implementation is experimental, but this function attempts to deconstruct a font object in order to
+		# extract it's cmap and metric data, allowing it's use in the CombinePDF library.
+		#
 		def register_font_from_pdf_object font_name, font_object
 			# FIXME:
 			# - add stream deflation for the CMap file.
 			# - add :Encoding CMaps (such as :WinAnsiEncoding etc`)
-			# - the ToUnicode CMap parsing assumes 8 Bytes <0F0F> while 16 Bytes and multiple unicode chars are also possible. 
+			# - the ToUnicode CMap parsing assumes 8 Bytes <0F0F> while 16 Bytes and multiple unicode chars are also possible.
 
 			# first, create cmap, as it will be used to correctly create the widths directory.
 
@@ -238,7 +241,7 @@ module CombinePDF
 			if font_object[:DescendantFonts]
 				old_widths = font_object[:DescendantFonts]
 				old_widths = old_widths[:referenced_object][:indirect_without_dictionary] if old_widths[:is_reference_only]
-				old_widths = old_widths[0][:referenced_object] 
+				old_widths = old_widths[0][:referenced_object]
 				avrg_height = 360
 				avrg_height = old_widths[:XHeight] if old_widths[:XHeight]
 				avrg_height = (avrg_height + old_widths[:CapHeight])/2 if old_widths[:CapHeight]
@@ -257,7 +260,7 @@ module CombinePDF
 					a = old_widths.shift
 					b = old_widths.shift
 					if b.is_a?(Array)
-						b.each_index {|i| metrics[ cmap_inverted[(a+i)] || (a+i) ] = {wx: b[i], boundingbox: avarage_bbox} }	
+						b.each_index {|i| metrics[ cmap_inverted[(a+i)] || (a+i) ] = {wx: b[i], boundingbox: avarage_bbox} }
 					else
 						c = old_widths.shift
 						(b-a).times {|i| metrics[cmap_inverted[(a+i)] || (a+i)] = {wx: c[0], boundingbox: avarage_bbox} }
@@ -371,7 +374,7 @@ module CombinePDF
 		# - the ToUnicode CMap parsing assumes 8 Bytes <0F0F> while 16 Bytes and multiple unicode chars are also possible (albit very rare).
 		def self.parse_cmap(stream = "")
 			# FIXME:
-			# - the ToUnicode CMap parsing assumes 8 Bytes <0F0F> while 16 Bytes and multiple unicode chars are also possible. 
+			# - the ToUnicode CMap parsing assumes 8 Bytes <0F0F> while 16 Bytes and multiple unicode chars are also possible.
 
 					# when 0..255
 					# 	warn "coded to char"
@@ -446,7 +449,7 @@ module CombinePDF
 							cmap["%c" % line[2][j].hex]  = format % i #FixMe? for now limit to 8 Byte data
 							j += 1
 							i += 1
-						end					
+						end
 					else
 						format = "%0#{line[0].length}x"
 						i = line[0].hex
@@ -460,15 +463,9 @@ module CombinePDF
 					end
 				end
 			end
-			warn "CMap is empty even after parsing!\nthese were the lines found: #{lines_found}\nfrom: #{scanner.string}" if cmap.empty?			
+			warn "CMap is empty even after parsing!\nthese were the lines found: #{lines_found}\nfrom: #{scanner.string}" if cmap.empty?
 			cmap
 		end
 
 	end
 end
-
-
-
-
-
-
