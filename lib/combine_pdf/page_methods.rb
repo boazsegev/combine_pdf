@@ -441,6 +441,33 @@ module CombinePDF
 			self
 		end
 
+		# crop the page 
+		#
+		# accepts:
+		# new_size:: an Array with four elements: [X0, Y0, X_max, Y_max]. For example, inch4(width)x6(length): `[200, 200, 488, 632]`
+		def crop(new_size = nil)
+			return page_size unless new_size
+			c_mediabox = mediabox
+			c_cropbox = cropbox
+			c_size = c_cropbox || c_mediabox
+			x_move = new_size[0] - c_size[0]
+			y_move = new_size[1] - c_size[1]
+			puts "ctm will be: 1 0 0 1 #{-x_move} #{-y_move}"
+			self[:MediaBox] = [new_size[0], new_size[1], new_size[2], new_size[3]]
+			self[:CropBox] = [new_size[0], new_size[1], new_size[2], new_size[3]] if c_cropbox
+			# insert the rotation stream into the current content stream
+			# insert_content "q\n1 0 0 1 0 0 cm\n1 0 0 1 #{-x_move} #{-y_move} cm\n", 0
+			insert_content "q\n1 0 0 1 #{-x_move} #{-y_move} cm\n", 0
+			# close the rotation stream
+			insert_content CONTENT_CONTAINER_END
+			# disconnect the content stream, so that future inserts aren't rotated
+			@contents = false #init_contents
+
+			# always return self, for chaining.
+			self
+		end
+
+
 		# rotate the page 90 degrees counter clockwise
 		def rotate_left
 			self[:Rotate] = self[:Rotate].to_f + 90
