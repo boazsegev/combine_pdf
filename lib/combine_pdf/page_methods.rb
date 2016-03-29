@@ -445,21 +445,21 @@ module CombinePDF
 		#
 		# accepts:
 		# new_size:: an Array with four elements: [X0, Y0, X_max, Y_max]. For example, inch4(width)x6(length): `[200, 200, 488, 632]`
-    def crop(new_size = nil)
-      return self unless new_size # always return self, for chaining.
-      # crop to the size of [200, 200, 488, 632]
-      self.fix_rotation # make sure I'm working on what I saw.
-      # set the X0 and Y0 offset
-      self.page_size[0] += new_size[0]
-      self.page_size[1] += new_size[1]
-      # set page_size (either mediabox or cropbox) to the smaller of the two values.
-      # I'm using the offset from the new X0 and Y0 to set the Xmax and Ymax
-      self.page_size[2] = self.page_size[0] + new_size[2] - new_size[0] if ((self.page_size[0] + new_size[2] - new_size[0]) < self.page_size[2])
-      self.page_size[3] = self.page_size[1] + new_size[3] - new_size[1] if ((self.page_size[1] + new_size[3] - new_size[1]) < self.page_size[3])
+		def crop(new_size = nil)
+			return self unless new_size # always return self, for chaining.
+			# crop to the size of [200, 200, 488, 632]
+			self.fix_rotation # make sure I'm working on what I saw.
+			# set the X0 and Y0 offset
+			self.page_size[0] += new_size[0]
+			self.page_size[1] += new_size[1]
+			# set page_size (either mediabox or cropbox) to the smaller of the two values.
+			# I'm using the offset from the new X0 and Y0 to set the Xmax and Ymax
+			self.page_size[2] = self.page_size[0] + new_size[2] - new_size[0] if ((self.page_size[0] + new_size[2] - new_size[0]) < self.page_size[2])
+			self.page_size[3] = self.page_size[1] + new_size[3] - new_size[1] if ((self.page_size[1] + new_size[3] - new_size[1]) < self.page_size[3])
 
-      # always return self, for chaining.
-      self
-    end
+			# always return self, for chaining.
+			self
+		end
 
 
 		# rotate the page 90 degrees counter clockwise
