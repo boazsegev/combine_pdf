@@ -445,19 +445,23 @@ module CombinePDF
 		#
 		# accepts:
 		# new_size:: an Array with four elements: [X0, Y0, X_max, Y_max]. For example, inch4(width)x6(length): `[200, 200, 488, 632]`
-		def crop(new_size = nil)
-			return self unless new_size # always return self, for chaining.
-			# crop to the size of [200, 200, 488, 632]
-			self.fix_rotation # make sure I'm working on what I saw.
-			# set the X0 and Y0 offset
-			self.page_size[0] += new_size[0]
-			self.page_size[1] += new_size[1]
-			# set page_size (either mediabox or cropbox) to the smaller of the two values.
-			# I'm using the offset from the new X0 and Y0 to set the Xmax and Ymax
-			self.page_size[2] = self.page_size[0] + new_size[2] - new_size[0] if ((self.page_size[0] + new_size[2] - new_size[0]) < self.page_size[2])
-			self.page_size[3] = self.page_size[1] + new_size[3] - new_size[1] if ((self.page_size[1] + new_size[3] - new_size[1]) < self.page_size[3])
-
-			# always return self, for chaining.
+		def crop(box=nil)
+			# no crop box? clear any cropping.
+			return page_size if !box
+			
+			# set the MediaBox to the existing page size
+			self[:MediaBox] = page_size
+			# clear the CropBox
+			self[:CropBox] = nil
+			# update X0
+			self[:MediaBox][0] += box[0]
+			# update Y0
+			self[:MediaBox][1] += box[1]
+			# update X max IF the value is smaller then the existing value
+			self[:MediaBox][2] = self[:MediaBox][0] + box[2] if ((self[:MediaBox][0] + box[2])  < self[:MediaBox][2])
+			# update Y max IF the value is smaller then the existing value
+			self[:MediaBox][3] = self[:MediaBox][1] + box[3] if ((self[:MediaBox][1] + box[3])  < self[:MediaBox][3])
+			# return self for chaining
 			self
 		end
 
