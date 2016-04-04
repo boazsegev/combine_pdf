@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.2.16
+
+**Feature**: added the `page#crop` method to easily crop a PDF file in accordance with the GWG industry association recommendations (updating the `MediaBox` property rather then the `CropBox`).
+
+***
+
 Change log v.0.2.15
 
 **Fix**: Fix for issue #22 where specific PDF files with nested references could cause page stamping to fail, raising an exception. Credit to @tomascharad for finding the issue.
