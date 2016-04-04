@@ -441,6 +441,31 @@ module CombinePDF
 			self
 		end
 
+		# crop the page 
+		#
+		# accepts:
+		# new_size:: an Array with four elements: [X0, Y0, X_max, Y_max]. For example, inch4(width)x6(length): `[200, 200, 488, 632]`
+		def crop(box=nil)
+			# no crop box? clear any cropping.
+			return page_size if !box
+			
+			# set the MediaBox to the existing page size
+			self[:MediaBox] = page_size
+			# clear the CropBox
+			self[:CropBox] = nil
+			# update X0
+			self[:MediaBox][0] += box[0]
+			# update Y0
+			self[:MediaBox][1] += box[1]
+			# update X max IF the value is smaller then the existing value
+			self[:MediaBox][2] = self[:MediaBox][0] + box[2] if ((self[:MediaBox][0] + box[2])  < self[:MediaBox][2])
+			# update Y max IF the value is smaller then the existing value
+			self[:MediaBox][3] = self[:MediaBox][1] + box[3] if ((self[:MediaBox][1] + box[3])  < self[:MediaBox][3])
+			# return self for chaining
+			self
+		end
+
+
 		# rotate the page 90 degrees counter clockwise
 		def rotate_left
 			self[:Rotate] = self[:Rotate].to_f + 90
