@@ -441,28 +441,33 @@ module CombinePDF
 			self
 		end
 
-		# crop the page
+		# crops the page using a <b>relative</b> size.
+		#
+		# `crop` will crop the page by updating it's MediaBox property using a <b>relative</b> crop box. i.e.,
+	  # when cropping a page with {#page_size} of [10,10,900,900] to [5,5,500,500], the resulting page size should be [15, 15, 510, 510] - allowing you to ignore a page's initial XY starting point when cropping.
+		#
+		# for an absolute cropping, simpy use the {#mediabox=} or {#cropbox=} methods, setting their value to the new {page_size}.
 		#
 		# accepts:
 		# new_size:: an Array with four elements: [X0, Y0, X_max, Y_max]. For example, inch4(width)x6(length): `[200, 200, 488, 632]`
-		def crop(box=nil)
+		def crop(new_size=nil)
 			# no crop box? clear any cropping.
-			return page_size if !box
+			return page_size if !new_size
 			# type safety
-			raise TypeError, "pdf.page\#crop expeceted an Array (or nil)" unless Array === box
+			raise TypeError, "pdf.page\#crop expeceted an Array (or nil)" unless Array === new_size
 
 			# set the MediaBox to the existing page size
 			self[:MediaBox] = page_size
 			# clear the CropBox
 			self[:CropBox] = nil
 			# update X0
-			self[:MediaBox][0] += box[0]
+			self[:MediaBox][0] += new_size[0]
 			# update Y0
-			self[:MediaBox][1] += box[1]
+			self[:MediaBox][1] += new_size[1]
 			# update X max IF the value is smaller then the existing value
-			self[:MediaBox][2] = box[2] if (box[2]  < self[:MediaBox][2])
+			self[:MediaBox][2] = (self[:MediaBox][0] + new_size[2] - new_size[0]) if ((self[:MediaBox][0] + new_size[2] - new_size[0])  < self[:MediaBox][2])
 			# update Y max IF the value is smaller then the existing value
-			self[:MediaBox][3] = box[3] if (box[3]  < self[:MediaBox][3])
+			self[:MediaBox][3] = (self[:MediaBox][1] + new_size[3] - new_size[1]) if ((self[:MediaBox][1] + new_size[3] - new_size[1])  < self[:MediaBox][3])
 			# return self for chaining
 			self
 		end
