@@ -8,7 +8,13 @@ Change log v.0.2.17
 
 ***
 
-Change log v.0.2.15 / v.0.2.16
+Change log v.0.2.16
+
+**Fix**: Fix for issue #49 where specific PDF files containing junk data after the %%EOF marker couldn't be opened (as they were invalid files). The issue was fixed by scanning any trailing data before continuing to parse any PDF file beyond the first %%EOF markers (multiple markers are common when using the PDF format). Credit to @wingleungchoi for providing an example for the issue.
+
+***
+
+Change log v.0.2.15
 
 **Fix**: Fix for issue #22 where specific PDF files with nested references could cause page stamping to fail, raising an exception. Credit to @tomascharad for finding the issue.
 
