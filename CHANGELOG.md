@@ -2,13 +2,13 @@
 
 ***
 
-Change log v.0.2.16
+Change log v.0.2.17
 
 **Feature**: added the `page#crop` method to easily crop a PDF file in accordance with the GWG industry association recommendations (updating the `MediaBox` property rather then the `CropBox`). Credit to @wingleungchoi for this feature.
 
 ***
 
-Change log v.0.2.15
+Change log v.0.2.15 / v.0.2.16
 
 **Fix**: Fix for issue #22 where specific PDF files with nested references could cause page stamping to fail, raising an exception. Credit to @tomascharad for finding the issue.
 
@@ -50,7 +50,7 @@ Change log v.0.2.10
 
 Change log v.0.2.9
 
-**Fix** hopefully fixed issue #33 ([NoMethodError undefined method `[]' for nil:NilClass](https://github.com/boazsegev/combine_pdf/issues/33)).
+**Fix** hopefully fixed issue #33 ([NoMethodError undefined method `[]` for nil:NilClass](https://github.com/boazsegev/combine_pdf/issues/33)).
 
 ***
 
