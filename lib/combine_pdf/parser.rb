@@ -36,7 +36,7 @@ module CombinePDF
 		# the info and root objects, as found (if found) in the PDF file.
 		#
 		# they are mainly to used to know if the file is (was) encrypted and to get more details.
-		attr_reader :info_object, :root_object, :names_object
+		attr_reader :info_object, :root_object, :names_object, :forms_object
 
 		# when creating a parser, it is important to set the data (String) we wish to parse.
 		#
@@ -54,6 +54,7 @@ module CombinePDF
 			@root_object = {}
 			@info_object = {}
 			@names_object = {}
+			@forms_object = {}
 			@strings_dictionary = {} # all strings are one string
 			@version = nil
 			@scanner = nil
@@ -470,6 +471,7 @@ module CombinePDF
 					when :Pages
 						catalog_pages(catalogs[:Kids], inheritance_hash.dup ) unless catalogs[:Kids].nil?
 					when :Catalog
+						@forms_object.update( (catalogs[:AcroForm][:referenced_object] || catalogs[:AcroForm]), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:AcroForm]
 						@names_object.update( (catalogs[:Names][:referenced_object] || catalogs[:Names]), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:Names]
 						catalog_pages(catalogs[:Pages], inheritance_hash.dup ) unless catalogs[:Pages].nil?
 					end

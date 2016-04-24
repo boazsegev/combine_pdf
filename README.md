@@ -4,13 +4,25 @@
 
 CombinePDF is a nifty model, written in pure Ruby, to parse PDF files and combine (merge) them with other PDF files, watermark them or stamp them (all using the PDF file format and pure Ruby code).
 
-# Install
+## Install
 
 Install with ruby gems:
 
 ```ruby
 gem install combine_pdf
 ```
+
+## Known Limitations
+
+CombinePDF is written natively in Ruby and should (presumably) work on all Ruby platforms that follow Ruby 2.0 compatibility.
+
+However, PDF files are quite complex creatures and no guaranty is provided.
+
+PDF Forms and known to have issues and form data might be lost when attempting to combine PDFs with filed form data (also, forms are global objects, not page specific, so one should combine the whole of the PDF for any data to have any chance of being preserved).
+
+The same apply to PDF links and the table of contents, which all have global attributes and could be corrupted or lost when combining PDF data.
+
+If this library causes loss of data or burns down your house, I'm not to blame - as pointed to by the MIT license. Use at your own risk.
 
 ## Combine/Merge PDF files or Pages
 

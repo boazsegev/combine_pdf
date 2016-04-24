@@ -27,7 +27,7 @@ module CombinePDF
 		# this is used for internal operations, such as injectng data using the << operator.
 		def add_referenced(object, dup_pages = true)
 			# add references but not root
-			case 
+			case
 			when object.is_a?(Array)
 				object.each {|it| add_referenced(it, dup_pages)}
 				return true
@@ -58,8 +58,8 @@ module CombinePDF
 
 				end
 				object.each do |k, v|
-					add_referenced(v, dup_pages) unless k == :Parent 
-				end 
+					add_referenced(v, dup_pages) unless k == :Parent
+				end
 			else
 				return false
 			end
@@ -88,8 +88,17 @@ module CombinePDF
 			# rebuild/rename the names dictionary
 			rebuild_names
 			# build new Catalog object
-			catalog_object = {Type: :Catalog, Pages: {referenced_object: pages_object, is_reference_only: true}, Names: {referenced_object: @names, is_reference_only: true} }
+			catalog_object = {Type: :Catalog, Pages: {referenced_object: pages_object, is_reference_only: true}, Names: {referenced_object: @names, is_reference_only: true}}
 			catalog_object[:ViewerPreferences] = @viewer_preferences unless @viewer_preferences.empty?
+
+			# rebuild/rename the forms dictionary
+			if @forms_data.nil? || @forms_data.empty?
+				@forms_data = nil
+			else
+				@forms_data = {referenced_object: actual_value(@forms_data), is_reference_only: true}
+				catalog_object[:AcroForm] = @forms_data
+			end
+
 
 			# point old Pages pointers to new Pages object
 			## first point known pages objects - enough?
@@ -109,6 +118,9 @@ module CombinePDF
 
 		def names_object
 			@names
+		end
+		def forms_data
+			@forms_data
 		end
 
 		# @private
@@ -213,4 +225,3 @@ module CombinePDF
 
 	end
 end
-
