@@ -18,7 +18,7 @@ CombinePDF is written natively in Ruby and should (presumably) work on all Ruby 
 
 However, PDF files are quite complex creatures and no guaranty is provided.
 
-For example, PDF Forms are known to have issues and form data might be lost when attempting to combine PDFs with filed form data (also, forms are global objects, not page specific, so one should combine the whole of the PDF for any data to have any chance of being preserved).
+For example, PDF Forms are known to have issues and form data might be lost when attempting to combine PDFs with filled form data (also, forms are global objects, not page specific, so one should combine the whole of the PDF for any data to have any chance of being preserved).
 
 The same applies to PDF links and the table of contents, which all have global attributes and could be corrupted or lost when combining PDF data.
 
