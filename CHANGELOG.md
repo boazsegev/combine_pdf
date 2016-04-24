@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.2.18
+
+**Feature**: added minor (read: initial and incomplete) PDF forms support, in an attempt to preserve form data when combining PDF files.
+
+***
+
 Change log v.0.2.17
 
 **Feature**: added the `page#crop` method to easily crop a PDF file in accordance with the GWG industry association recommendations (updating the `MediaBox` property rather then the `CropBox`). Credit to @wingleungchoi for this feature.

@@ -147,6 +147,10 @@ module CombinePDF
 		def author=(new_author = nil)
 			@info[:Author] = new_author
 		end
+		# Clears any existing form data.
+		def clear_forms_data
+			@forms_data.nil? || @forms_data.clear
+		end
 
 		# Save the PDF to file.
 		#
