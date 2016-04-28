@@ -300,7 +300,11 @@ module CombinePDF
 		 		@version = [@version, data.version].max
 				pages_to_add = data.pages
 				actual_value(@names).update actual_value(data.names_object), &self.class.method(:hash_merge_new_no_page)
-				actual_value(@forms_data).update actual_value(data.forms_data), &self.class.method(:hash_merge_new_no_page)
+				if actual_value(@forms_data)
+					actual_value(@forms_data).update actual_value(data.forms_data), &self.class.method(:hash_merge_new_no_page)
+				else
+					@forms_data = data.forms_data
+				end
 				warn "Form data might be lost when combining PDF forms (possible conflicts)." unless data.forms_data.nil? || data.forms_data.empty?
 			elsif data.is_a?(Array) && (data.select {|o| !(o.is_a?(Hash) && o[:Type] == :Page) } ).empty?
 				pages_to_add = data
