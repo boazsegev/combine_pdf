@@ -301,7 +301,7 @@ module CombinePDF
 				pages_to_add = data.pages
 				actual_value(@names).update actual_value(data.names_object), &self.class.method(:hash_merge_new_no_page)
 				if actual_value(@forms_data)
-					actual_value(@forms_data).update actual_value(data.forms_data), &self.class.method(:hash_merge_new_no_page)
+					actual_value(@forms_data).update actual_value(data.forms_data), &self.class.method(:hash_merge_new_no_page) if data.forms_data
 				else
 					@forms_data = data.forms_data
 				end

@@ -2,9 +2,15 @@
 
 ***
 
-Change log v.0.2.19
+Change log v.0.2.20
 
-**Fix**: unconfirmed fix for issue #56, discovered by @LeptonHeavy, regarding errors caused by the new PDF form support feature.
+**Fix**: fix for issue #56, discovered by @LeptonHeavy, regarding errors caused by the new PDF form support feature.
+
+***
+
+Change log v.0.2.19 (yanked)
+
+**Partial fix**: unconfirmed fix for issue #56, discovered by @LeptonHeavy, regarding errors caused by the new PDF form support feature.
 
 ***
 
