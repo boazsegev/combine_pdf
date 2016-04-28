@@ -2,7 +2,13 @@
 
 ***
 
-Change log v.0.2.18
+Change log v.0.2.19
+
+**Fix**: unconfirmed fix for issue #56, discovered by @LeptonHeavy, regarding errors caused by the new PDF form support feature.
+
+***
+
+Change log v.0.2.18 (yanked)
 
 **Feature**: added minor (read: initial and incomplete) PDF forms support, in an attempt to preserve form data when combining PDF files.
 
