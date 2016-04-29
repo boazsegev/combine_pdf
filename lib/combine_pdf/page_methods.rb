@@ -869,11 +869,12 @@ module CombinePDF
 		# @return [true, false] returns true if there are two different resources sharing the same named reference.
 		def should_secure?(page)
 			# travel every dictionary to pick up names (keys), change them and add them to the dictionary
-			res = self.resources
-			foreign_res = page.resources
+			res = actual_value(self.resources)
+			foreign_res = actual_value(page.resources)
+			tmp = nil
 			res.each do |k,v|
-				if actual_value(v).is_a?(Hash) && actual_value(foreign_res[k]).is_a?(Hash)
-					v.keys.each do |name| return true if actual_value(foreign_res[k]) && actual_value(foreign_res[k])[name] && actual_value(foreign_res[k])[name] != actual_value(v[k])[name]
+				if ((v = actual_value(v)).is_a?(Hash) && (tmp = actual_value(foreign_res[k])).is_a?(Hash) )
+					v.keys.each do |name| return true if tmp[name] && tmp[name] != v[name]
 					end # else # Do nothing, this is taken care of elseware
 				end
 			end
