@@ -399,8 +399,8 @@ module CombinePDF
 					fresh = false
 				else
 					# always advance
-					# warn "Advnacing for unknown reason... #{@scanner.peek(4)}" unless @scanner.peek(1) =~ /[\s\n]/
-					warn "Warning: parser advnacing for unknown reason. Potential data-loss."
+					# warn "Advancing for unknown reason... #{@scanner.peek(4)}" unless @scanner.peek(1) =~ /[\s\n]/
+					warn "Warning: parser advancing for unknown reason. Potential data-loss."
 					@scanner.pos = @scanner.pos + 1
 				end
 			end
