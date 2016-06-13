@@ -88,7 +88,10 @@ module CombinePDF
 			# rebuild/rename the names dictionary
 			rebuild_names
 			# build new Catalog object
-			catalog_object = {Type: :Catalog, Pages: {referenced_object: pages_object, is_reference_only: true}, Names: {referenced_object: @names, is_reference_only: true}}
+			catalog_object = { Type: :Catalog,
+												 Pages: { referenced_object: pages_object, is_reference_only: true },
+												 Names: { referenced_object: @names, is_reference_only: true },
+												 Outlines: { referenced_object: @outlines, is_reference_only: true } }
 			catalog_object[:ViewerPreferences] = @viewer_preferences unless @viewer_preferences.empty?
 
 			# rebuild/rename the forms dictionary
@@ -122,6 +125,9 @@ module CombinePDF
 		def forms_data
 			@forms_data
 		end
+		def outlines_object
+			@outlines
+		end
 
 		# @private
 		# this is an alternative to the rebuild_catalog catalog method
@@ -135,6 +141,7 @@ module CombinePDF
 			@objects << catalog
 			add_referenced catalog[:Pages]
 			add_referenced catalog[:Names], false
+			add_referenced catalog[:Outlines], false
 			catalog
 		end
 
@@ -202,6 +209,30 @@ module CombinePDF
 			end
 		end
 
+		# TODO: Implement correct merging of outlines
+		def self.hash_merge_new_outline key, old_data, new_data
+			if old_data.is_a? Hash
+				return old_data if old_data[:Type] == :Page
+				return old_data if old_data.key?(:Parent)
+				old_data.merge( new_data, &( @hash_merge_new_outline_proc ||= self.method(:hash_merge_new_outline) ) )
+			elsif old_data.is_a? Array
+				old_data + new_data
+			else
+				new_data
+			end
+		end
+	# 	def self.merge_outlines(new_data)
+	# 		new_data.each_pair do |current_key, new_value|
+	# 			this_value = self[current_key]
+	# 			if this_value.is_a?(Hash) and new_value.is_a?(Hash)
+	# 				return self if self[:Type] == :Page
+	# 				return self if self.key?(:Parent)
+	# 				self[current_key] = this_value.merge_outlines(new_value)
+	# 			else
+	# 				# merging logic
+	# 			end
+	# 		end
+	# 	end
 
 		private
 
