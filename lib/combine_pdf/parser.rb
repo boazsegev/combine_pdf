@@ -327,7 +327,7 @@ module CombinePDF
 				# I don't know how to write the /[\x21-\x7e___subtract_certain_hex_values_here____]+/
 				# all allowed regular caracters between ! and ~ : /[\x21-\x24\x26\x27\x2a-\x2e\x30-\x3b\x3d\x3f-\x5a\x5c\x5e-\x7a\x7c\x7e]+
 				# all characters that aren't white space or special: /[^\x00\x09\x0a\x0c\x0d\x20\x28\x29\x3c\x3e\x5b\x5d\x7b\x7d\x2f\x25]+
-			when str = @scanner.scan(/\/[^\x00\x09\x0a\x0c\x0d\x20\x28\x29\x3c\x3e\x5b\x5d\x7b\x7d\x2f\x25]+/)
+			when str = @scanner.scan(/\/[^\x00\x09\x0a\x0c\x0d\x20\x28\x29\x3c\x3e\x5b\x5d\x7b\x7d\x2f\x25]*/)
 					out << ( str[1..-1].gsub(/\#[0-9a-fA-F]{2}/) {|a| a[1..2].hex.chr } ).to_sym
 				##########################################
 				## Parse a Number
@@ -399,7 +399,7 @@ module CombinePDF
 					fresh = false
 				else
 					# always advance
-					# warn "Advancing for unknown reason... #{@scanner.peek(4)}" unless @scanner.peek(1) =~ /[\s\n]/
+					# warn "Advancing for unknown reason... #{@scanner.string[@scanner.pos-4, 8]} ... #{@scanner.peek(4)}" unless @scanner.peek(1) =~ /[\s\n]/
 					warn "Warning: parser advancing for unknown reason. Potential data-loss."
 					@scanner.pos = @scanner.pos + 1
 				end
@@ -510,6 +510,7 @@ module CombinePDF
 		#
 		def serialize_objects_and_references
 			obj_dir = {}
+			# create a dictionary for referenced objects (no value resolution at this point)
 			@parsed.each {|o| obj_dir[ [ o.delete(:indirect_reference_id), o.delete(:indirect_generation_number) ] ] = o }
 			# @parsed.each {|o| obj_dir[ [ o.[](:indirect_reference_id), o.[](:indirect_generation_number) ] ] = o }
 			@references.each do |obj|
@@ -517,6 +518,8 @@ module CombinePDF
 				warn "couldn't connect a reference!!! could be a null or removed (empty) object, Silent error!!!\n Object raising issue: #{obj.to_s}" unless obj[:referenced_object]
 				obj.delete(:indirect_reference_id); obj.delete(:indirect_generation_number)
 			end
+			obj_dir.clear
+			@references.clear
 			self
 		end
 

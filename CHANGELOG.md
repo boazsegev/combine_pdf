@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.2.22 (unreleased)
+
+**Fix**: fixed an issue where empty names would be ignored by the parser (who knew they existed...).
+
+***
+
 Change log v.0.2.21
 
 **Fix**: fix for issue #54 and #59 (duplicate), discovered by @iggant (Anton Kolodii), related to name conflict resolution and page resources. The issue would cause and error (exception) to occur when attempting to merge pages with specific resource structures. Credit to @cw6365 (Chris Ward) and @DenKey (Den) as well.

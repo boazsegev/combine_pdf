@@ -95,7 +95,7 @@ module CombinePDF
 			if @forms_data.nil? || @forms_data.empty?
 				@forms_data = nil
 			else
-				@forms_data = {referenced_object: actual_value(@forms_data), is_reference_only: true}
+				@forms_data = {referenced_object: (@forms_data[:referenced_object] || @forms_data), is_reference_only: true}
 				catalog_object[:AcroForm] = @forms_data
 			end
 
