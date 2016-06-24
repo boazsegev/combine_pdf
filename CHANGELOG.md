@@ -6,6 +6,8 @@ Change log v.0.2.22 (unreleased)
 
 **Fix**: fixed an issue where empty names would be ignored by the parser (who knew they existed...).
 
+**Update**: Credit to Joel Williams (@joelw) for providing `CombinePDF.load` and `CombinePDF.parse` customization, allowing optional content errors to be ignored - taking the risk of a corrupt PDF instead of raising an exception (hey, loading PDF data with optional content sometimes works).
+
 ***
 
 Change log v.0.2.21

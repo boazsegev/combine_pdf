@@ -59,7 +59,7 @@ module CombinePDF
 			@strings_dictionary = {} # all strings are one string
 			@version = nil
 			@scanner = nil
-			@allow_optional_content = options[:allow_optional_content] || false
+			@allow_optional_content = options[:allow_optional_content]
 		end
 
 		# parse the data in the new parser (the data already set through the initialize / new method)
