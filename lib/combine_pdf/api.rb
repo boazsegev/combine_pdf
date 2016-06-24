@@ -9,10 +9,10 @@ module CombinePDF
 
 	# Create an empty PDF object or create a PDF object from a file (parsing the file).
 	# file_name:: is the name of a file to be parsed.
-	def load(file_name = "")
+	def load(file_name = "", options={})
 		raise TypeError, "couldn't parse data, expecting type String" unless file_name.is_a?(String) || file_name.is_a?(Pathname)
 		return PDF.new() if file_name == ''
-		PDF.new( PDFParser.new(  IO.read(file_name, mode: 'rb').force_encoding(Encoding::ASCII_8BIT) ) )
+		PDF.new( PDFParser.new(  IO.read(file_name, mode: 'rb').force_encoding(Encoding::ASCII_8BIT), options ) )
 	end
 	# creats a new PDF object.
 	#
@@ -35,9 +35,9 @@ module CombinePDF
 
 	# Create a PDF object from a raw PDF data (parsing the data).
 	# data:: is a string that represents the content of a PDF file.
-	def parse(data)
+	def parse(data, options={})
 		raise TypeError, "couldn't parse and data, expecting type String" unless data.is_a? String
-		PDF.new( PDFParser.new(data) )
+		PDF.new( PDFParser.new(data, options) )
 	end
 	# makes a PDFWriter object
 	#

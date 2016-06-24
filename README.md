@@ -122,6 +122,16 @@ headers 'content-type' => "application/pdf"
 
 If you prefer to save the PDF data to a file, you can always use the `save` method as we did in our earlier examples.
 
+Some PDF files contain optional content sections which cannot always be merged reliably. By default, an exception is
+raised if one of these files are detected. You can optionally pass an `allow_optional_content` parameter to the
+`PDFParser.new`, `CombinePDF.load` and `CombinePDF.parse` methods:
+
+```ruby
+new_pdf = CombinePDF.new
+new_pdf << CombinePDF.parse(pdf_file, allow_optional_content: true)
+attachments.each { |att| new_pdf << CombinePDF.load(att, allow_optional_content: true) }
+```
+
 Demo
 ====
 
