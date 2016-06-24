@@ -38,12 +38,13 @@ module CombinePDF
 		# they are mainly to used to know if the file is (was) encrypted and to get more details.
 		attr_reader :info_object, :root_object, :names_object, :forms_object
 
+		attr_reader :allow_optional_content
 		# when creating a parser, it is important to set the data (String) we wish to parse.
 		#
 		# <b>the data is required and it is not possible to set the data at a later stage</b>
 		#
 		# string:: the data to be parsed, as a String object.
-		def initialize (string)
+		def initialize (string, options={})
 			raise TypeError, "couldn't parse data, expecting type String" unless string.is_a? String
 			@string_to_parse = string.force_encoding(Encoding::ASCII_8BIT)
 			@literal_strings = []
@@ -58,6 +59,7 @@ module CombinePDF
 			@strings_dictionary = {} # all strings are one string
 			@version = nil
 			@scanner = nil
+			@allow_optional_content = options[:allow_optional_content] || false
 		end
 
 		# parse the data in the new parser (the data already set through the initialize / new method)
@@ -437,7 +439,7 @@ module CombinePDF
 					end
 				else
 					unless catalogs[:Type] == :Page
-						raise "Optional Content PDF files aren't supported and their pages cannot be safely extracted." if catalogs[:AS] || catalogs[:OCProperties]
+						raise "Optional Content PDF files aren't supported and their pages cannot be safely extracted." if (catalogs[:AS] || catalogs[:OCProperties]) && !@allow_optional_content
 						inheritance_hash[:MediaBox] = catalogs[:MediaBox] if catalogs[:MediaBox]
 						inheritance_hash[:CropBox] = catalogs[:CropBox] if catalogs[:CropBox]
 						inheritance_hash[:Rotate] = catalogs[:Rotate] if catalogs[:Rotate]
