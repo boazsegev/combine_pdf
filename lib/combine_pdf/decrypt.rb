@@ -157,10 +157,15 @@ module CombinePDF
 				encrypted_generation ||=  actual_object(object[:indirect_generation_number])
 				encrypted_filter ||= actual_object(object[:Filter])
 				if object[:raw_stream_content]
-					stream_length = actual_object(object[:Length])
-					actual_length = object[:raw_stream_content].length
-					warn "Stream registeded length was #{object[:Length].to_s} and the actual length was #{actual_length}." if actual_length < stream_length
-					length = [ stream_length, actual_length].min
+					stream_length = actual_value(object[:Length])
+					actual_length = object[:raw_stream_content].bytesize
+					if !stream_length # it's a required entry, but it might be missing
+					    warn "PDF error, required stream length data is missing. Attempting to fix."
+					    stream_length ||= actual_length 
+					end
+					
+					length = [stream_length, actual_length].min
+					
 					object[:raw_stream_content] = decrypt_proc.call( (object[:raw_stream_content][0...length]), encrypted_id, encrypted_generation, encrypted_filter)
 				end
 				object.each {|k, v| object[k] = _perform_decrypt_proc_(v, decrypt_proc, encrypted_id, encrypted_generation, encrypted_filter) if k != :raw_stream_content && (v.is_a?(Hash) || v.is_a?(Array) || v.is_a?(String))} # assumes no decrypting is ever performed on keys
@@ -259,4 +264,3 @@ module CombinePDF
 	# end
 
 end
-
