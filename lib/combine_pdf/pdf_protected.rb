@@ -209,30 +209,60 @@ module CombinePDF
 			end
 		end
 
-		# TODO: Implement correct merging of outlines
-		def self.hash_merge_new_outline key, old_data, new_data
-			if old_data.is_a? Hash
-				return old_data if old_data[:Type] == :Page
-				return old_data if old_data.key?(:Parent)
-				old_data.merge( new_data, &( @hash_merge_new_outline_proc ||= self.method(:hash_merge_new_outline) ) )
-			elsif old_data.is_a? Array
-				old_data + new_data
+		def merge_outlines(old_data, new_data)
+			if old_data.empty?
+				old_data = new_data
 			else
-				new_data
+				old_data[:Count] += new_data[:Count]
+				update_parents(old_data, old_data)
+				update_parents(new_data, old_data)
+				old_data[:Last] = new_data[:Last]
+				append_new_outline(old_data[:First][:referenced_object], new_data[:First])
+			end
+			# print_dat_outline(old_data)
+			return old_data
+		end
+
+		def update_parents(data, new_parent)
+			update_parents_subtree(data[:First][:referenced_object], new_parent) if data[:Type] == :Outlines
+			update_parents_subtree(data[:Last][:referenced_object], new_parent) if data[:Type] == :Outlines
+		end
+
+		def update_parents_subtree(new_data, new_parent)
+			new_data[:Parent] = {is_reference_only: true, referenced_object: new_parent} if new_data[:Parent]
+			update_parents_subtree(new_data[:Next][:referenced_object], new_parent) if new_data[:Next]
+		end
+
+		def append_new_outline(outline, next_to_append)
+			if outline[:Next]
+				append_new_outline(outline[:Next][:referenced_object], next_to_append)
+			else
+				outline[:Next] = next_to_append
+				next_to_append[:referenced_object][:Prev] = {is_reference_only: true, referenced_object: outline}
 			end
 		end
-	# 	def self.merge_outlines(new_data)
-	# 		new_data.each_pair do |current_key, new_value|
-	# 			this_value = self[current_key]
-	# 			if this_value.is_a?(Hash) and new_value.is_a?(Hash)
-	# 				return self if self[:Type] == :Page
-	# 				return self if self.key?(:Parent)
-	# 				self[current_key] = this_value.merge_outlines(new_value)
-	# 			else
-	# 				# merging logic
-	# 			end
-	# 		end
-	# 	end
+
+		def print_dat_outline(ol)
+			xy = ol.to_s.gsub(/\:raw_stream_content=\>"[^"]+",/,":raw_stream_content=> RAW STREAM")
+			xy = xy.gsub(/\:raw_stream_content=\>"(?:(?!"}).)*+"\}/,":raw_stream_content=> RAW STREAM}")
+			brace_cnt = 0
+			new_xy = ""
+			xy.each_char do |c|
+				if c == '{'
+					new_xy << "\n" << "\t" * brace_cnt << c
+					brace_cnt += 1
+				elsif c == '}'
+					brace_cnt -= 1
+					new_xy << c << "\n" << "\t" * brace_cnt
+				elsif c == '\n'
+					new_xy << c << "\t" * brace_cnt
+				else
+					new_xy << c
+				end
+			end
+			File.open("combine_pdf_out.txt", 'w') { |file| file.write(new_xy) }
+		end
+
 
 		private
 
