@@ -206,6 +206,7 @@ module CombinePDF
 			# when finished, remove the numbering system and keep only pointers
 			remove_old_ids
 			# output the pdf stream
+
 			out.join("\n").force_encoding(Encoding::ASCII_8BIT)
 		end
 

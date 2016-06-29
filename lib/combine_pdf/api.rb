@@ -30,7 +30,7 @@ module CombinePDF
 		rescue => e
 			raise 'General PDF error - Use CombinePDF.load or CombinePDF.parse for a non-general error message (the requested file was not found OR the string received is not a valid PDF stream OR the file was found but not valid).'
 		end
-		
+
 	end
 
 	# Create a PDF object from a raw PDF data (parsing the data).
@@ -156,7 +156,7 @@ module CombinePDF
 	# VERY LIMITTED SUPPORT:
 	# - at the moment it only imports Type0 fonts.
 	# - also, to extract the Hash of the actual font object you were looking for, is not a trivial matter. I do it on the console.
-	# font_name:: a Symbol with the name of the font registry. if the fonts exists in the library, it will be overwritten! 
+	# font_name:: a Symbol with the name of the font registry. if the fonts exists in the library, it will be overwritten!
 	# font_object:: a Hash in the internal format recognized by CombinePDF, that represents the font object.
 	def register_existing_font font_name, font_object
 		Fonts.register_font_from_pdf_object font_name, font_object

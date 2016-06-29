@@ -76,7 +76,7 @@ module CombinePDF
 				end
 			end
 			@parsed = _parse_
-			# puts @parsed
+			
 
 			raise "Unknown PDF parsing error - maleformed PDF file?" unless (@parsed.select {|i| !i.is_a?(Hash)}).empty?
 

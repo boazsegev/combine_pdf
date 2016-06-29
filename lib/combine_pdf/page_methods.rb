@@ -13,7 +13,7 @@ module CombinePDF
 	# This module injects page editing methods into existing page objects and the PDFWriter objects.
 	module Page_Methods
 		include Renderer
-
+		require 'pry-byebug'
 		# holds the string that starts a PDF graphic state container - used for wrapping malformed PDF content streams.
 		CONTENT_CONTAINER_START = 'q'
 		# holds the string that ends a PDF graphic state container - used for wrapping malformed PDF content streams.
@@ -52,7 +52,6 @@ module CombinePDF
 			inject_page obj, false
 		end
 		def inject_page obj, top = true
-
 			raise TypeError, "couldn't inject data, expecting a PDF page (Hash type)" unless obj.is_a?(Page_Methods)
 
 			obj = obj.copy( should_secure?(obj) ) #obj.copy(secure_injection)
@@ -135,6 +134,7 @@ module CombinePDF
 		# width:: the width/length of the box. negative values will be computed from edge of page. defaults to 0 (end of page).
 		# height:: the height of the box. negative values will be computed from edge of page. defaults to 0 (end of page).
 		# text_align:: symbol for horizontal text alignment, can be ":center" (default), ":right", ":left"
+		# text_wrap::  enable text wrapping for stamped text, can be ":wrap" to enabling wrapping
 		# text_valign:: symbol for vertical text alignment, can be ":center" (default), ":top", ":buttom"
 		# text_padding:: a Float between 0 and 1, setting the padding for the text. defaults to 0.05 (5%).
 		# font:: a registered font name or an Array of names. defaults to ":Helvetica". The 14 standard fonts names are:
@@ -171,6 +171,7 @@ module CombinePDF
 				text_align: :center,
 				text_valign: :center,
 				text_padding: 0.1,
+				text_wrap: nil,
 				font: nil,
 				font_size: :fit_text,
 				max_font_size: nil,
@@ -284,7 +285,9 @@ module CombinePDF
 					font_size = self.fit_text text, fonts, (options[:width]*(1-options[:text_padding])), (options[:height]*(1-options[:text_padding]))
 					font_size = options[:max_font_size] if options[:max_font_size] && font_size > options[:max_font_size]
 				end
-
+				if options[:text_wrap]
+							self.wrap_text(text)
+				end
 				text_size = dimensions_of text, fonts, font_size
 
 				if options[:text_align] == :center
@@ -323,9 +326,15 @@ module CombinePDF
 				else
 					text_stream << "3 Tr\n"
 				end
+				##Store the x cordinate for posostioning new lines
+				new_line_xPos = x
+
+				##the spacing between new lines
+				options[:spacing] ||=  (text_size[2] + (text_size[2] * 1.618)/2)
 				# format text object(s)
 					# text_stream << "#{options[:font_color].join(' ')} rg\n" # sets the color state
 				encode_text(text, fonts).each do |encoded|
+					x = new_line_xPos
 					text_stream << "BT\n" # the Begine Text marker
 					text_stream << format_name_to_pdf(set_font encoded[0]) # Set font name
 					text_stream << " #{font_size.round 3} Tf\n" # set font size and add font operator
@@ -333,14 +342,15 @@ module CombinePDF
 					text_stream << (  encoded[1] ) # insert the encoded string to the stream
 					text_stream << " Tj\n" # the Text object operator and the End Text marker
 					text_stream << "ET\n" # the Text object operator and the End Text marker
-					x += encoded[2]/1000*font_size #update text starting point
-					y -= encoded[3]/1000*font_size #update text starting point
+					x += (encoded[2]/1000*font_size) #update text starting point
+					y -= (encoded[3]/1000*font_size) + options[:spacing]   #update text starting point
+
+					#puts "fun #{(encoded[2]/1000*font_size)}"
 				end
 				# exit graphic state for text
 				text_stream << "Q\n"
 			end
 			contents << text_stream
-
 			self
 		end
 		# gets the dimentions (width and height) of the text, as it will be printed in the PDF.
@@ -349,7 +359,9 @@ module CombinePDF
 		# font:: a font name or an Array of font names. Font names should be registered fonts. The 14 standard fonts are pre regitered with the font library.
 		# size:: the size of the font (defaults to 1000 points).
 		def dimensions_of(text, fonts, size = 1000)
-			Fonts.dimensions_of text, fonts, size
+			text_height = height_of(text,fonts,size)
+			text_width = width_of(text, fonts, size)
+			[text_width ,text_height[0], text_height[1]]
 		end
 		# this method returns the size for which the text fits the requested metrices
 		# the size is type Float and is rather exact
@@ -371,8 +383,45 @@ module CombinePDF
 			end
 			size_array.min
 		end
+		#probably should return average line width and height?
+		#this method returns the width of the text
+		#now that newline features and wrap features are being introduced
+		#the width of the stamped text is not what it seems
+		# text:: the text to fit
+		# font:: the font name. @see font
+		# length:: the length to fit
+		# height:: the height to fit (optional - normally length is the issue)
+		def width_of(text,fonts,size = 1000)
+   				lines = text.split("\n")
+					max_width = 0
+					return if lines.nil?
 
+					for line in lines
+							dimensions = Fonts.dimensions_of line, fonts, size
+							max_width = dimensions[0] unless max_width > dimensions[0]
+					end
+					return max_width
+		end
+		#this method returns the height of the text and max_text_line_height
+		# text:: the text to fit
+		# font:: the font name. @see font
+		# length:: the length to fit
+		# height:: the height to fit (optional - normally length is the issue)
+		def height_of(text,fonts,size = 1000)
+			lines = text.split("\n")
+			max_height = 0
+			height = 0
+			for line in lines
+					dimensions = Fonts.dimensions_of line, fonts, size
+					max_height =  dimensions[1] unless max_height > dimensions[1]
+					height += dimensions[1]
+			end
+			return [height,max_height]
+		end
 
+		def wrap_text(text)
+
+		end
 		# This method moves the Page[:Rotate] property into the page's data stream, so that
 		# "what you see is what you get".
 		#
@@ -653,6 +702,7 @@ module CombinePDF
 			self[:Contents].map! {|s| actual_value(s).is_a?(Array) ? actual_value(s) : s}
 			self[:Contents].flatten!
 			self[:Contents].compact!
+
 			# wrap content streams
 			insert_content 'q', 0
 			insert_content 'Q'
@@ -661,7 +711,7 @@ module CombinePDF
 			@contents = ''
 			insert_content @contents
 			@contents
-		end
+	end
 
 		# adds a string or an object to the content stream, at the location indicated
 		#
@@ -674,6 +724,7 @@ module CombinePDF
 			prep_content_array
 			self[:Contents].insert location, object
 			self[:Contents].flatten!
+
 			self
 		end
 
@@ -731,6 +782,7 @@ module CombinePDF
 		# register or get a registered graphic state dictionary.
 		# the method returns the name of the graphos state, for use in a content stream.
 		def graphic_state(graphic_state_dictionary = {})
+
 			# if the graphic state exists, return it's name
 			resources[:ExtGState] ||= {}
 			gs_res = resources[:ExtGState][:referenced_object] || resources[:ExtGState]
@@ -749,6 +801,7 @@ module CombinePDF
 			name
 		end
 
+
 		# encodes the text in an array of [:font_name, <PDFHexString>] for use in textbox
 		def encode_text text, fonts
 			# text must be a unicode string and fonts must be an array.
@@ -756,6 +809,7 @@ module CombinePDF
 			fonts_array = []
 			fonts.each do |name|
 				f = Fonts.get_font name
+
 				fonts_array << f if f
 			end
 
@@ -767,11 +821,11 @@ module CombinePDF
 				fonts_array.each_index do |i|
 					if fonts_array[i].cmap.nil? || (fonts_array[i].cmap && fonts_array[i].cmap[c])
 						#add to array
-						if out.last.nil? || out.last[0] != fonts[i]
+						if out.last.nil? || out.last[0] != fonts[i] || c.unpack("H*")[0]  == "0a"
 							out.last[1] << ">" unless out.last.nil?
 							out << [fonts[i], "<" , 0, 0]
 						end
-						out.last[1] << ( fonts_array[i].cmap.nil? ? ( c.unpack("H*")[0] ) : (fonts_array[i].cmap[c]) )
+						out.last[1] << ( fonts_array[i].cmap.nil? ? ( c.unpack("H*")[0] ) : (fonts_array[i].cmap[c]) ) unless c.unpack("H*")[0]  == "0a"
 						if fonts_array[i].metrics[c]
 							out.last[2] += fonts_array[i].metrics[c][:wx].to_f
 							out.last[3] += fonts_array[i].metrics[c][:wy].to_f
@@ -780,7 +834,9 @@ module CombinePDF
 					end
 				end
 			end
+
 			out.last[1] << ">" if out.last
+
 			out
 		end
 
@@ -868,6 +924,7 @@ module CombinePDF
 
 		# @return [true, false] returns true if there are two different resources sharing the same named reference.
 		def should_secure?(page)
+
 			# travel every dictionary to pick up names (keys), change them and add them to the dictionary
 			res = actual_value(self.resources)
 			foreign_res = actual_value(page.resources)
