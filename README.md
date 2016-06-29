@@ -14,6 +14,20 @@ gem install combine_pdf
 
 ## Known Limitations
 
+Quick rundown:
+
+* When reading PDF Forms, some form data might be lost. I tried fixing this to the best of my ability, but I'm not sure it all works just yet.
+
+* When combining PDF Forms, form data might be unified. If you're combining two PDF files with form data, the data might be unified. I couldn't fix this, but frankly, I kinda liked the issue... it's almost a feature.
+
+* TOC data will be lost. @andrewbaker00 is working on a PR to fix this.
+
+* Links and named destinations (i.e., a link in the PDF to a web page or a different page in the same PDF) might break. Again, I tried fixing this, but some of it depends on the TOC and some of it is susceptible to conflicts between files.
+
+* Some encrypted PDF files (usually the ones you can't view without a password) will fail quietly instead of noisily.
+
+* Sometimes the CombinePDF will raise an exception even if the PDF could be parsed (i.e., when PDF optional content exists)... I find it better to err on the side of caution, although for optional content PDFs it is avoidable using `CombinePDF.load(pdf_file, allow_optional_content: true)`.
+
 CombinePDF is written natively in Ruby and should (presumably) work on all Ruby platforms that follow Ruby 2.0 compatibility.
 
 However, PDF files are quite complex creatures and no guaranty is provided.
@@ -128,7 +142,7 @@ raised if one of these files are detected. You can optionally pass an `allow_opt
 
 ```ruby
 new_pdf = CombinePDF.new
-new_pdf << CombinePDF.parse(pdf_file, allow_optional_content: true)
+new_pdf << CombinePDF.load(pdf_file, allow_optional_content: true)
 attachments.each { |att| new_pdf << CombinePDF.load(att, allow_optional_content: true) }
 ```
 

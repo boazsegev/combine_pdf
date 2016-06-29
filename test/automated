@@ -1,0 +1,49 @@
+#!/usr/bin/env ruby
+
+require 'benchmark'
+$LOAD_PATH.unshift File.expand_path(File.join('..', '..', 'lib'), __FILE__)
+require 'combine_pdf'
+require 'bundler/setup'
+
+# You can add fixtures and/or initialization code here to make experimenting
+# with your gem easier. You can also use a different console, if you like.
+
+# (If you use this, don't forget to add pry to your Gemfile!)
+# require "pry"
+# Pry.start
+
+pdf = CombinePDF.load "./Ruby/test\ pdfs/filled_form.pdf"
+pdf.save '01_check_radio_buttuns.pdf'
+pdf << CombinePDF.load("./Ruby/test\ pdfs/empty_form.pdf")
+pdf << CombinePDF.load("./Ruby/test\ pdfs/filled_form.pdf")
+pdf.save '02_check_form_unification_middle_is_empty.pdf'
+
+pdf = CombinePDF.load "./Ruby/test pdfs/share-font-background.pdf"
+pdf2 = CombinePDF.load "./Ruby/test pdfs/share-font-foreground.pdf"
+i = 0
+pdf.pages.each {|pg| pg << pdf2.pages[i]}
+pdf.save '03_check_font_conflict.pdf'
+
+unify = [
+  "./Ruby/test\ pdfs/AESv2\ encrypted.pdf",
+  "./Ruby/test\ pdfs/data-in-comment.pdf",
+  "./Ruby/test\ pdfs/file_name.pdf",
+  "./Ruby/test\ pdfs/garbage_after_eof.pdf",
+  "./Ruby/test\ pdfs/Many\ comments.pdf",
+  "./Ruby/test\ pdfs/nested\ contents\ array.PDF",
+  "./Ruby/test\ pdfs/nested_resources.pdf",
+  "./Ruby/test\ pdfs/original-missing-endobje.pdf",
+  "./Ruby/test\ pdfs/original-multi-issue.pdf",
+  "./Ruby/test\ pdfs/page_stap_nil_secure.pdf",
+  "./Ruby/test\ pdfs/referenced\ decryption.pdf",
+  '',
+  '',
+  '',
+  '',
+  '',
+  '',
+  ''
+]
+
+# require 'irb'
+# IRB.start
