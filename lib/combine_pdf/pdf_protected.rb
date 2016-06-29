@@ -209,7 +209,51 @@ module CombinePDF
 			end
 		end
 
-		def merge_outlines(old_data, new_data)
+		def merge_outlines(old_data, new_data, position)
+		  old_data = actual_object(old_data)
+		  new_data = actual_object(new_data).dup
+		  if old_data.empty?
+		    # old_data is a reference to the actual object,
+		    # so if we update old_data, we're done, no need to take any further action
+		    old_data.update new_data
+		  else
+		    old_data[:Count] += new_data[:Count]
+		    # walk the Hash here ...
+		    # I'm just using the start / finish position for now...
+		    # FIXME to implement an insert in the middle of the file?
+		    prev = nil
+		    pos = first = actual_object(((position < 0) ? new_data : old_data)[:First])
+		    last = actual_object(((position < 0) ? old_data : new_data)[:Last])
+				median = {is_reference_only: true, referenced_object: actual_object(((position < 0) ? old_data : new_data)[:First])}
+		    old_data[:First] = {is_reference_only: true, referenced_object: first}
+		    old_data[:Last] = {is_reference_only: true, referenced_object: last}
+		    parent = {is_reference_only: true, referenced_object: old_data}
+		    # the walking
+		    while(pos)
+	        # pos[:First] = first # already a reference
+	        # pos[:Last] = last # already a reference
+	        pos[:Parent] = parent if pos[:Parent] # already a reference
+	        if(prev)
+	          pos[:Prev] = {is_reference_only: true, referenced_object: prev}
+	        else
+	          pos.delete :Prev
+	        end
+	        # connect the two outlines
+	        if(pos[:Next].nil?)
+	          pos[:Next] = median
+	          median = nil
+	        end
+	        prev = pos
+	        pos = actual_object(pos[:Next])
+		    end
+		    # make sure the last object doesn't have the :Next property
+		    prev.delete :Next
+		  end
+		  # print_dat_outline(old_data)
+		  return nil # no need to return the data, the update had taken place destructively.
+		end
+
+		def merge_outlines_old(old_data, new_data)
 			if old_data.empty?
 				old_data = new_data
 			else
