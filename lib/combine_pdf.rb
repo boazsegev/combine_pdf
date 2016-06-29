@@ -5,24 +5,25 @@ require 'securerandom'
 require 'strscan'
 require 'matrix'
 require 'set'
+
+#require the RC4 Gem
 require 'rc4'
 
 
-load "C:/Users/DanielH/Desktop/RotairStamp/combine_pdf/lib/combine_pdf/api.rb"
-load "C:/Users/DanielH/Desktop/RotairStamp/combine_pdf/lib/combine_pdf/renderer.rb"
-load "C:/Users/DanielH/Desktop/RotairStamp/combine_pdf/lib/combine_pdf/page_methods.rb"
-load "C:/Users/DanielH/Desktop/RotairStamp/combine_pdf/lib/combine_pdf/basic_writer.rb"
-load "C:/Users/DanielH/Desktop/RotairStamp/combine_pdf/lib/combine_pdf/decrypt.rb"
-load "C:/Users/DanielH/Desktop/RotairStamp/combine_pdf/lib/combine_pdf/fonts.rb"
-load "C:/Users/DanielH/Desktop/RotairStamp/combine_pdf/lib/combine_pdf/filter.rb"
-load "C:/Users/DanielH/Desktop/RotairStamp/combine_pdf/lib/combine_pdf/parser.rb"
-load "C:/Users/DanielH/Desktop/RotairStamp/combine_pdf/lib/combine_pdf/pdf_public.rb"
-load "C:/Users/DanielH/Desktop/RotairStamp/combine_pdf/lib/combine_pdf/pdf_protected.rb"
+load "combine_pdf/api.rb"
+load "combine_pdf/renderer.rb"
+load "combine_pdf/page_methods.rb"
+load "combine_pdf/basic_writer.rb"
+load "combine_pdf/decrypt.rb"
+load "combine_pdf/fonts.rb"
+load "combine_pdf/filter.rb"
+load "combine_pdf/parser.rb"
+load "combine_pdf/pdf_public.rb"
+load "combine_pdf/pdf_protected.rb"
 
-# load "C:/Users/DanielH/Desktop/RotairStamp/combine_pdf/lib/combine_pdfoperations.rb"
+# load "combine_pdf/operations.rb"
 
-load "C:/Users/DanielH/Desktop/RotairStamp/combine_pdf/lib/combine_pdf/version.rb"
-
+load "combine_pdf/version.rb"
 
 # This is a pure ruby library to combine/merge, stmap/overlay and number PDF files - as well as to create tables (ment for indexing combined files).
 #
