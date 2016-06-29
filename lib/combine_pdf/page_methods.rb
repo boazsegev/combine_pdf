@@ -240,7 +240,7 @@ module CombinePDF
 					box_stream << "#{options[:x] + options[:width] - radius} #{options[:y] + options[:height]} c\n"
 				end
 				## top and top-left corner
-				box_stream << "#{options[:x] + radius} #{options[:y] } l\n"
+				box_stream << "#{options[:x] + radius} #{options[:y] + options[:height]} l\n"
 				if options[:box_radius] != 0
 					box_stream << "#{options[:x] + half_radius} #{options[:y] + options[:height]} "
 					box_stream << "#{options[:x]} #{options[:y] + options[:height] - half_radius} "
@@ -328,8 +328,7 @@ module CombinePDF
 				end
 				##Store the x cordinate for posostioning new lines
 				new_line_xPos = x
-				puts x
-				puts y
+
 				##the spacing between new lines
 				options[:spacing] ||=  (text_size[2] + (text_size[2] * 1.618)/2)
 				# format text object(s)
@@ -346,7 +345,6 @@ module CombinePDF
 					x += (encoded[2]/1000*font_size) #update text starting point
 					y -= (encoded[3]/1000*font_size) + options[:spacing]   #update text starting point
 
-					#puts "fun #{(encoded[2]/1000*font_size)}"
 				end
 				# exit graphic state for text
 				text_stream << "Q\n"
@@ -385,29 +383,24 @@ module CombinePDF
 			size_array.min
 		end
 		#probably should return average line width and height?
-		#this method returns the width of the text
+		#this method returns the width of the text area
 		#now that newline features and wrap features are being introduced
-		#the width of the stamped text is not what it seems
 		# text:: the text to fit
 		# font:: the font name. @see font
-		# length:: the length to fit
-		# height:: the height to fit (optional - normally length is the issue)
+		# size:: the size of the font (defaults to 1000 points).
 		def width_of(text,fonts,size = 1000)
    				lines = text.split("\n")
 					max_width = 0
-					return if lines.nil?
-
 					for line in lines
 							dimensions = Fonts.dimensions_of line, fonts, size
 							max_width = dimensions[0] unless max_width > dimensions[0]
 					end
 					return max_width
 		end
-		#this method returns the height of the text and max_text_line_height
-		# text:: the text to fit
+		#this method returns the height of the text area and max_text_line_height
+		# text:: the text to calculate the line height of
 		# font:: the font name. @see font
-		# length:: the length to fit
-		# height:: the height to fit (optional - normally length is the issue)
+   	# size:: the size of the font (defaults to 1000 points).
 		def height_of(text,fonts,size = 1000)
 			lines = text.split("\n")
 			max_height = 0
