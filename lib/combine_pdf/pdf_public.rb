@@ -402,7 +402,8 @@ module CombinePDF
 					add_opt = { font_size: small_font_size }.merge(opt)
 					# text = opt[:number_format] % page_number
 					# compute locations for text boxes
-					text_dimantions = Fonts.dimensions_of( text, opt[:font], small_font_size )
+					#text_dimantions = Fonts.dimensions_of( text, opt[:font], small_font_size )
+					text_dimantions = page.dimensions_of( text, opt[:font], small_font_size )
 					box_width = text_dimantions[0] * 1.2
 					box_height = text_dimantions[1] * 2
 					page_width = mediabox[2]

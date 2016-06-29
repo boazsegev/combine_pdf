@@ -240,7 +240,7 @@ module CombinePDF
 					box_stream << "#{options[:x] + options[:width] - radius} #{options[:y] + options[:height]} c\n"
 				end
 				## top and top-left corner
-				box_stream << "#{options[:x] + radius} #{options[:y] + options[:height]} l\n"
+				box_stream << "#{options[:x] + radius} #{options[:y] } l\n"
 				if options[:box_radius] != 0
 					box_stream << "#{options[:x] + half_radius} #{options[:y] + options[:height]} "
 					box_stream << "#{options[:x]} #{options[:y] + options[:height] - half_radius} "
@@ -328,7 +328,8 @@ module CombinePDF
 				end
 				##Store the x cordinate for posostioning new lines
 				new_line_xPos = x
-
+				puts x
+				puts y
 				##the spacing between new lines
 				options[:spacing] ||=  (text_size[2] + (text_size[2] * 1.618)/2)
 				# format text object(s)
