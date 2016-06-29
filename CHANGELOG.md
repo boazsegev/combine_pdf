@@ -2,6 +2,22 @@
 
 ***
 
+Change log v.0.2.22 (unreleased)
+
+**Fix**: fixed an issue with PDF font importing (registering).
+
+**Fix**: fixed issue #65 where some form data (radio buttons) could be lost. Credit to @joshirashmics for exposing the issue.
+
+**Fix**: fixed an issue where empty names would be ignored by the parser (who knew they existed...).
+
+**Fix**: Possible fix for issue #66 (similar to PR #61)... Credit to Serafeim Maroulis (@Reyko) and Kevin Shen (@kevshin2) for exposing the issue.
+
+**Update**: Rewrote some internal algorithms, avoiding recursive logic and optimizing against excessive stack stress.
+
+**Feature**: Credit to Joel Williams (@joelw) for providing `CombinePDF.load` and `CombinePDF.parse` customization, allowing optional content errors to be ignored - taking the risk of a corrupt PDF instead of raising an exception (hey, loading PDF data with optional content sometimes works).
+
+***
+
 Change log v.0.2.21
 
 **Fix**: fix for issue #54 and #59 (duplicate), discovered by @iggant (Anton Kolodii), related to name conflict resolution and page resources. The issue would cause and error (exception) to occur when attempting to merge pages with specific resource structures. Credit to @cw6365 (Chris Ward) and @DenKey (Den) as well.
