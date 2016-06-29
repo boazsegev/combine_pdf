@@ -20,7 +20,7 @@ Quick rundown:
 
 * When combining PDF Forms, form data might be unified. If you're combining two PDF files with form data, the data might be unified. I couldn't fix this, but frankly, I kinda liked the issue... it's almost a feature.
 
-* TOC data will be lost. @andrewbaker00 is working on a PR to fix this.
+* TOC data will be lost. Stefan Leitner (@sLe1tner) is working on a PR to fix this.
 
 * Links and named destinations (i.e., a link in the PDF to a web page or a different page in the same PDF) might break. Again, I tried fixing this, but some of it depends on the TOC and some of it is susceptible to conflicts between files.
 
