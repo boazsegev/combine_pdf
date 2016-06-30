@@ -24,7 +24,6 @@ module CombinePDF
       should_resolve = @objects.dup
       dup_pages = nil
       resolved = [].to_set
-      reviewer = [].to_set
       until should_resolve.empty?
         obj = should_resolve.pop
         if(obj.is_a?(Hash))
@@ -164,6 +163,7 @@ module CombinePDF
       @objects.clear
       @objects << @info
       @objects << catalog
+      # fix Acrobat Reader issue with page reference uniqueness (must be unique or older Acrobat Reader fails)
       catalog[:Pages][:referenced_object][:Kids].each do |page|
         tmp = page[:referenced_object]
         if(@objects.include? tmp)
@@ -171,6 +171,7 @@ module CombinePDF
         end
         @objects << tmp
       end
+      # adds every referenced object to the @objects (root), addition is performed as pointers rather then copies
       add_referenced
       # @objects << @info
       # add_referenced @info
