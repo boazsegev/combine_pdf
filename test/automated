@@ -24,26 +24,70 @@ i = 0
 pdf.pages.each {|pg| pg << pdf2.pages[i]}
 pdf.save '03_check_font_conflict.pdf'
 
-unify = [
-  "./Ruby/test\ pdfs/AESv2\ encrypted.pdf",
-  "./Ruby/test\ pdfs/data-in-comment.pdf",
-  "./Ruby/test\ pdfs/file_name.pdf",
-  "./Ruby/test\ pdfs/garbage_after_eof.pdf",
-  "./Ruby/test\ pdfs/Many\ comments.pdf",
-  "./Ruby/test\ pdfs/nested\ contents\ array.PDF",
-  "./Ruby/test\ pdfs/nested_resources.pdf",
-  "./Ruby/test\ pdfs/original-missing-endobje.pdf",
-  "./Ruby/test\ pdfs/original-multi-issue.pdf",
-  "./Ruby/test\ pdfs/page_stap_nil_secure.pdf",
-  "./Ruby/test\ pdfs/referenced\ decryption.pdf",
-  '',
-  '',
-  '',
-  '',
-  '',
-  '',
-  ''
-]
+# unify = [
+#   "./Ruby/test\ pdfs/AESv2\ encrypted.pdf",
+#   "./Ruby/test\ pdfs/data-in-comment.pdf",
+#   "./Ruby/test\ pdfs/file_name.pdf",
+#   "./Ruby/test\ pdfs/garbage_after_eof.pdf",
+#   "./Ruby/test\ pdfs/Many\ comments.pdf",
+#   "./Ruby/test\ pdfs/nested\ contents\ array.PDF",
+#   "./Ruby/test\ pdfs/nested_resources.pdf",
+#   "./Ruby/test\ pdfs/original-missing-endobje.pdf",
+#   "./Ruby/test\ pdfs/original-multi-issue.pdf",
+#   "./Ruby/test\ pdfs/page_stap_nil_secure.pdf",
+#   "./Ruby/test\ pdfs/referenced\ decryption.pdf",
+#   '',
+#   '',
+#   '',
+#   '',
+#   '',
+#   '',
+#   ''
+# ]
+
+
+def merge_outlines(old_data, new_data, position)
+  old_data = actual_object(old_data)
+  new_data = actual_object(new_data).dup
+  if old_data.empty?
+    # old_data is a reference to the actual object,
+    # so if we update old_data, we're done, no need to take any further action
+    old_data.update new_data
+  else
+    old_data[:Count] += new_data[:Count]
+    # walk the Hash here ...
+    # I'm just using the start / finish position for now... FIXME
+    prev = nil
+    pos = first = actual_object(((position < 0) ? new_data : old_data)[:First])
+    median = actual_object(((position < 0) ? old_data : new_data)[:First])
+    last = actual_object(((position < 0) ? old_data : new_data)[:Last])
+    first = old_data[:First] = {is_reference_only: true, referenced_object: first}
+    last = old_data[:Last] = {is_reference_only: true, referenced_object: last}
+    parent = {is_reference_only: true, referenced_object: old_data}
+
+
+    while(pos)
+        pos[:First] = first # already a reference
+        pos[:Last] = last # already a reference
+        pos[:Parent] = parent # already a reference
+        if(prev)
+          pos[:Prev] = {is_reference_only: true, referenced_object: prev}
+        else
+          pos.delete :Prev
+        end
+        # connect the two outlines
+        if(pos[:Next].nil?)
+          pos[:Next] = median
+          median = nil
+        end
+        prev = pos
+        pos = actual_object(pos[:Next])
+    end
+  end
+  # print_dat_outline(old_data)
+  return # no need to return the data, the update had taken place destructively.
+end
+
 
 # require 'irb'
 # IRB.start

@@ -11,7 +11,7 @@ module CombinePDF
 
     include Renderer
 
-    RECORSIVE_PROTECTION = { Parent: true, First: true, Next: true, Prev: true, Last: true}.freeze
+    # RECORSIVE_PROTECTION = { Parent: true, Last: true}.freeze
 
     # @private
     # Some PDF objects contain references to other PDF objects.
@@ -40,7 +40,7 @@ module CombinePDF
               @objects << tmp
             end
           else
-            obj.keys.each {|k| should_resolve << obj[k] unless RECORSIVE_PROTECTION[k] || resolved.include?(obj[k].object_id) || !obj[k].is_a?(Enumerable)}
+            obj.keys.each {|k| should_resolve << obj[k] unless k == :Parent || resolved.include?(obj[k].object_id) || !obj[k].is_a?(Enumerable)}
           end
         elsif (obj.is_a?(Array))
           next if(resolved.include? obj.object_id)
