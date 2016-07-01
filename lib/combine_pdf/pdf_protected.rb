@@ -11,7 +11,7 @@ module CombinePDF
 
     include Renderer
 
-    RECORSIVE_PROTECTION = { Parent: true, First: true, Next: true, Prev: true, Last: true}.freeze
+    # RECORSIVE_PROTECTION = { Parent: true, Last: true}.freeze
 
     # @private
     # Some PDF objects contain references to other PDF objects.
@@ -41,7 +41,7 @@ module CombinePDF
               @objects << tmp
             end
           else
-            obj.keys.each {|k| should_resolve << obj[k] unless RECORSIVE_PROTECTION[k] || resolved.include?(obj[k].object_id) || !obj[k].is_a?(Enumerable)}
+            obj.keys.each {|k| should_resolve << obj[k] unless k == :Parent || resolved.include?(obj[k].object_id) || !obj[k].is_a?(Enumerable)}
           end
         elsif (obj.is_a?(Array))
           next if(resolved.include? obj.object_id)
@@ -183,7 +183,7 @@ module CombinePDF
       # add_referenced catalog
       # add_referenced catalog[:Pages]
       # add_referenced catalog[:Names], false
-  ##### add_referenced catalog[:Outlines], false
+      # add_referenced catalog[:Outlines], false
       # add_referenced catalog[:AcroForm], false
       catalog
     end
@@ -251,6 +251,21 @@ module CombinePDF
       end
     end
 
+    # Merges 2 outlines by appending one to the end or start of the other.
+    # old_data - the main outline, which is also the one that will be used in the resulting PDF.
+    # new_data - the outline to be appended
+    # position - an integer representing the position where a PDF is being inserted,
+    #            this method only differentiates between inserted at the end, or not at the end.
+    #            Not at the end, means the new outline will be inserted before the original outline.
+    # An outline base node (tree base) has :Type, :Count, :First, :Last
+    # Every node within the outline base node's :First or :Last can have also have the following pointers to other nodes:
+    # :First or :Last (only if the node has a subtree / subsection)
+    # :Parent (the node's parent)
+    # :Prev, :Next (previous and next node)
+    # Non-node-pointer data in these nodes:
+    # :Title - the node's title displayed in the PDF outline
+    # :Count - Number of nodes in it's subtree (0 if no subtree)
+    # :Dest  - node link destination (if the node is linking to something)
 		def merge_outlines(old_data, new_data, position)
 		  old_data = actual_object(old_data)
 		  new_data = actual_object(new_data).dup
@@ -259,94 +274,72 @@ module CombinePDF
 		    # so if we update old_data, we're done, no need to take any further action
 		    old_data.update new_data
 		  else
+        # number of outline nodes, after the merge
 		    old_data[:Count] += new_data[:Count]
 		    # walk the Hash here ...
-		    # I'm just using the start / finish position for now...
-		    # FIXME to implement an insert in the middle of the file?
+		    # I'm just using the start / end insert-position for now...
+        # first  - is going to be the start of the outline base node's :First, after the merge
+        # last   - is going to be the end   of the outline base node's :Last,  after the merge
+        # median - the start of what will be appended to the end of the outline base node's :First
+        # parent - the outline base node of the resulting merged outline
+		    # FIXME implement the possibility to insert somewhere in the middle of the outline
 		    prev = nil
-		    pos = first = actual_object(((position < 0) ? new_data : old_data)[:First])
-		    last = actual_object(((position < 0) ? old_data : new_data)[:Last])
-				median = {is_reference_only: true, referenced_object: actual_object(((position < 0) ? old_data : new_data)[:First])}
+		    pos = first = actual_object(((position < 0) ? old_data : new_data)[:First])
+		    last = actual_object(((position < 0) ? new_data : old_data)[:Last])
+				median = {is_reference_only: true, referenced_object: actual_object(((position < 0) ? new_data : old_data)[:First])}
 		    old_data[:First] = {is_reference_only: true, referenced_object: first}
 		    old_data[:Last] = {is_reference_only: true, referenced_object: last}
 		    parent = {is_reference_only: true, referenced_object: old_data}
-		    # the walking
-		    while(pos)
-	        # pos[:First] = first # already a reference
-	        # pos[:Last] = last # already a reference
-	        pos[:Parent] = parent if pos[:Parent] # already a reference
-	        if(prev)
-	          pos[:Prev] = {is_reference_only: true, referenced_object: prev}
-	        else
-	          pos.delete :Prev
-	        end
-	        # connect the two outlines
-	        if(pos[:Next].nil?)
-	          pos[:Next] = median
-	          median = nil
-	        end
-	        prev = pos
-	        pos = actual_object(pos[:Next])
-		    end
+        while(pos)
+          # walking through old_data here and updating the :Parent as we go,
+          # this updates the inserted new_data :Parent's as well once it is appended and the
+          # loop keeps walking the appended data.
+          pos[:Parent] = parent if pos[:Parent]
+          # connect the two outlines
+          # if there is no :Next, the end of the outline base node's :First is reached and this is
+          # where the new data gets appended, the same way you would append to a two-way linked list.
+          if(pos[:Next].nil?)
+            median[:referenced_object][:Prev] = {is_reference_only: true, referenced_object: prev} if median
+            pos[:Next] = median
+            # midian becomes 'nil' because this loop keeps going after the appending is done,
+            # to update the parents of the appended tree and we wouldn't want to keep appending it infinitely.
+            median = nil
+          end
+          # iterating over the outlines main nodes (this is not going into subtrees)
+          # while keeping every rotations previous node saved
+          prev = pos
+          pos = actual_object(pos[:Next])
+        end
 		    # make sure the last object doesn't have the :Next property
 		    prev.delete :Next
 		  end
-		  # print_dat_outline(old_data)
-		  return nil # no need to return the data, the update had taken place destructively.
-		end
+    end
 
-				def merge_outlines(old_data, new_data)
-			if old_data.empty?
-				old_data = new_data
-	  else
-				old_data[:Count] += new_data[:Count]
-				update_parents(old_data, old_data)
-				update_parents(new_data, old_data)
-				old_data[:Last] = new_data[:Last]
-				append_new_outline(old_data[:First][:referenced_object], new_data[:First])
-			end
-			# print_dat_outline(old_data)
-			return old_data
-		end
-
-		def update_parents(data, new_parent)
-			update_parents_subtree(data[:First][:referenced_object], new_parent) if data[:Type] == :Outlines
-			update_parents_subtree(data[:Last][:referenced_object], new_parent) if data[:Type] == :Outlines
-		end
-
-		def update_parents_subtree(new_data, new_parent)
-			new_data[:Parent] = {is_reference_only: true, referenced_object: new_parent} if new_data[:Parent]
-			update_parents_subtree(new_data[:Next][:referenced_object], new_parent) if new_data[:Next]
-		end
-
-		def append_new_outline(outline, next_to_append)
-			if outline[:Next]
-				append_new_outline(outline[:Next][:referenced_object], next_to_append)
-			else
-				outline[:Next] = next_to_append
-				next_to_append[:referenced_object][:Prev] = {is_reference_only: true, referenced_object: outline}
-		  end
-	  end
-
-		def print_dat_outline(ol)
-			xy = ol.to_s.gsub(/\:raw_stream_content=\>"[^"]+",/,":raw_stream_content=> RAW STREAM")
-			xy = xy.gsub(/\:raw_stream_content=\>"(?:(?!"}).)*+"\}/,":raw_stream_content=> RAW STREAM}")
+    # Prints the whole outline hash to a file,
+    # with basic indentation and replacing raw streams with "RAW STREAM"
+    # (subbing doesn't allways work that great for big streams)
+    # outline - outline hash
+    # file    - "filename.filetype" string
+		def print_outline_to_file(outline, file)
+			outline_subbed_str = outline.to_s.gsub(/\:raw_stream_content=\>"(?:(?!"}).)*+"\}\}/,":raw_stream_content=> RAW STREAM}}")
 			brace_cnt = 0
-			new_xy = ""
-			xy.each_char do |c|
+			formatted_outline_str = ""
+			outline_subbed_str.each_char do |c|
 				if c == '{'
-					new_xy << "\n" << "\t" * brace_cnt << c
+					formatted_outline_str << "\n" << "\t" * brace_cnt << c
 					brace_cnt += 1
 				elsif c == '}'
 					brace_cnt -= 1
-					new_xy << c << "\n" << "\t" * brace_cnt
+          brace_cnt = 0 if brace_cnt < 0
+					formatted_outline_str << c << "\n" << "\t" * brace_cnt
 				elsif c == '\n'
-					new_xy << c << "\t" * brace_cnt
+					formatted_outline_str << c << "\t" * brace_cnt
 				else
-					new_xy << c
+					formatted_outline_str << c
 				end
 			end
-			File.open("combine_pdf_out.txt", 'w') { |file| file.write(new_xy) }
+      formatted_outline_str << "\n" * 10
+			File.open(file, 'w') { |file| file.write(formatted_outline_str) }
 		end
 
     private
