@@ -28,8 +28,15 @@ pdf = CombinePDF.load "./Ruby/test pdfs/names_go_haywire_0.pdf"
 pdf << CombinePDF.load("./Ruby/test pdfs/names_go_haywire_1.pdf")
 pdf.save '04_check_view_and_names_reference.pdf'
 
+# pdf = CombinePDF.load "./Ruby/test pdfs/named_dest.pdf"
+# pdf.save '05_check_named_dest_links.pdf'
 pdf = CombinePDF.load "./Ruby/test pdfs/named_dest.pdf"
-pdf.save '05_check_named_dest_links.pdf'
+pdf << CombinePDF.load("./Ruby/test pdfs/named_dest.pdf")
+pdf.save '05_1_check_named_dest_links.pdf'
+
+pdf = CombinePDF.load "./Ruby/test pdfs/outline_small.pdf"
+pdf << CombinePDF.load("./Ruby/test pdfs/outline_small.pdf")
+pdf.save '06_check_links_to_second_copy.pdf'
 
 
 
