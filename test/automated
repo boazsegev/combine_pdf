@@ -24,6 +24,15 @@ i = 0
 pdf.pages.each {|pg| pg << pdf2.pages[i]}
 pdf.save '03_check_font_conflict.pdf'
 
+pdf = CombinePDF.load "./Ruby/test pdfs/names_go_haywire_0.pdf"
+pdf << CombinePDF.load("./Ruby/test pdfs/names_go_haywire_1.pdf")
+pdf.save '04_check_view_and_names_reference.pdf'
+
+pdf = CombinePDF.load "./Ruby/test pdfs/named_dest.pdf"
+pdf.save '05_check_named_dest_links.pdf'
+
+
+
 # unify = [
 #   "./Ruby/test\ pdfs/AESv2\ encrypted.pdf",
 #   "./Ruby/test\ pdfs/data-in-comment.pdf",
