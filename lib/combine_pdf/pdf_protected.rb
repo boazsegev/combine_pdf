@@ -218,7 +218,7 @@ module CombinePDF
               if pos[0].is_a? String
                 (pos.length / 2).times do |i|
                   dic << (pos[i * 2].clear << base.next!)
-                  dic << pos[(i * 2) + 1]
+                  dic << (pos[(i * 2) + 1].is_a?(Array) ? ({referenced_object: ({pos[(i * 2) + 1]})}) : pos[(i * 2) + 1])
                 end
               else
                 should_resolve.concat pos
