@@ -99,7 +99,7 @@ module CombinePDF
       @info = parser.info_object || {}
       @names = parser.names_object || {}
       @forms_data = parser.forms_object || {}
-			@outlines = parser.outlines_object || {}
+      @outlines = parser.outlines_object || {}
 
       # general globals
       @set_start_id = 1

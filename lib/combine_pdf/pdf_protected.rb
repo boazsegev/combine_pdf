@@ -121,9 +121,9 @@ module CombinePDF
       rebuild_names
       # build new Catalog object
       catalog_object = { Type: :Catalog,
-												 Pages: { referenced_object: pages_object, is_reference_only: true },
-												 Names: { referenced_object: @names, is_reference_only: true },
-											   Outlines: { referenced_object: @outlines, is_reference_only: true } }
+                         Pages: { referenced_object: pages_object, is_reference_only: true },
+                         Names: { referenced_object: @names, is_reference_only: true },
+                         Outlines: { referenced_object: @outlines, is_reference_only: true } }
       catalog_object[:ViewerPreferences] = @viewer_preferences unless @viewer_preferences.empty?
 
       # rebuild/rename the forms dictionary
@@ -153,9 +153,9 @@ module CombinePDF
     def names_object
       @names
     end
-		def outlines_object
-			@outlines
-		end
+    def outlines_object
+      @outlines
+    end
     # def forms_data
     # 	@forms_data
     # end
@@ -276,31 +276,31 @@ module CombinePDF
     # :Title - the node's title displayed in the PDF outline
     # :Count - Number of nodes in it's subtree (0 if no subtree)
     # :Dest  - node link destination (if the node is linking to something)
-		def merge_outlines(old_data, new_data, position)
-		  old_data = actual_object(old_data)
-		  new_data = actual_object(new_data).dup
-		  if old_data.empty?
-		    # old_data is a reference to the actual object,
-		    # so if we update old_data, we're done, no need to take any further action
-		    old_data.update new_data
-		  else
+    def merge_outlines(old_data, new_data, position)
+      old_data = actual_object(old_data)
+      new_data = actual_object(new_data).dup
+      if old_data.empty?
+        # old_data is a reference to the actual object,
+        # so if we update old_data, we're done, no need to take any further action
+        old_data.update new_data
+      else
         # number of outline nodes, after the merge
-		    old_data[:Count] += new_data[:Count]
-		    # walk the Hash here ...
-		    # I'm just using the start / end insert-position for now...
+        old_data[:Count] += new_data[:Count]
+        # walk the Hash here ...
+        # I'm just using the start / end insert-position for now...
         # first  - is going to be the start of the outline base node's :First, after the merge
         # last   - is going to be the end   of the outline base node's :Last,  after the merge
         # median - the start of what will be appended to the end of the outline base node's :First
         # parent - the outline base node of the resulting merged outline
-		    # FIXME implement the possibility to insert somewhere in the middle of the outline
-		    prev = nil
-		    pos = first = actual_object(((position < 0) ? old_data : new_data)[:First])
+        # FIXME implement the possibility to insert somewhere in the middle of the outline
+        prev = nil
+        pos = first = actual_object(((position < 0) ? old_data : new_data)[:First])
         first.delete :Prev
-		    last = actual_object(((position < 0) ? new_data : old_data)[:Last])
-				median = {is_reference_only: true, referenced_object: actual_object(((position < 0) ? new_data : old_data)[:First])}
-		    old_data[:First] = {is_reference_only: true, referenced_object: first}
-		    old_data[:Last] = {is_reference_only: true, referenced_object: last}
-		    parent = {is_reference_only: true, referenced_object: old_data}
+        last = actual_object(((position < 0) ? new_data : old_data)[:Last])
+        median = {is_reference_only: true, referenced_object: actual_object(((position < 0) ? new_data : old_data)[:First])}
+        old_data[:First] = {is_reference_only: true, referenced_object: first}
+        old_data[:Last] = {is_reference_only: true, referenced_object: last}
+        parent = {is_reference_only: true, referenced_object: old_data}
         while(pos)
           # walking through old_data here and updating the :Parent as we go,
           # this updates the inserted new_data :Parent's as well once it is appended and the
@@ -321,9 +321,9 @@ module CombinePDF
           prev = pos
           pos = actual_object(pos[:Next])
         end
-		    # make sure the last object doesn't have the :Next property
-		    prev.delete :Next
-		  end
+        # make sure the last object doesn't have the :Next property
+        prev.delete :Next
+      end
     end
 
     # Prints the whole outline hash to a file,
@@ -331,27 +331,27 @@ module CombinePDF
     # (subbing doesn't allways work that great for big streams)
     # outline - outline hash
     # file    - "filename.filetype" string
-		def print_outline_to_file(outline, file)
-			outline_subbed_str = outline.to_s.gsub(/\:raw_stream_content=\>"(?:(?!"}).)*+"\}\}/,":raw_stream_content=> RAW STREAM}}")
-			brace_cnt = 0
-			formatted_outline_str = ""
-			outline_subbed_str.each_char do |c|
-				if c == '{'
-					formatted_outline_str << "\n" << "\t" * brace_cnt << c
-					brace_cnt += 1
-				elsif c == '}'
-					brace_cnt -= 1
+    def print_outline_to_file(outline, file)
+      outline_subbed_str = outline.to_s.gsub(/\:raw_stream_content=\>"(?:(?!"}).)*+"\}\}/,":raw_stream_content=> RAW STREAM}}")
+      brace_cnt = 0
+      formatted_outline_str = ""
+      outline_subbed_str.each_char do |c|
+        if c == '{'
+          formatted_outline_str << "\n" << "\t" * brace_cnt << c
+          brace_cnt += 1
+        elsif c == '}'
+          brace_cnt -= 1
           brace_cnt = 0 if brace_cnt < 0
-					formatted_outline_str << c << "\n" << "\t" * brace_cnt
-				elsif c == '\n'
-					formatted_outline_str << c << "\t" * brace_cnt
-				else
-					formatted_outline_str << c
-				end
-			end
+          formatted_outline_str << c << "\n" << "\t" * brace_cnt
+        elsif c == '\n'
+          formatted_outline_str << c << "\t" * brace_cnt
+        else
+          formatted_outline_str << c
+        end
+      end
       formatted_outline_str << "\n" * 10
-			File.open(file, 'w') { |file| file.write(formatted_outline_str) }
-		end
+      File.open(file, 'w') { |file| file.write(formatted_outline_str) }
+    end
 
     private
 

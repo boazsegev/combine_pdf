@@ -48,7 +48,7 @@ module CombinePDF
       @root_object = {}
       @info_object = {}
       @names_object = {}
-			@outlines_object = {}
+      @outlines_object = {}
       @forms_object = {}
       @strings_dictionary = {} # all strings are one string
       @version = nil
@@ -469,8 +469,8 @@ module CombinePDF
           when :Catalog
             @forms_object.update((catalogs[:AcroForm][:referenced_object] || catalogs[:AcroForm]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:AcroForm]
             @names_object.update((catalogs[:Names][:referenced_object] || catalogs[:Names]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:Names]
-						@outlines_object.update( (catalogs[:Outlines][:referenced_object] || catalogs[:Outlines]), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:Outlines]
-						catalog_pages(catalogs[:Pages], inheritance_hash.dup) unless catalogs[:Pages].nil?
+            @outlines_object.update( (catalogs[:Outlines][:referenced_object] || catalogs[:Outlines]), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:Outlines]
+            catalog_pages(catalogs[:Pages], inheritance_hash.dup) unless catalogs[:Pages].nil?
           end
         end
       end
