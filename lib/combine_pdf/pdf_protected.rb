@@ -24,7 +24,6 @@ module CombinePDF
       should_resolve = @objects.dup
       dup_pages = nil
       resolved = [].to_set
-      reviewer = [].to_set
       until should_resolve.empty?
         obj = should_resolve.pop
         if(obj.is_a?(Hash))
@@ -170,6 +169,7 @@ module CombinePDF
       @objects.clear
       @objects << @info
       @objects << catalog
+      # fix Acrobat Reader issue with page reference uniqueness (must be unique or older Acrobat Reader fails)
       catalog[:Pages][:referenced_object][:Kids].each do |page|
         tmp = page[:referenced_object]
         if(@objects.include? tmp)
@@ -177,7 +177,10 @@ module CombinePDF
         end
         @objects << tmp
       end
+      # adds every referenced object to the @objects (root), addition is performed as pointers rather then copies
+      # puts (Benchmark.measure do
       add_referenced
+      # end)
       # @objects << @info
       # add_referenced @info
       # add_referenced catalog
@@ -208,33 +211,40 @@ module CombinePDF
       @objects.each { |obj| obj.delete(:indirect_reference_id); obj.delete(:indirect_generation_number) }
     end
 
+    POSSIBLE_NAME_TREES = [:Dest, :AP, :Pages, :IDS, :Templates, :URLS, :Pages].to_set.freeze
+
     def rebuild_names(name_tree = nil, base = 'CombinePDF_0000000')
-      if name_tree
+      if(name_tree)
+        return nil unless name_tree.is_a?(Hash)
+        name_tree = name_tree[:referenced_object] || name_tree
         dic = []
-        case name_tree
-        when Array
-          if name_tree[0].is_a? String
-            (name_tree.length / 2).times do |i|
-              dic << (name_tree[i * 2].clear << base.next!)
-              dic << name_tree[(i * 2) + 1]
-            end
-          else
-            name_tree.each { |kid| dic.concat rebuild_names(kid, base) }
-          end
-        when Hash
-          if name_tree[:Kids]
-            dic.concat rebuild_names(name_tree[:Kids], base)
-          elsif name_tree[:Names]
-            dic.concat rebuild_names(name_tree[:Names], base)
-          elsif name_tree[:referenced_object]
-            dic.concat rebuild_names(name_tree[:referenced_object], base)
+        # map a names tree and return a valid name tree. Do not recourse.
+        should_resolve = [name_tree[:Kids],name_tree[:Names]]
+        while ((pos = should_resolve.pop))
+          if pos.is_a? Array
+              if pos[0].is_a? String
+                (pos.length / 2).times do |i|
+                  dic << (pos[i * 2].clear << base.next!)
+                  dic << (pos[(i * 2) + 1].is_a?(Array) ? ({referenced_object: ({ indirect_without_dictionary: pos[(i * 2) + 1]})}) : pos[(i * 2) + 1])
+                end
+              else
+                should_resolve.concat pos
+              end
+          elsif pos.is_a? Hash
+            pos = pos[:referenced_object] || pos
+            should_resolve << pos[:Kids]
+            should_resolve << pos[:Names]
           end
         end
-        return dic
+        return { referenced_object: { Kids: dic } }
       end
-      @names.keys.each do |k|
-        @names[k] = { referenced_object: { Names: rebuild_names(@names[k], base) }, is_reference_only: true } unless k == :Type
+      @names ||= @names[:referenced_object]
+      new_names = {}
+      POSSIBLE_NAME_TREES.each do |ntree|
+        new_names[ntree] = rebuild_names(@names[ntree], base) if @names[ntree]
       end
+      @names = { referenced_object: new_names }
+      puts "We Have Names!" unless new_names.empty?
     end
 
     # @private

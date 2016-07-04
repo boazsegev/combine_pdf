@@ -2,7 +2,13 @@
 
 ***
 
-Change log v.0.2.22 (unreleased)
+Change log v.0.2.23
+
+**Fix**: fixed an issue introduced in v.0.2.22, where name dictionary conflict resolution would result in corrupted PDF files. The issue was caused because the name conflict resolution wasn't updated to handle the changes in the new reference linking algorithm used by the parser. During this fix, the whole name dictionary algorithm was re-written, providing better support for named destinations, links and (future feature) ToCs. Credit to Kevin Shen (@kevshin2) for exposing the issue.
+
+***
+
+Change log v.0.2.22
 
 **Fix**: fixed an issue with PDF font importing (registering).
 
