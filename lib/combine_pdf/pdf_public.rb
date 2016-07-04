@@ -99,6 +99,7 @@ module CombinePDF
       @info = parser.info_object || {}
       @names = parser.names_object || {}
       @forms_data = parser.forms_object || {}
+      @outlines = parser.outlines_object || {}
 
       # general globals
       @set_start_id = 1
@@ -298,6 +299,7 @@ module CombinePDF
         @version = [@version, data.version].max
         pages_to_add = data.pages
         actual_value(@names).update actual_value(data.names_object), &self.class.method(:hash_merge_new_no_page)
+        merge_outlines(@outlines, data.outlines_object, location) unless actual_value(data.outlines_object).empty?
         if actual_value(@forms_data)
           actual_value(@forms_data).update actual_value(data.forms_data), &self.class.method(:hash_merge_new_no_page) if data.forms_data
         else
