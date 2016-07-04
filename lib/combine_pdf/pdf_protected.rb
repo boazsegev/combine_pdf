@@ -264,9 +264,9 @@ module CombinePDF
     # Merges 2 outlines by appending one to the end or start of the other.
     # old_data - the main outline, which is also the one that will be used in the resulting PDF.
     # new_data - the outline to be appended
-    # position - an integer representing the position where a PDF is being inserted,
-    #            this method only differentiates between inserted at the end, or not at the end.
-    #            Not at the end, means the new outline will be inserted before the original outline.
+    # position - an integer representing the position where a PDF is being inserted.
+    #            This method only differentiates between inserted at the beginning, or not.
+    #            Not at the beginning, means the new outline will be added to the end of the original outline.
     # An outline base node (tree base) has :Type, :Count, :First, :Last
     # Every node within the outline base node's :First or :Last can have also have the following pointers to other nodes:
     # :First or :Last (only if the node has a subtree / subsection)
@@ -294,9 +294,9 @@ module CombinePDF
         # parent - the outline base node of the resulting merged outline
         # FIXME implement the possibility to insert somewhere in the middle of the outline
         prev = nil
-        pos = first = actual_object(((position < 0) ? old_data : new_data)[:First])
-        last = actual_object(((position < 0) ? new_data : old_data)[:Last])
-        median = {is_reference_only: true, referenced_object: actual_object(((position < 0) ? new_data : old_data)[:First])}
+        pos = first = actual_object(((position != 0) ? old_data : new_data)[:First])
+        last = actual_object(((position != 0) ? new_data : old_data)[:Last])
+        median = {is_reference_only: true, referenced_object: actual_object(((position != 0) ? new_data : old_data)[:First])}
         old_data[:First] = {is_reference_only: true, referenced_object: first}
         old_data[:Last] = {is_reference_only: true, referenced_object: last}
         parent = {is_reference_only: true, referenced_object: old_data}
