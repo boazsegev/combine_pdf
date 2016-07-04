@@ -20,9 +20,13 @@ Quick rundown:
 
 * When combining PDF Forms, form data might be unified. If you're combining two PDF files with form data, the data might be unified. I couldn't fix this, but frankly, I kinda liked the issue... it's almost a feature.
 
-* TOC data will be lost. Stefan Leitner (@sLe1tner) is working on a PR to fix this.
+* When unifying the same TOC data more then once, one of the references will be unified with the other.
 
 * Links and named destinations (i.e., a link in the PDF to a web page or a different page in the same PDF) might break. Again, I tried fixing this, but some of it depends on the TOC and some of it is susceptible to conflicts between files.
+
+    Also, some links and data (URL links and PDF "Named Destinations") are stored at the root of a PDF and they aren't linked back to from the page.
+
+    For this reason, some links will be lost when ripping pages out of PDF files and merging them with another PDF.
 
 * Some encrypted PDF files (usually the ones you can't view without a password) will fail quietly instead of noisily.
 
@@ -171,6 +175,8 @@ The code itself should be very straight forward, but feel free to ask whatever y
 
 Credit
 ======
+
+Stefan Leitner (@sLe1tner) wrote the outline merging code supporting PDFs which contain a ToC.
 
 Caige Nichols wrote an amazing RC4 gem which I used in my code.
 

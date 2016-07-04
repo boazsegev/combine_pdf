@@ -220,21 +220,26 @@ module CombinePDF
         dic = []
         # map a names tree and return a valid name tree. Do not recourse.
         should_resolve = [name_tree[:Kids],name_tree[:Names]]
+        resolved = [].to_set
         while ((pos = should_resolve.pop))
           if pos.is_a? Array
+            next if resolved.include?(pos.object_id)
               if pos[0].is_a? String
                 (pos.length / 2).times do |i|
                   dic << (pos[i * 2].clear << base.next!)
                   dic << (pos[(i * 2) + 1].is_a?(Array) ? ({referenced_object: ({ indirect_without_dictionary: pos[(i * 2) + 1]})}) : pos[(i * 2) + 1])
+                  # dic << pos[(i * 2) + 1]
                 end
               else
                 should_resolve.concat pos
               end
           elsif pos.is_a? Hash
             pos = pos[:referenced_object] || pos
+            next if resolved.include?(pos.object_id)
             should_resolve << pos[:Kids]
             should_resolve << pos[:Names]
           end
+          resolved << pos.object_id
         end
         return { referenced_object: { Kids: dic } }
       end
@@ -244,7 +249,7 @@ module CombinePDF
         new_names[ntree] = rebuild_names(@names[ntree], base) if @names[ntree]
       end
       @names = { referenced_object: new_names }
-      puts "We Have Names!" unless new_names.empty?
+      # puts "We Have Names!" unless new_names.empty?
     end
 
     # @private
