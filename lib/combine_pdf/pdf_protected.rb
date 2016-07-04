@@ -295,7 +295,6 @@ module CombinePDF
         # FIXME implement the possibility to insert somewhere in the middle of the outline
         prev = nil
         pos = first = actual_object(((position < 0) ? old_data : new_data)[:First])
-        first.delete :Prev
         last = actual_object(((position < 0) ? new_data : old_data)[:Last])
         median = {is_reference_only: true, referenced_object: actual_object(((position < 0) ? new_data : old_data)[:First])}
         old_data[:First] = {is_reference_only: true, referenced_object: first}
@@ -321,8 +320,9 @@ module CombinePDF
           prev = pos
           pos = actual_object(pos[:Next])
         end
-        # make sure the last object doesn't have the :Next property
+        # make sure the last object doesn't have the :Next and the first no :Prev property
         prev.delete :Next
+        actual_object(old_data[:First]).delete :Prev
       end
     end
 
