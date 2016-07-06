@@ -211,7 +211,7 @@ module CombinePDF
       @objects.each { |obj| obj.delete(:indirect_reference_id); obj.delete(:indirect_generation_number) }
     end
 
-    POSSIBLE_NAME_TREES = [:Dest, :AP, :Pages, :IDS, :Templates, :URLS, :Pages].to_set.freeze
+    POSSIBLE_NAME_TREES = [:Dests, :AP, :Pages, :IDS, :Templates, :URLS, :Pages].to_set.freeze
 
     def rebuild_names(name_tree = nil, base = 'CombinePDF_0000000')
       if(name_tree)
@@ -227,7 +227,7 @@ module CombinePDF
               if pos[0].is_a? String
                 (pos.length / 2).times do |i|
                   dic << (pos[i * 2].clear << base.next!)
-                  dic << (pos[(i * 2) + 1].is_a?(Array) ? ({referenced_object: ({ indirect_without_dictionary: pos[(i * 2) + 1]})}) : pos[(i * 2) + 1])
+                  dic << (pos[(i * 2) + 1].is_a?(Array) ? ({ is_reference_only: true, referenced_object: ({ indirect_without_dictionary: pos[(i * 2) + 1]})}) : pos[(i * 2) + 1])
                   # dic << pos[(i * 2) + 1]
                 end
               else
@@ -241,15 +241,18 @@ module CombinePDF
           end
           resolved << pos.object_id
         end
-        return { referenced_object: { Kids: dic } }
+        return { referenced_object: { Names: dic }, is_reference_only: true }
       end
       @names ||= @names[:referenced_object]
-      new_names = {}
+      new_names = {Type: :Names}.dup
       POSSIBLE_NAME_TREES.each do |ntree|
-        new_names[ntree] = rebuild_names(@names[ntree], base) if @names[ntree]
+        if @names[ntree]
+          new_names[ntree] = rebuild_names(@names[ntree], base)
+          @names[ntree].clear
+        end
       end
-      @names = { referenced_object: new_names }
-      # puts "We Have Names!" unless new_names.empty?
+      @names.clear
+      @names = new_names
     end
 
     # @private

@@ -39,7 +39,13 @@ pdf << CombinePDF.load("./Ruby/test pdfs/outline_small.pdf")
 pdf.save '06_check_links_to_second_copy.pdf'
 
 
+lists = %w{./Ruby/test\ pdfs/outlines/big_toc.pdf ./Ruby/test\ pdfs/outlines/bigger_toc.pdf ./Ruby/test\ pdfs/outlines/named_dest_no_toc.pdf ./Ruby/test\ pdfs/outlines/named_dest_no_toc2.pdf ./Ruby/test\ pdfs/outlines/named_dest.pdf ./Ruby/test\ pdfs/outlines/named_dest2.pdf};
 
+i = 0
+lists.each{|n| CombinePDF.load(n).save("07_#{(i+=1).to_s}_#{n.split('/')[-1]}") }
+pdf = CombinePDF.new
+lists.each{|n| pdf << CombinePDF.load(n) }
+pdf.save("07_named destinations.pdf")
 # unify = [
 #   "./Ruby/test\ pdfs/AESv2\ encrypted.pdf",
 #   "./Ruby/test\ pdfs/data-in-comment.pdf",
