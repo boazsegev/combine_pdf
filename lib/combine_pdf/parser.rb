@@ -223,7 +223,7 @@ module CombinePDF
         ##########################################
         ## parse a Hex String
         ##########################################
-        elsif str = @scanner.scan(/<[0-9a-fA-F]+>/)
+      elsif str = @scanner.scan(/<[0-9a-fA-F]*>/)
           # warn "Found a hex string"
           out << unify_string([str[1..-2]].pack('H*').force_encoding(Encoding::ASCII_8BIT))
         ##########################################
@@ -438,8 +438,16 @@ module CombinePDF
             inheritance_hash[:MediaBox] = catalogs[:MediaBox] if catalogs[:MediaBox]
             inheritance_hash[:CropBox] = catalogs[:CropBox] if catalogs[:CropBox]
             inheritance_hash[:Rotate] = catalogs[:Rotate] if catalogs[:Rotate]
-            (inheritance_hash[:Resources] ||= {}).update((catalogs[:Resources][:referenced_object] || catalogs[:Resources]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:Resources]
-            (inheritance_hash[:ColorSpace] ||= {}).update((catalogs[:ColorSpace][:referenced_object] || catalogs[:ColorSpace]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:ColorSpace]
+            if catalogs[:Resources]
+              inheritance_hash[:Resources] ||= { referenced_object: Hash.new , is_reference_only: true}.dup
+              (inheritance_hash[:Resources][:referenced_object] || inheritance_hash[:Resources]).update((catalogs[:Resources][:referenced_object] || catalogs[:Resources]), &self.class.method(:hash_update_proc_for_old))
+            end
+            if catalogs[:ColorSpace]
+              inheritance_hash[:ColorSpace] ||= {referenced_object: Hash.new , is_reference_only: true}.dup
+              (inheritance_hash[:ColorSpace][:referenced_object] || inheritance_hash[:ColorSpace]).update((catalogs[:ColorSpace][:referenced_object] || catalogs[:ColorSpace]), &self.class.method(:hash_update_proc_for_old))
+            end
+            # (inheritance_hash[:Resources] ||= {}).update((catalogs[:Resources][:referenced_object] || catalogs[:Resources]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:Resources]
+            # (inheritance_hash[:ColorSpace] ||= {}).update((catalogs[:ColorSpace][:referenced_object] || catalogs[:ColorSpace]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:ColorSpace]
 
             # inheritance_hash[:Order] = catalogs[:Order] if catalogs[:Order]
             # inheritance_hash[:OCProperties] = catalogs[:OCProperties] if catalogs[:OCProperties]
@@ -452,8 +460,15 @@ module CombinePDF
             catalogs[:MediaBox] ||= inheritance_hash[:MediaBox] if inheritance_hash[:MediaBox]
             catalogs[:CropBox] ||= inheritance_hash[:CropBox] if inheritance_hash[:CropBox]
             catalogs[:Rotate] ||= inheritance_hash[:Rotate] if inheritance_hash[:Rotate]
-            (catalogs[:Resources] ||= {}).update(inheritance_hash[:Resources], &self.class.method(:hash_update_proc_for_old)) if inheritance_hash[:Resources]
-            (catalogs[:ColorSpace] ||= {}).update(inheritance_hash[:ColorSpace], &self.class.method(:hash_update_proc_for_old)) if inheritance_hash[:ColorSpace]
+            if inheritance_hash[:Resources]
+              catalogs[:Resources] ||= { referenced_object: Hash.new , is_reference_only: true}.dup
+              (catalogs[:Resources][:referenced_object] || catalogs[:Resources]).update((inheritance_hash[:Resources][:referenced_object]|| inheritance_hash[:Resources]) , &self.class.method(:hash_update_proc_for_old))
+            end
+            if inheritance_hash[:ColorSpace]
+              catalogs[:ColorSpace] ||= {referenced_object: Hash.new , is_reference_only: true}.dup
+              (catalogs[:ColorSpace][:referenced_object] || catalogs[:ColorSpace]).update((inheritance_hash[:ColorSpace][:referenced_object]  || inheritance_hash[:ColorSpace]), &self.class.method(:hash_update_proc_for_old))
+            end
+            # (catalogs[:ColorSpace] ||= {}).update(inheritance_hash[:ColorSpace], &self.class.method(:hash_update_proc_for_old)) if inheritance_hash[:ColorSpace]
             # catalogs[:Order] ||= inheritance_hash[:Order] if inheritance_hash[:Order]
             # catalogs[:AS] ||= inheritance_hash[:AS] if inheritance_hash[:AS]
             # catalogs[:OCProperties] ||= inheritance_hash[:OCProperties] if inheritance_hash[:OCProperties]

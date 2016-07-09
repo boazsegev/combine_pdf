@@ -2,6 +2,16 @@
 
 ***
 
+Change log v.0.2.24
+
+**Fix**: Fixed an issue with PDF Catalog and PDF Page property inheritance that could cause corrupted PDF output (invalid PDF data). Credit to @Kagetsuki for openning an issue that let to this discovery.
+
+**Fix**: Fixed an issue with the parser where (ignored) empty strings would cause incorrect alignment when converting PDF dictionary objects from an Array to a Hash, mixing up keys and values. Credit to @Kagetsuki for openning an issue that let to this discovery.
+
+**Fix**: more fixes and refinements to the PDF Names dictionary with better named destination support and document navigation support.
+
+***
+
 Change log v.0.2.23
 
 **Fix**: fixed an issue introduced in v.0.2.22, where name dictionary conflict resolution would result in corrupted PDF files. The issue was caused because the name conflict resolution wasn't updated to handle the changes in the new reference linking algorithm used by the parser. During this fix, the whole name dictionary algorithm was re-written, providing better support for named destinations, links and (future feature) ToCs. Credit to Kevin Shen (@kevshin2) for exposing the issue.

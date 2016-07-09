@@ -46,6 +46,11 @@ lists.each{|n| CombinePDF.load(n).save("07_#{(i+=1).to_s}_#{n.split('/')[-1]}");
 pdf = CombinePDF.new
 lists.each{|n| pdf << CombinePDF.load(n) }
 pdf.save("07_named destinations.pdf")
+
+CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err.pdf").save "08_1-unknown-err-empty-str.pdf"
+CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err2.pdf").save "08_2-unknown-err-empty-str.pdf"
+CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err3.pdf").save "08_3-unknown-err-empty-str.pdf"
+
 # unify = [
 #   "./Ruby/test\ pdfs/AESv2\ encrypted.pdf",
 #   "./Ruby/test\ pdfs/data-in-comment.pdf",
