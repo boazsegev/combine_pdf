@@ -18,7 +18,7 @@ Change log v.0.2.23
 
 ***
 
-Change log v.0.2.22
+Change log v.0.2.22 (yanked)
 
 **Fix**: fixed an issue with PDF font importing (registering).
 
