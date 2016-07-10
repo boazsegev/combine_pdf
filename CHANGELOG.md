@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.2.25
+
+**Fix**: Fixed issue #71, merging PDF outline that exist but have 0 entries fails and raises an exception. Credit to @Kagetsuki for exposing the issue.
+
+***
+
 Change log v.0.2.24
 
 **Fix**: Fixed an issue with PDF Catalog and PDF Page property inheritance that could cause corrupted PDF output (invalid PDF data). Credit to @Kagetsuki for openning an issue that let to this discovery.

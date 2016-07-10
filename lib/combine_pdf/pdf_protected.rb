@@ -286,12 +286,15 @@ module CombinePDF
     # :Dest  - node link destination (if the node is linking to something)
     def merge_outlines(old_data, new_data, position)
       old_data = actual_object(old_data)
-      new_data = actual_object(new_data).dup
-      if old_data.empty?
+      new_data = actual_object(new_data)
+      if old_data.nil? || old_data.empty? || old_data[:First].nil?
         # old_data is a reference to the actual object,
         # so if we update old_data, we're done, no need to take any further action
         old_data.update new_data
+      elsif new_data.nil? || new_data.empty? || new_data[:First].nil?
+        return old_data
       else
+        new_data = new_data.dup # avoid old data corruption
         # number of outline nodes, after the merge
         old_data[:Count] += new_data[:Count]
         # walk the Hash here ...
