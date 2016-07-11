@@ -288,8 +288,8 @@ module CombinePDF
                 str << 9 # tab
               when 98 # b
                 str << 8
-              when 102 # f
-                str << 255
+              when 102 # f, form-feed
+                str << 12
               when 48..57 # octal notation for byte?
                 rep = rep.chr
                 rep += str_bytes.shift.chr if str_bytes[0].between?(48, 57)
