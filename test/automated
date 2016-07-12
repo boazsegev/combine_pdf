@@ -18,42 +18,41 @@ pdf << CombinePDF.load("./Ruby/test\ pdfs/empty_form.pdf")
 pdf << CombinePDF.load("./Ruby/test\ pdfs/filled_form.pdf")
 pdf.save '02_check_form_unification_middle_is_empty.pdf'
 
-pdf = CombinePDF.load "./Ruby/test pdfs/share-font-background.pdf"
-pdf2 = CombinePDF.load "./Ruby/test pdfs/share-font-foreground.pdf"
+pdf = CombinePDF.load './Ruby/test pdfs/share-font-background.pdf'
+pdf2 = CombinePDF.load './Ruby/test pdfs/share-font-foreground.pdf'
 i = 0
-pdf.pages.each {|pg| pg << pdf2.pages[i]}
+pdf.pages.each { |pg| pg << pdf2.pages[i] }
 pdf.save '03_check_font_conflict.pdf'
 
-pdf = CombinePDF.load "./Ruby/test pdfs/names_go_haywire_0.pdf"
-pdf << CombinePDF.load("./Ruby/test pdfs/names_go_haywire_1.pdf")
+pdf = CombinePDF.load './Ruby/test pdfs/names_go_haywire_0.pdf'
+pdf << CombinePDF.load('./Ruby/test pdfs/names_go_haywire_1.pdf')
 pdf.save '04_check_view_and_names_reference.pdf'
 
 str = IO.binread './Ruby/test pdfs/outlines/self_merge_err.pdf'
 pdf = CombinePDF.load('./Ruby/test pdfs/outlines/self_merge_err.pdf')
 pdf << CombinePDF.load('./Ruby/test pdfs/outlines/self_merge_err.pdf')
-pdf.save "05_scribus_test.pdf"
+pdf.save '05_scribus_test.pdf'
 # pdf = CombinePDF.load "./Ruby/test pdfs/named_dest.pdf";nil
 # pdf.save '05_check_named_dest_links.pdf' # this will take a while
 # pdf = CombinePDF.load "./Ruby/test pdfs/named_dest.pdf";nil
 # pdf << CombinePDF.load("./Ruby/test pdfs/named_dest.pdf");nil
 # pdf.save '05_1_check_named_dest_links.pdf' # never ends... :-(
 
-pdf = CombinePDF.load "./Ruby/test pdfs/outline_small.pdf"
-pdf << CombinePDF.load("./Ruby/test pdfs/outline_small.pdf")
+pdf = CombinePDF.load './Ruby/test pdfs/outline_small.pdf'
+pdf << CombinePDF.load('./Ruby/test pdfs/outline_small.pdf')
 pdf.save '06_check_links_to_second_copy.pdf'
 
-
-lists = %w{./Ruby/test\ pdfs/outlines/self_merge_err.pdf ./Ruby/test\ pdfs/outlines/big_toc.pdf ./Ruby/test\ pdfs/outlines/bigger_toc.pdf ./Ruby/test\ pdfs/outlines/named_dest_no_toc.pdf ./Ruby/test\ pdfs/outlines/named_dest_no_toc2.pdf ./Ruby/test\ pdfs/outlines/named_dest.pdf ./Ruby/test\ pdfs/outlines/named_dest2.pdf};
+lists = %w(./Ruby/test\ pdfs/outlines/self_merge_err.pdf ./Ruby/test\ pdfs/outlines/big_toc.pdf ./Ruby/test\ pdfs/outlines/bigger_toc.pdf ./Ruby/test\ pdfs/outlines/named_dest_no_toc.pdf ./Ruby/test\ pdfs/outlines/named_dest_no_toc2.pdf ./Ruby/test\ pdfs/outlines/named_dest.pdf ./Ruby/test\ pdfs/outlines/named_dest2.pdf)
 
 i = 0
-lists.each{|n| CombinePDF.load(n).save("07_#{(i+=1).to_s}_#{n.split('/')[-1]}"); (CombinePDF.load(n) << CombinePDF.load(n)).save("07_#{(i).to_s}x2_#{n.split('/')[-1]}") }
+lists.each { |n| CombinePDF.load(n).save("07_#{(i += 1)}_#{n.split('/')[-1]}"); (CombinePDF.load(n) << CombinePDF.load(n)).save("07_#{i}x2_#{n.split('/')[-1]}") }
 pdf = CombinePDF.new
-lists.each{|n| pdf << CombinePDF.load(n) }
-pdf.save("07_named destinations.pdf")
+lists.each { |n| pdf << CombinePDF.load(n) }
+pdf.save('07_named destinations.pdf')
 
-CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err.pdf").save "08_1-unknown-err-empty-str.pdf"
-CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err2.pdf").save "08_2-unknown-err-empty-str.pdf"
-CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err3.pdf").save "08_3-unknown-err-empty-str.pdf"
+CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err.pdf").save '08_1-unknown-err-empty-str.pdf'
+CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err2.pdf").save '08_2-unknown-err-empty-str.pdf'
+CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err3.pdf").save '08_3-unknown-err-empty-str.pdf'
 
 # unify = [
 #   "./Ruby/test\ pdfs/AESv2\ encrypted.pdf",

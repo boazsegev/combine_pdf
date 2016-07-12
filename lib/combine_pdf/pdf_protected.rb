@@ -16,7 +16,7 @@ module CombinePDF
     # @private
     # Some PDF objects contain references to other PDF objects.
     #
-    # this function adds the references contained in "object", but DOESN'T add the object itself.
+    # this function adds the references contained in `@objects`.
     #
     # this is used for internal operations, such as injectng data using the << operator.
     def add_referenced
@@ -24,14 +24,14 @@ module CombinePDF
       should_resolve = @objects.dup
       dup_pages = nil
       resolved = [].to_set
-      until should_resolve.empty?
+      while should_resolve.any?
         obj = should_resolve.pop
-        if(obj.is_a?(Hash))
-          next if(resolved.include? obj.object_id)
+        if obj.is_a?(Hash)
+          next if resolved.include? obj.object_id
           resolved << obj.object_id
           if obj[:referenced_object]
             tmp = @objects.find_index(obj[:referenced_object])
-            if(tmp)
+            if tmp
               tmp = @objects[tmp]
               obj[:referenced_object] = tmp
             else
@@ -40,17 +40,16 @@ module CombinePDF
               @objects << tmp
             end
           else
-            obj.keys.each {|k| should_resolve << obj[k] unless k == :Parent || resolved.include?(obj[k].object_id) || !obj[k].is_a?(Enumerable)}
+            obj.keys.each { |k| should_resolve << obj[k] unless k == :Parent || resolved.include?(obj[k].object_id) || !obj[k].is_a?(Enumerable) }
           end
-        elsif (obj.is_a?(Array))
-          next if(resolved.include? obj.object_id)
+        elsif obj.is_a?(Array)
+          next if resolved.include? obj.object_id
           resolved << obj.object_id
           should_resolve.concat obj
         end
       end
       resolved.clear
     end
-
 
     # # @private
     # # Some PDF objects contain references to other PDF objects.
@@ -153,6 +152,7 @@ module CombinePDF
     def names_object
       @names
     end
+
     def outlines_object
       @outlines
     end
@@ -172,9 +172,7 @@ module CombinePDF
       # fix Acrobat Reader issue with page reference uniqueness (must be unique or older Acrobat Reader fails)
       catalog[:Pages][:referenced_object][:Kids].each do |page|
         tmp = page[:referenced_object]
-        if(@objects.include? tmp)
-          tmp = page[:referenced_object] = tmp.dup
-        end
+        tmp = page[:referenced_object] = tmp.dup if @objects.include? tmp
         @objects << tmp
       end
       # adds every referenced object to the @objects (root), addition is performed as pointers rather then copies
@@ -214,25 +212,26 @@ module CombinePDF
     POSSIBLE_NAME_TREES = [:Dests, :AP, :Pages, :IDS, :Templates, :URLS, :Pages].to_set.freeze
 
     def rebuild_names(name_tree = nil, base = 'CombinePDF_0000000')
-      if(name_tree)
+      if name_tree
         return nil unless name_tree.is_a?(Hash)
         name_tree = name_tree[:referenced_object] || name_tree
         dic = []
         # map a names tree and return a valid name tree. Do not recourse.
-        should_resolve = [name_tree[:Kids],name_tree[:Names]]
+        should_resolve = [name_tree[:Kids], name_tree[:Names]]
         resolved = [].to_set
-        while ((pos = should_resolve.pop))
+        while should_resolve.any?
+          pos = should_resolve.pop
           if pos.is_a? Array
             next if resolved.include?(pos.object_id)
-              if pos[0].is_a? String
-                (pos.length / 2).times do |i|
-                  dic << (pos[i * 2].clear << base.next!)
-                  dic << (pos[(i * 2) + 1].is_a?(Array) ? ({ is_reference_only: true, referenced_object: ({ indirect_without_dictionary: pos[(i * 2) + 1]})}) : pos[(i * 2) + 1])
-                  # dic << pos[(i * 2) + 1]
-                end
-              else
-                should_resolve.concat pos
+            if pos[0].is_a? String
+              (pos.length / 2).times do |i|
+                dic << (pos[i * 2].clear << base.next!)
+                dic << (pos[(i * 2) + 1].is_a?(Array) ? { is_reference_only: true, referenced_object: { indirect_without_dictionary: pos[(i * 2) + 1] } } : pos[(i * 2) + 1])
+                # dic << pos[(i * 2) + 1]
               end
+            else
+              should_resolve.concat pos
+            end
           elsif pos.is_a? Hash
             pos = pos[:referenced_object] || pos
             next if resolved.include?(pos.object_id)
@@ -244,7 +243,7 @@ module CombinePDF
         return { referenced_object: { Names: dic }, is_reference_only: true }
       end
       @names ||= @names[:referenced_object]
-      new_names = {Type: :Names}.dup
+      new_names = { Type: :Names }.dup
       POSSIBLE_NAME_TREES.each do |ntree|
         if @names[ntree]
           new_names[ntree] = rebuild_names(@names[ntree], base)
@@ -307,11 +306,11 @@ module CombinePDF
         prev = nil
         pos = first = actual_object(((position != 0) ? old_data : new_data)[:First])
         last = actual_object(((position != 0) ? new_data : old_data)[:Last])
-        median = {is_reference_only: true, referenced_object: actual_object(((position != 0) ? new_data : old_data)[:First])}
-        old_data[:First] = {is_reference_only: true, referenced_object: first}
-        old_data[:Last] = {is_reference_only: true, referenced_object: last}
-        parent = {is_reference_only: true, referenced_object: old_data}
-        while(pos)
+        median = { is_reference_only: true, referenced_object: actual_object(((position != 0) ? new_data : old_data)[:First]) }
+        old_data[:First] = { is_reference_only: true, referenced_object: first }
+        old_data[:Last] = { is_reference_only: true, referenced_object: last }
+        parent = { is_reference_only: true, referenced_object: old_data }
+        while pos
           # walking through old_data here and updating the :Parent as we go,
           # this updates the inserted new_data :Parent's as well once it is appended and the
           # loop keeps walking the appended data.
@@ -319,8 +318,8 @@ module CombinePDF
           # connect the two outlines
           # if there is no :Next, the end of the outline base node's :First is reached and this is
           # where the new data gets appended, the same way you would append to a two-way linked list.
-          if(pos[:Next].nil?)
-            median[:referenced_object][:Prev] = {is_reference_only: true, referenced_object: prev} if median
+          if pos[:Next].nil?
+            median[:referenced_object][:Prev] = { is_reference_only: true, referenced_object: prev } if median
             pos[:Next] = median
             # midian becomes 'nil' because this loop keeps going after the appending is done,
             # to update the parents of the appended tree and we wouldn't want to keep appending it infinitely.
@@ -343,9 +342,9 @@ module CombinePDF
     # outline - outline hash
     # file    - "filename.filetype" string
     def print_outline_to_file(outline, file)
-      outline_subbed_str = outline.to_s.gsub(/\:raw_stream_content=\>"(?:(?!"}).)*+"\}\}/,":raw_stream_content=> RAW STREAM}}")
+      outline_subbed_str = outline.to_s.gsub(/\:raw_stream_content=\>"(?:(?!"}).)*+"\}\}/, ':raw_stream_content=> RAW STREAM}}')
       brace_cnt = 0
-      formatted_outline_str = ""
+      formatted_outline_str = ''
       outline_subbed_str.each_char do |c|
         if c == '{'
           formatted_outline_str << "\n" << "\t" * brace_cnt << c

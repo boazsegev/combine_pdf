@@ -1,0 +1,79 @@
+#!/usr/bin/env ruby
+
+require 'benchmark'
+require 'prawn'
+
+$LOAD_PATH.unshift File.expand_path(File.join('..', '..', 'lib'), __FILE__)
+require 'combine_pdf'
+require 'bundler/setup'
+
+def test_with_non_asci
+  b_pdf = Prawn::Document.new do
+    text('Hi prawn')
+    outline.page title: 'First pdf'
+    text '<link anchor="hʤä.l,l o">Click me, to go to päge 3</link>', inline_format: true
+    19.times do |t|
+      text "<link anchor=\"hʤä.l,l #{t}\">Click me, to go to päge 3 6</link>", inline_format: true
+    end
+    start_new_page
+    text('Heeeeelloh!')
+    text '<link anchor="hʤä.l,l o">Click mee, to go to päge 3</link>', inline_format: true
+    start_new_page
+    text('Blub')
+    add_dest('hʤä.l,l o', dest_fit(page))
+    19.times do |t|
+      add_dest("hʤä.l,l #{t}", dest_fit(page))
+    end
+    outline.page title: '1st pdf page 2'
+    outline.define do
+      2.times do |t|
+        section "Chapter #{t}", closed: false do
+          page title: 'Page 1', destination: 1
+          page title: 'Page 2', destination: 2
+          page title: 'Page 3', destination: 1
+          page title: 'Page 4', destination: 2
+        end
+      end
+    end
+  end
+
+  c_pdf = Prawn::Document.new do
+    text('Hi prawn')
+    outline.page title: 'First pdf'
+    27.times do |t|
+      text "<link anchor=\"hʢä.l,l #{t}\">Click me, to go to päge 3 6</link>", inline_format: true
+    end
+    start_new_page
+    text('Heeeeelloh!')
+    text '<link anchor="hʢä.l,l o">Click mee, to go to päge 3</link>', inline_format: true
+    start_new_page
+    text('Blub')
+    add_dest('hʢä.l,l o', dest_fit(page))
+    27.times do |t|
+      add_dest("hʢä.l,l #{t}", dest_fit(page))
+    end
+    outline.page title: '1st pdf page 2'
+    outline.define do
+      2.times do |t|
+        section "Chapter #{t}", closed: false do
+          page title: 'Page 1', destination: 1
+          page title: 'Page 2', destination: 2
+          page title: 'Page 3', destination: 1
+          page title: 'Page 4', destination: 2
+        end
+      end
+    end
+  end
+  report = CombinePDF.new
+  tmp = b_pdf.render
+  IO.binwrite('01-named-src1', tmp)
+  report << CombinePDF.parse(tmp)
+  tmp = c_pdf.render
+  IO.binwrite('01-named-src2', tmp)
+  report << CombinePDF.parse(tmp)
+  report.save('01-named.pdf')
+end
+
+test_with_non_asci
+# require 'irb'
+# IRB.start

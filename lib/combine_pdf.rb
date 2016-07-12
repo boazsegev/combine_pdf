@@ -6,25 +6,23 @@ require 'strscan'
 require 'matrix'
 require 'set'
 
-#require the RC4 Gem
+# require the RC4 Gem
 require 'rc4'
 
-
-load "combine_pdf/api.rb"
-load "combine_pdf/renderer.rb"
-load "combine_pdf/page_methods.rb"
-load "combine_pdf/basic_writer.rb"
-load "combine_pdf/decrypt.rb"
-load "combine_pdf/fonts.rb"
-load "combine_pdf/filter.rb"
-load "combine_pdf/parser.rb"
-load "combine_pdf/pdf_public.rb"
-load "combine_pdf/pdf_protected.rb"
+load 'combine_pdf/api.rb'
+load 'combine_pdf/renderer.rb'
+load 'combine_pdf/page_methods.rb'
+load 'combine_pdf/basic_writer.rb'
+load 'combine_pdf/decrypt.rb'
+load 'combine_pdf/fonts.rb'
+load 'combine_pdf/filter.rb'
+load 'combine_pdf/parser.rb'
+load 'combine_pdf/pdf_public.rb'
+load 'combine_pdf/pdf_protected.rb'
 
 # load "combine_pdf/operations.rb"
 
-load "combine_pdf/version.rb"
-
+load 'combine_pdf/version.rb'
 
 # This is a pure ruby library to combine/merge, stmap/overlay and number PDF files - as well as to create tables (ment for indexing combined files).
 #
@@ -128,10 +126,7 @@ load "combine_pdf/version.rb"
 #
 # MIT
 module CombinePDF
-
 end
-
-
 
 #########################################################
 # this file is part of the CombinePDF library and the code
@@ -181,4 +176,3 @@ end
 ### gives 0.000000   0.000000   1.010000 (  1.147135)
 ### file merge FAILS with 1,000 empty pages (undecrypted)
 ####### gives: 0.000000   0.000000   1.770000 (  1.775513) with draft. file size 4.9MB (!!!)
-

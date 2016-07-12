@@ -1,3 +1,3 @@
 module CombinePDF
-  VERSION = "0.2.26"
+  VERSION = '0.2.26'.freeze
 end

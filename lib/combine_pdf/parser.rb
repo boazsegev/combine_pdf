@@ -40,17 +40,17 @@ module CombinePDF
     def initialize(string, options = {})
       raise TypeError, "couldn't parse data, expecting type String" unless string.is_a? String
       @string_to_parse = string.force_encoding(Encoding::ASCII_8BIT)
-      @literal_strings = []
-      @hex_strings = []
-      @streams = []
-      @parsed = []
-      @references = []
-      @root_object = {}
-      @info_object = {}
-      @names_object = {}
-      @outlines_object = {}
-      @forms_object = {}
-      @strings_dictionary = {} # all strings are one string
+      @literal_strings = [].dup
+      @hex_strings = [].dup
+      @streams = [].dup
+      @parsed = [].dup
+      @references = [].dup
+      @root_object = {}.dup
+      @info_object = {}.dup
+      @names_object = {}.dup
+      @outlines_object = {}.dup
+      @forms_object = {}.dup
+      @strings_dictionary = {}.dup # all strings are one string
       @version = nil
       @scanner = nil
       @allow_optional_content = options[:allow_optional_content]
@@ -223,7 +223,7 @@ module CombinePDF
         ##########################################
         ## parse a Hex String
         ##########################################
-      elsif str = @scanner.scan(/<[0-9a-fA-F]*>/)
+        elsif str = @scanner.scan(/<[0-9a-fA-F]*>/)
           # warn "Found a hex string"
           out << unify_string([str[1..-2]].pack('H*').force_encoding(Encoding::ASCII_8BIT))
         ##########################################
@@ -439,11 +439,11 @@ module CombinePDF
             inheritance_hash[:CropBox] = catalogs[:CropBox] if catalogs[:CropBox]
             inheritance_hash[:Rotate] = catalogs[:Rotate] if catalogs[:Rotate]
             if catalogs[:Resources]
-              inheritance_hash[:Resources] ||= { referenced_object: Hash.new , is_reference_only: true}.dup
+              inheritance_hash[:Resources] ||= { referenced_object: {}, is_reference_only: true }.dup
               (inheritance_hash[:Resources][:referenced_object] || inheritance_hash[:Resources]).update((catalogs[:Resources][:referenced_object] || catalogs[:Resources]), &self.class.method(:hash_update_proc_for_old))
             end
             if catalogs[:ColorSpace]
-              inheritance_hash[:ColorSpace] ||= {referenced_object: Hash.new , is_reference_only: true}.dup
+              inheritance_hash[:ColorSpace] ||= { referenced_object: {}, is_reference_only: true }.dup
               (inheritance_hash[:ColorSpace][:referenced_object] || inheritance_hash[:ColorSpace]).update((catalogs[:ColorSpace][:referenced_object] || catalogs[:ColorSpace]), &self.class.method(:hash_update_proc_for_old))
             end
             # (inheritance_hash[:Resources] ||= {}).update((catalogs[:Resources][:referenced_object] || catalogs[:Resources]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:Resources]
@@ -461,12 +461,12 @@ module CombinePDF
             catalogs[:CropBox] ||= inheritance_hash[:CropBox] if inheritance_hash[:CropBox]
             catalogs[:Rotate] ||= inheritance_hash[:Rotate] if inheritance_hash[:Rotate]
             if inheritance_hash[:Resources]
-              catalogs[:Resources] ||= { referenced_object: Hash.new , is_reference_only: true}.dup
-              (catalogs[:Resources][:referenced_object] || catalogs[:Resources]).update((inheritance_hash[:Resources][:referenced_object]|| inheritance_hash[:Resources]) , &self.class.method(:hash_update_proc_for_old))
+              catalogs[:Resources] ||= { referenced_object: {}, is_reference_only: true }.dup
+              (catalogs[:Resources][:referenced_object] || catalogs[:Resources]).update((inheritance_hash[:Resources][:referenced_object] || inheritance_hash[:Resources]), &self.class.method(:hash_update_proc_for_old))
             end
             if inheritance_hash[:ColorSpace]
-              catalogs[:ColorSpace] ||= {referenced_object: Hash.new , is_reference_only: true}.dup
-              (catalogs[:ColorSpace][:referenced_object] || catalogs[:ColorSpace]).update((inheritance_hash[:ColorSpace][:referenced_object]  || inheritance_hash[:ColorSpace]), &self.class.method(:hash_update_proc_for_old))
+              catalogs[:ColorSpace] ||= { referenced_object: {}, is_reference_only: true }.dup
+              (catalogs[:ColorSpace][:referenced_object] || catalogs[:ColorSpace]).update((inheritance_hash[:ColorSpace][:referenced_object] || inheritance_hash[:ColorSpace]), &self.class.method(:hash_update_proc_for_old))
             end
             # (catalogs[:ColorSpace] ||= {}).update(inheritance_hash[:ColorSpace], &self.class.method(:hash_update_proc_for_old)) if inheritance_hash[:ColorSpace]
             # catalogs[:Order] ||= inheritance_hash[:Order] if inheritance_hash[:Order]
@@ -484,7 +484,7 @@ module CombinePDF
           when :Catalog
             @forms_object.update((catalogs[:AcroForm][:referenced_object] || catalogs[:AcroForm]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:AcroForm]
             @names_object.update((catalogs[:Names][:referenced_object] || catalogs[:Names]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:Names]
-            @outlines_object.update( (catalogs[:Outlines][:referenced_object] || catalogs[:Outlines]), &self.class.method(:hash_update_proc_for_new) ) if catalogs[:Outlines]
+            @outlines_object.update((catalogs[:Outlines][:referenced_object] || catalogs[:Outlines]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:Outlines]
             catalog_pages(catalogs[:Pages], inheritance_hash.dup) unless catalogs[:Pages].nil?
           end
         end
