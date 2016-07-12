@@ -4,15 +4,21 @@
 
 Change log v.0.2.25
 
+**Fix**: Merged PR #72, fixing a typo in the parser that caused incorrect byte substitution to corrupt certain PDF data (adversly effecting encrypted PDFs). Credit to Gyuchang Jun (@gyuchang) for the fix.
+
+***
+
+Change log v.0.2.25
+
 **Fix**: Fixed issue #71, merging PDF outline that exist but have 0 entries fails and raises an exception. Credit to @Kagetsuki for exposing the issue.
 
 ***
 
 Change log v.0.2.24
 
-**Fix**: Fixed an issue with PDF Catalog and PDF Page property inheritance that could cause corrupted PDF output (invalid PDF data). Credit to @Kagetsuki for openning an issue that let to this discovery.
+**Fix**: Fixed an issue with PDF Catalog and PDF Page property inheritance that could cause corrupted PDF output (invalid PDF data). Credit to @Kagetsuki for opening an issue that let to this discovery.
 
-**Fix**: Fixed an issue with the parser where (ignored) empty strings would cause incorrect alignment when converting PDF dictionary objects from an Array to a Hash, mixing up keys and values. Credit to @Kagetsuki for openning an issue that let to this discovery.
+**Fix**: Fixed an issue with the parser where (ignored) empty strings would cause incorrect alignment when converting PDF dictionary objects from an Array to a Hash, mixing up keys and values. Credit to @Kagetsuki for opening an issue that let to this discovery.
 
 **Fix**: more fixes and refinements to the PDF Names dictionary with better named destination support and document navigation support.
 
