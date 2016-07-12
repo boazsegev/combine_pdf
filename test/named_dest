@@ -72,6 +72,11 @@ def test_with_non_asci
   IO.binwrite('01-named-src2', tmp)
   report << CombinePDF.parse(tmp)
   report.save('01-named.pdf')
+
+  report = CombinePDF.new
+  report << CombinePDF.parse(c_pdf.render)
+  report << CombinePDF.parse(b_pdf.render)
+  report.save('01.1-named.pdf')
 end
 
 test_with_non_asci
