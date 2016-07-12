@@ -2,9 +2,17 @@
 
 ***
 
-Change log v.0.2.25
+Change log v.0.2.27
 
-**Fix**: Merged PR #72, fixing a typo in the parser that caused incorrect byte substitution to corrupt certain PDF data (adversly effecting encrypted PDFs). Credit to Gyuchang Jun (@gyuchang) for the fix.
+**Fix**: Fixed an issue where `nil` data would cause the named destination rebuilding process to quit early, leaving some of the data unprocessed. Credit to Stefan Leitner (@sLe1tner) for exposing the issue.
+
+**Feature**: PDF outlines are now merged and named destination links are preserved (both in the outlines and the page content). Credit to Stefan Leitner (@sLe1tner) for this feature.
+
+***
+
+Change log v.0.2.26
+
+**Fix**: Merged PR #72, fixing a typo in the parser that caused incorrect byte substitution to corrupt certain PDF data (adversely effecting encrypted PDFs). Credit to Gyuchang Jun (@gyuchang) for the fix.
 
 ***
 
