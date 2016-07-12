@@ -235,8 +235,8 @@ module CombinePDF
           elsif pos.is_a? Hash
             pos = pos[:referenced_object] || pos
             next if resolved.include?(pos.object_id)
-            should_resolve << pos[:Kids]
-            should_resolve << pos[:Names]
+            should_resolve << pos[:Kids] if pos[:Kids]
+            should_resolve << pos[:Names] if pos[:Names]
           end
           resolved << pos.object_id
         end
