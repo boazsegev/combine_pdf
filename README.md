@@ -189,7 +189,7 @@ MIT
 Contributions
 =======
 
-You can look at the [GitHub Issues Page](https://github.com/boazsegev/combine_pdf/issues) and see the "help wanted" tags.
+You can look at the [GitHub Issues Page](https://github.com/boazsegev/combine_pdf/issues) and see the ["help wanted"](https://github.com/boazsegev/combine_pdf/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) tags.
 
 If you're thinking of donations or sending me money - no need. This project can sustain itself without your money.
 
