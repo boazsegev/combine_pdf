@@ -185,3 +185,12 @@ Credit to his wonderful is given here. Please respect his license and copyright.
 License
 =======
 MIT
+
+Contributions
+=======
+
+You can look at the [GitHub Issues Page](https://github.com/boazsegev/combine_pdf/issues) and see the "help wanted" tags.
+
+If you're thinking of donations or sending me money - no need. This project can sustain itself without your money.
+
+What this project needs is the time given by caring developers who keep it up to date and fix any documentation errors or issues they notice ... having said that, gifts (such as free coffee or iTunes gift cards) are always fun. But I think there are those in real need that will benefit more from your generosity.
