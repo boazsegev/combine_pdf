@@ -4,6 +4,8 @@
 
 Change log v.0.2.27
 
+**Fix**: Fixed an issue where a `nil` outline count would cause PDF merger to fail.
+
 **Fix**: Fixed an issue where `nil` data would cause the named destination rebuilding process to quit early, leaving some of the data unprocessed. Credit to Stefan Leitner (@sLe1tner) for exposing the issue.
 
 **Feature**: PDF outlines are now merged and named destination links are preserved (both in the outlines and the page content). Credit to Stefan Leitner (@sLe1tner) for this feature.

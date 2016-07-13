@@ -295,7 +295,7 @@ module CombinePDF
       else
         new_data = new_data.dup # avoid old data corruption
         # number of outline nodes, after the merge
-        old_data[:Count] += new_data[:Count]
+        old_data[:Count] = old_data[:Count].to_i + new_data[:Count].to_i
         # walk the Hash here ...
         # I'm just using the start / end insert-position for now...
         # first  - is going to be the start of the outline base node's :First, after the merge
