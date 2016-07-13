@@ -18,19 +18,17 @@ Quick rundown:
 
 * When reading PDF Forms, some form data might be lost. I tried fixing this to the best of my ability, but I'm not sure it all works just yet.
 
-* When combining PDF Forms, form data might be unified. If you're combining two PDF files with form data, the data might be unified. I couldn't fix this, but frankly, I kinda liked the issue... it's almost a feature.
+* When combining PDF Forms, form data might be unified. I couldn't fix this because this is how PDF forms work (filling a feild fills in the data in any field with the same name), but frankly, I kinda liked the issue... it's almost a feature.
 
-* When unifying the same TOC data more then once, one of the references will be unified with the other.
+* When unifying the same TOC data more then once, one of the references will be unified with the other (meaning that if the pages look the same, both references will link to the same page instead of linking to two different pages). You can fix this by adding content to the pages before merging the PDF files (i.e. add empty text boxes to all the pages).
 
-* Links and named destinations (i.e., a link in the PDF to a web page or a different page in the same PDF) might break. Again, I tried fixing this, but some of it depends on the TOC and some of it is susceptible to conflicts between files.
+* Some links and data (URL links and PDF "Named Destinations") are stored at the root of a PDF and they aren't linked back to from the page. Keeping this information requires merging the PDF objects rather then their pages.
 
-    Also, some links and data (URL links and PDF "Named Destinations") are stored at the root of a PDF and they aren't linked back to from the page.
-
-    For this reason, some links will be lost when ripping pages out of PDF files and merging them with another PDF.
+    Some links will be lost when ripping pages out of PDF files and merging them with another PDF.
 
 * Some encrypted PDF files (usually the ones you can't view without a password) will fail quietly instead of noisily.
 
-* Sometimes the CombinePDF will raise an exception even if the PDF could be parsed (i.e., when PDF optional content exists)... I find it better to err on the side of caution, although for optional content PDFs it is avoidable using `CombinePDF.load(pdf_file, allow_optional_content: true)`.
+* Sometimes the CombinePDF will raise an exception even if the PDF could be parsed (i.e., when PDF optional content exists)... I find it better to err on the side of caution, although for optional content PDFs an exception is avoidable using `CombinePDF.load(pdf_file, allow_optional_content: true)`.
 
 CombinePDF is written natively in Ruby and should (presumably) work on all Ruby platforms that follow Ruby 2.0 compatibility.
 
