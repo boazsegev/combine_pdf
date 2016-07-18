@@ -63,15 +63,16 @@ module CombinePDF
       # injecting each of the values in the injected Page
       res = resources
       obj.resources.each do |key, new_val|
-        if !PDF::PRIVATE_HASH_KEYS.include?(key) # keep CombinePDF structual data intact.
-          next unless res[key].nil?
+        # keep CombinePDF structural data intact.
+        next if PDF::PRIVATE_HASH_KEYS.include?(key)
+
+        if res[key].nil?
           res[key] = new_val
         elsif res[key].is_a?(Hash) && new_val.is_a?(Hash)
           new_val = new_val[:referenced_object] || new_val
           new_val.update (res[key][:referenced_object] || res[key]) # make sure the old values are respected
           (res[key][:referenced_object] || res[key]).update new_val # transfer old and new values to the injected page
-          # Do nothing if array - ot is the PROC array, which is an issue
-        end
+        end #Do nothing if array - ot is the PROC array, which is an issue
       end
       resources[:ProcSet] = [:PDF, :Text, :ImageB, :ImageC, :ImageI] # this was recommended by the ISO. 32000-1:2008
 
