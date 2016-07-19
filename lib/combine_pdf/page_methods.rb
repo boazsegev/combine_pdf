@@ -60,20 +60,40 @@ module CombinePDF
       # following the reference chain and assigning a pointer to the correct Resouces object.
       # (assignments of Strings, Arrays and Hashes are pointers in Ruby, unless the .dup method is called)
 
-      # injecting each of the values in the injected Page
-      res = resources
+      # setup references to avoid method calls.
+      local_res = resources
+      local_val = nil
+      # setup references to avoid method calls.
+      remote_res = obj.resources
+      remote_val = nil
+
+      # add each of the new resources in the uncoming Page to the local resource Hash
       obj.resources.each do |key, new_val|
         # keep CombinePDF structural data intact.
         next if PDF::PRIVATE_HASH_KEYS.include?(key)
-
-        if res[key].nil?
-          res[key] = new_val
-        elsif res[key].is_a?(Hash) && new_val.is_a?(Hash)
-          new_val = new_val[:referenced_object] || new_val
-          new_val.update (res[key][:referenced_object] || res[key]) # make sure the old values are respected
-          (res[key][:referenced_object] || res[key]).update new_val # transfer old and new values to the injected page
-        end #Do nothing if array - ot is the PROC array, which is an issue
+        # review
+        if local_res[key].nil?
+          # no local data, adopt data from incoming page
+          local_res[key] = new_val
+          # go back to looping, no need to parse the rest of the Ruby
+          next
+        elsif (local_val = actual_object(local_res[key])).is_a?(Hash) && (new_val = actual_object(new_val)).is_a?(Hash)
+          # marge data with priority to the incoming page's data
+          new_val.update local_val # make sure the old values are respected
+          local_val.update new_val # transfer old and new values to the injected page
+        end # Do nothing if array or anything else
       end
+
+      # concat the Annots array? (what good are named links if the names are in the unaccessible Page Catalog?)
+      # if obj[:Annots]
+      #   if (local_val = actual_object(self[:Annots])).nil?
+      #     self[:Annots] = obj[:Annots]
+      #   elsif local_val.is_a?(Array) && (remote_val = actual_object(obj[:Annots])).is_a?(Array)
+      #     local_val.concat remote_val
+      #   end
+      # end
+
+      # set ProcSet to recommended value
       resources[:ProcSet] = [:PDF, :Text, :ImageB, :ImageC, :ImageI] # this was recommended by the ISO. 32000-1:2008
 
       if top # if this is a stamp (overlay)

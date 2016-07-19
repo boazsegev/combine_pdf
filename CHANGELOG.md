@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.2.28
+
+**Fix**: Fixed an issue related to page stumping, which was introduced when the Rubocop beautification changed the logic of an `if` statement in the Resource merger. Credit to Leon Miller-Out (@sbleon) for noticing the issue, testing and opening PR #76.
+
+***
+
 Change log v.0.2.27
 
 **Fix**: Fixed an issue where a `nil` outline count would cause PDF merger to fail.
