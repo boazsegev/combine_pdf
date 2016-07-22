@@ -414,7 +414,7 @@ module CombinePDF
       # close the rotation stream
       insert_content CONTENT_CONTAINER_END
       # reset the mediabox and cropbox values - THIS IS ONLY FOR ORIENTATION CHANGE...
-      if (self[:Rotate].to_f / 90).odd?
+      if (self[:Rotate].to_f / 90).to_i.odd?
         self[:MediaBox] = self[:MediaBox].values_at(1, 0, 3, 2)
         self[:CropBox] = self[:CropBox].values_at(1, 0, 3, 2) if self[:CropBox]
       end
