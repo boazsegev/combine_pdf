@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.2.29
+
+**Fix**: Fixed an issue where updating a page's rotation might raise a `NoMethodError` exception. Credit to Danny (@dikond) both for discovering the issue and for PR #77 that fixes this.
+
+***
+
 Change log v.0.2.28
 
 **Fix**: Fixed an issue related to page stumping, which was introduced when the Rubocop beautification changed the logic of an `if` statement in the Resource merger. Credit to Leon Miller-Out (@sbleon) for noticing the issue, testing and opening PR #76.
