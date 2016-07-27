@@ -62,6 +62,7 @@ module CombinePDF
       return @parsed unless @parsed.empty?
       @scanner = StringScanner.new @string_to_parse
       @scanner.pos = 0
+      @scanner.skip(/[^%]*/) if @scanner.exist?(/%PDF/i)
       if @scanner.scan /\%PDF\-[\d\-\.]+/
         @version = @scanner.matched.scan(/[\d\.]+/)[0].to_f
         loop do
@@ -355,7 +356,7 @@ module CombinePDF
         ##########################################
         ## XREF - check for encryption... anything else?
         ##########################################
-        elsif @scanner.scan(/xref/)
+        elsif @scanner.scan(/(startxref)|(xref)/)
           ##########
           ## get root object to check for encryption
           @scanner.scan_until(/(trailer)|(\%EOF)/)
@@ -399,7 +400,7 @@ module CombinePDF
           fresh = false
         else
           # always advance
-          # warn "Advancing for unknown reason... #{@scanner.string[@scanner.pos-4, 8]} ... #{@scanner.peek(4)}" unless @scanner.peek(1) =~ /[\s\n]/
+          # warn "Advancing for unknown reason... #{@scanner.string[@scanner.pos - 4, 8]} ... #{@scanner.peek(4)}" unless @scanner.peek(1) =~ /[\s\n]/
           warn 'Warning: parser advancing for unknown reason. Potential data-loss.'
           @scanner.pos = @scanner.pos + 1
         end
@@ -418,7 +419,8 @@ module CombinePDF
         else
           catalogs = (@parsed.select { |obj| obj[:Type] == :Catalog }).last
         end
-        @parsed.delete_if { |obj| obj[:Type] == :Catalog }
+
+        @parsed.delete_if { |obj| obj.nil? || obj[:Type] == :Catalog }
         @parsed << catalogs
 
         raise "Unknown error - parsed data doesn't contain a cataloged object!" unless catalogs

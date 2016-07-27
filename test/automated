@@ -54,6 +54,7 @@ CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err.pdf").save '08_1-unknown-
 CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err2.pdf").save '08_2-unknown-err-empty-str.pdf'
 CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err3.pdf").save '08_3-unknown-err-empty-str.pdf'
 
+CombinePDF.load("/Users/2Be/Ruby/test\ pdfs/nil_object.pdf").save('09_nil_in_parsed_array.pdf')
 # unify = [
 #   "./Ruby/test\ pdfs/AESv2\ encrypted.pdf",
 #   "./Ruby/test\ pdfs/data-in-comment.pdf",

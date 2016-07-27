@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.2.30
+
+**Fix**: Fixed an issue where HTTP artifacts before the beginning of a PDF file / string would prevent the PDF from being parsed. This fixes issue #78 reported by @robvitaro.
+
+***
+
 Change log v.0.2.29
 
 **Fix**: Fixed an issue where updating a page's rotation might raise a `NoMethodError` exception. Credit to Danny (@dikond) both for discovering the issue and for PR #77 that fixes this.
