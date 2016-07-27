@@ -4,7 +4,7 @@
 
 Change log v.0.2.30
 
-**Fix**: Fixed an issue where HTTP artifacts before the beginning of a PDF file / string would prevent the PDF from being parsed. This fixes issue #78 reported by @robvitaro.
+**Fix**: Fixed an issue where HTTP artifacts before the beginning of a PDF file / string would prevent the PDF from being parsed. This should fix issue #78 reported by @robvitaro.
 
 ***
 
