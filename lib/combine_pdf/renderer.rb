@@ -33,12 +33,12 @@ module CombinePDF
                                 "\x0D" => '\\r',
                                 "\x09" => '\\t',
                                 "\x08" => '\\b',
-                                "\xFF" => '\\f',
+                                "\x0C" => '\\f',  # form-feed (\f) == 0x0C
                                 "\x28" => '\\(',
                                 "\x29" => '\\)',
                                 "\x5C" => '\\\\' }.dup
     32.times { |i| STRING_REPLACEMENT_HASH[i.chr] ||= "\\#{i}" }
-    (256 - 128).times { |i| STRING_REPLACEMENT_HASH[(i + 127).chr] ||= "\\#{i + 127}" }
+    (256 - 127).times { |i| STRING_REPLACEMENT_HASH[(i + 127).chr] ||= "\\#{i + 127}" }
 
     def format_string_to_pdf(object)
       # object.force_encoding(Encoding::ASCII_8BIT)
