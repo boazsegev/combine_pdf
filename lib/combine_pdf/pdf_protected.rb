@@ -30,7 +30,7 @@ module CombinePDF
           next if resolved.include? obj.object_id
           resolved << obj.object_id
           if obj[:referenced_object]
-            tmp = @objects.find_index(obj[:referenced_object])
+            tmp = @objects.find_index { |o| o.object_id == obj[:referenced_object].object_id }
             if tmp
               tmp = @objects[tmp]
               obj[:referenced_object] = tmp
