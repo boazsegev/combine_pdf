@@ -30,7 +30,15 @@ module CombinePDF
           next if resolved.include? obj.object_id
           resolved << obj.object_id
           if obj[:referenced_object]
-            tmp = @objects.find_index(obj[:referenced_object])
+            # fix Acrobat Reader issue with Page reference uniqueness
+            # Page reference must be unique or some versions of Acrobat Reader will fail w/ error(14)
+            if obj[:referenced_object][:Type] == :Page
+              tmp = @objects.find_index { |o| o.object_id == obj[:referenced_object].object_id }
+            else
+              # for other types, find an identical object
+              tmp = @objects.find_index(obj[:referenced_object])
+            end
+
             if tmp
               tmp = @objects[tmp]
               obj[:referenced_object] = tmp
