@@ -200,7 +200,7 @@ module CombinePDF
           # instead, a non-strict RegExp is used:
           str = @scanner.scan_until(/endstream/)
           # raise error if the stream doesn't end.
-          raise "Parsing Error: PDF file error - a stream object wasn't properly colsed using 'endstream'!" unless str
+          raise "Parsing Error: PDF file error - a stream object wasn't properly closed using 'endstream'!" unless str
           # need to remove end of stream
           if out.last.is_a? Hash
             # out.last[:raw_stream_content] = str[0...-10] #cuts only one EON char (\n or \r)
