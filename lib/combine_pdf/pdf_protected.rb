@@ -23,16 +23,19 @@ module CombinePDF
       # add references but not root
       should_resolve = @objects.dup
       dup_pages = nil
-      resolved = [].to_set
+      # an existing object map
+      resolved = {}.dup
+      existing = {}.dup
+      @objects.each { |obj| existing[obj.object_id] = obj }
+      # loop until should_resolve is empty
       while should_resolve.any?
         obj = should_resolve.pop
         if obj.is_a?(Hash)
-          next if resolved.include? obj.object_id
-          resolved << obj.object_id
+          next if resolved[obj.object_id] # the object exists
+          resolved[obj.object_id] = obj
           if obj[:referenced_object]
-            tmp = @objects.find_index(obj[:referenced_object])
+            tmp = resolved[obj[:referenced_object].object_id] || existing[obj[:referenced_object].object_id]
             if tmp
-              tmp = @objects[tmp]
               obj[:referenced_object] = tmp
             else
               tmp = obj[:referenced_object]
@@ -40,11 +43,11 @@ module CombinePDF
               @objects << tmp
             end
           else
-            obj.keys.each { |k| should_resolve << obj[k] unless k == :Parent || resolved.include?(obj[k].object_id) || !obj[k].is_a?(Enumerable) }
+            obj.keys.each { |k| should_resolve << obj[k] unless k == :Parent || resolved[obj[k].object_id] || !obj[k].is_a?(Enumerable) }
           end
         elsif obj.is_a?(Array)
-          next if resolved.include? obj.object_id
-          resolved << obj.object_id
+          next if resolved[obj.object_id]
+          resolved[obj.object_id] = obj
           should_resolve.concat obj
         end
       end
@@ -113,8 +116,16 @@ module CombinePDF
       # add pages to catalog, if requested
       page_list.concat(with_pages) unless with_pages.empty?
 
+      # duplicate any non-unique pages - This is a special case to resolve Adobe Acrobat Reader issues (see issues #19 and #81)
+      uniqueness = {}.dup
+      page_list.each { |page| page = page.dup if uniqueness[page.object_id]; uniqueness[page.object_id] = page }
+      page_list = uniqueness.values
+
       # build new Pages object
       pages_object = { Type: :Pages, Count: page_list.length, Kids: page_list.map { |p| { referenced_object: p, is_reference_only: true } } }
+
+      # clear the uniqueness object
+      uniqueness.clear
 
       # rebuild/rename the names dictionary
       rebuild_names
@@ -170,11 +181,7 @@ module CombinePDF
       @objects << @info
       @objects << catalog
       # fix Acrobat Reader issue with page reference uniqueness (must be unique or older Acrobat Reader fails)
-      catalog[:Pages][:referenced_object][:Kids].each do |page|
-        tmp = page[:referenced_object]
-        tmp = page[:referenced_object] = tmp.dup if @objects.include? tmp
-        @objects << tmp
-      end
+      catalog[:Pages][:referenced_object][:Kids].each { |page| @objects << page[:referenced_object] }
       # adds every referenced object to the @objects (root), addition is performed as pointers rather then copies
       # puts (Benchmark.measure do
       add_referenced
@@ -304,9 +311,9 @@ module CombinePDF
         # parent - the outline base node of the resulting merged outline
         # FIXME implement the possibility to insert somewhere in the middle of the outline
         prev = nil
-        pos = first = actual_object(((position != 0) ? old_data : new_data)[:First])
-        last = actual_object(((position != 0) ? new_data : old_data)[:Last])
-        median = { is_reference_only: true, referenced_object: actual_object(((position != 0) ? new_data : old_data)[:First]) }
+        pos = first = actual_object((position.nonzero? ? old_data : new_data)[:First])
+        last = actual_object((position.nonzero? ? new_data : old_data)[:Last])
+        median = { is_reference_only: true, referenced_object: actual_object((position.nonzero? ? new_data : old_data)[:First]) }
         old_data[:First] = { is_reference_only: true, referenced_object: first }
         old_data[:Last] = { is_reference_only: true, referenced_object: last }
         parent = { is_reference_only: true, referenced_object: old_data }
