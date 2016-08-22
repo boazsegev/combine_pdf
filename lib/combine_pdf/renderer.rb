@@ -21,7 +21,7 @@ module CombinePDF
       elsif object.is_a?(Array)
         return format_array_to_pdf object
       elsif object.is_a?(Fixnum) || object.is_a?(Float) || object.is_a?(TrueClass) || object.is_a?(FalseClass)
-        return object.to_s + ' '
+        return object.to_s
       elsif object.is_a?(Hash)
         return format_hash_to_pdf object
       else
@@ -33,7 +33,7 @@ module CombinePDF
                                 "\x0D" => '\\r',
                                 "\x09" => '\\t',
                                 "\x08" => '\\b',
-                                "\x0C" => '\\f',  # form-feed (\f) == 0x0C
+                                "\x0C" => '\\f', # form-feed (\f) == 0x0C
                                 "\x28" => '\\(',
                                 "\x29" => '\\)',
                                 "\x5C" => '\\\\' }.dup

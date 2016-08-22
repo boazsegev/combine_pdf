@@ -19,86 +19,41 @@ module CombinePDF
     # this function adds the references contained in `@objects`.
     #
     # this is used for internal operations, such as injectng data using the << operator.
-    def add_referenced
+    def add_referenced(should_resolve = [])
       # add references but not root
-      should_resolve = @objects.dup
       dup_pages = nil
       # an existing object map
       resolved = {}.dup
       existing = {}.dup
-      @objects.each { |obj| existing[obj.object_id] = obj }
+      @objects.each { |obj| existing[obj] = obj }
       # loop until should_resolve is empty
       while should_resolve.any?
         obj = should_resolve.pop
+        next if resolved[obj.object_id] # the object exists
         if obj.is_a?(Hash)
-          next if resolved[obj.object_id] # the object exists
-          resolved[obj.object_id] = obj
-          if obj[:referenced_object]
-            tmp = resolved[obj[:referenced_object].object_id] || existing[obj[:referenced_object].object_id]
+          referenced = obj[:referenced_object]
+          if referenced && referenced.any?
+            tmp = resolved[referenced.object_id] || existing[referenced]
             if tmp
               obj[:referenced_object] = tmp
             else
-              tmp = obj[:referenced_object]
-              should_resolve << tmp
-              @objects << tmp
+              resolved[obj.object_id] = referenced
+              existing[referenced] = referenced
+              should_resolve << referenced
+              @objects << referenced
             end
           else
+            resolved[obj.object_id] = obj
             obj.keys.each { |k| should_resolve << obj[k] unless k == :Parent || resolved[obj[k].object_id] || !obj[k].is_a?(Enumerable) }
           end
         elsif obj.is_a?(Array)
-          next if resolved[obj.object_id]
           resolved[obj.object_id] = obj
           should_resolve.concat obj
         end
       end
       resolved.clear
+      existing.clear
     end
-
-    # # @private
-    # # Some PDF objects contain references to other PDF objects.
-    # #
-    # # this function adds the references contained in "object", but DOESN'T add the object itself.
-    # #
-    # # this is used for internal operations, such as injectng data using the << operator.
-    # def add_referenced(object, dup_pages = true)
-    #   # add references but not root
-    #   if object.is_a?(Array)
-    #     object.each { |it| add_referenced(it, dup_pages) }
-    #     return true
-    #   elsif object.is_a?(Hash)
-    #     # first if statement is actually a workaround for a bug in Acrobat Reader, regarding duplicate pages.
-    #     if dup_pages && object[:is_reference_only] && object[:referenced_object] && object[:referenced_object].is_a?(Hash) && object[:referenced_object][:Type] == :Page
-    #       if @objects.find_index object[:referenced_object]
-    #         @objects << (object[:referenced_object] = object[:referenced_object].dup)
-    #       else
-    #         @objects << object[:referenced_object]
-    #       end
-    #     elsif object[:is_reference_only] && object[:referenced_object]
-    #       found_at = @objects.find_index object[:referenced_object]
-    #       if found_at
-    #         # if the objects are equal, they might still be different objects!
-    #         # so, we need to make sure they are the same object for the pointers to effect id numbering
-    #         # and formatting operations.
-    #         object[:referenced_object] = @objects[found_at]
-    #         # stop this path, there is no need to run over the Hash's keys and values
-    #         return true
-    #       else
-    #         # stop if page propegation is false
-    #         return true if !dup_pages && object[:referenced_object][:Type] == :Page
-    #         # @objects.include? object[:referenced_object] is bound to be false
-    #         # the object wasn't found - add it to the @objects array
-    #         @objects << object[:referenced_object]
-    #       end
-    #
-    #     end
-    #     object.each do |k, v|
-    #         add_referenced(v, dup_pages) unless RECORSIVE_PROTECTION[k]
-    #     end
-    #   else
-    #     return false
-    #   end
-    #   true
-    # end
 
     # @private
     def rebuild_catalog(*with_pages)
@@ -119,30 +74,23 @@ module CombinePDF
       # duplicate any non-unique pages - This is a special case to resolve Adobe Acrobat Reader issues (see issues #19 and #81)
       uniqueness = {}.dup
       page_list.each { |page| page = page.dup if uniqueness[page.object_id]; uniqueness[page.object_id] = page }
+      page_list.clear
       page_list = uniqueness.values
+      uniqueness.clear
 
       # build new Pages object
-      pages_object = { Type: :Pages, Count: page_list.length, Kids: page_list.map { |p| { referenced_object: p, is_reference_only: true } } }
-
-      # clear the uniqueness object
-      uniqueness.clear
+      page_object_kids = [].dup
+      pages_object = { Type: :Pages, Parent: nil, Count: page_list.length, Kids: page_object_kids }
+      pages_object_reference = { referenced_object: pages_object, is_reference_only: true }
+      page_list.each { |pg| pg[:Parent] = pages_object_reference; page_object_kids << ({ referenced_object: pg, is_reference_only: true }) }
 
       # rebuild/rename the names dictionary
       rebuild_names
       # build new Catalog object
       catalog_object = { Type: :Catalog,
-                         Pages: { referenced_object: pages_object, is_reference_only: true },
-                         Names: { referenced_object: @names, is_reference_only: true },
-                         Outlines: { referenced_object: @outlines, is_reference_only: true } }
+                         Pages: { referenced_object: pages_object, is_reference_only: true } }
+      # pages_object[:Parent] = { referenced_object: catalog_object, is_reference_only: true } # causes AcrobatReader to fail
       catalog_object[:ViewerPreferences] = @viewer_preferences unless @viewer_preferences.empty?
-
-      # rebuild/rename the forms dictionary
-      if @forms_data.nil? || @forms_data.empty?
-        @forms_data = nil
-      else
-        @forms_data = { referenced_object: (@forms_data[:referenced_object] || @forms_data), is_reference_only: true }
-        catalog_object[:AcroForm] = @forms_data
-      end
 
       # point old Pages pointers to new Pages object
       ## first point known pages objects - enough?
@@ -150,12 +98,35 @@ module CombinePDF
       ## or should we, go over structure? (fails)
       # each_object {|obj| obj[:Parent][:referenced_object] = pages_object if obj.is_a?(Hash) && obj[:Parent].is_a?(Hash) && obj[:Parent][:referenced_object] && obj[:Parent][:referenced_object][:Type] == :Pages}
 
-      # remove old catalog and pages objects
-      @objects.reject! { |obj| obj.is_a?(Hash) && (obj[:Type] == :Catalog || obj[:Type] == :Pages) }
+      # # remove old catalog and pages objects
+      # @objects.reject! { |obj| obj.is_a?(Hash) && (obj[:Type] == :Catalog || obj[:Type] == :Pages) }
+      # remove old objects list and trees
+      @objects.clear
 
       # inject new catalog and pages objects
-      @objects << pages_object
+      @objects << @info if @info
       @objects << catalog_object
+      @objects << pages_object
+
+      # rebuild/rename the forms dictionary
+      if @forms_data.nil? || @forms_data.empty?
+        @forms_data = nil
+      else
+        @forms_data = { referenced_object: (@forms_data[:referenced_object] || @forms_data), is_reference_only: true }
+        catalog_object[:AcroForm] = @forms_data
+        @objects << @forms_data[:referenced_object]
+      end
+
+      # add the names dictionary
+      if @names && @names.length > 1
+        @objects << @names
+        catalog_object[:Names] = { referenced_object: @names, is_reference_only: true }
+      end
+      # add the outlines dictionary
+      if @outlines && @outlines.any?
+        @objects << @outlines
+        catalog_object[:Outlines] = { referenced_object: @outlines, is_reference_only: true }
+      end
 
       catalog_object
     end
@@ -177,22 +148,9 @@ module CombinePDF
     # there is no point is calling the method before preparing the output.
     def rebuild_catalog_and_objects
       catalog = rebuild_catalog
-      @objects.clear
-      @objects << @info
-      @objects << catalog
-      # fix Acrobat Reader issue with page reference uniqueness (must be unique or older Acrobat Reader fails)
-      catalog[:Pages][:referenced_object][:Kids].each { |page| @objects << page[:referenced_object] }
+      page_objects = catalog[:Pages][:referenced_object][:Kids].map { |e| @objects << e[:referenced_object]; e[:referenced_object] }
       # adds every referenced object to the @objects (root), addition is performed as pointers rather then copies
-      # puts (Benchmark.measure do
-      add_referenced
-      # end)
-      # @objects << @info
-      # add_referenced @info
-      # add_referenced catalog
-      # add_referenced catalog[:Pages]
-      # add_referenced catalog[:Names], false
-      # add_referenced catalog[:Outlines], false
-      # add_referenced catalog[:AcroForm], false
+      add_referenced([page_objects, @forms_data, @names, @outlines, @info])
       catalog
     end
 

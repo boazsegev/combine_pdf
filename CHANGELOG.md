@@ -2,6 +2,16 @@
 
 ***
 
+Change log v.0.2.31
+
+**Broke**: Broke the fix for issue #65 so that Radio buttons data might be lost... working on a fix.
+
+**Fix**: Fixed issue #82 (reintroduction of issue #19 due to core engine rewrite) related to a workaround for an issue with AcrobatReader. Credit to @gyuchang for testing and helping with the fix.
+
+**Merge**: Merged pull request #80, fixing an issue with byte decoding. Credit to @gyuchang for the PR.
+
+***
+
 Change log v.0.2.30
 
 **Fix**: Fixed an issue where HTTP artifacts before the beginning of a PDF file / string would prevent the PDF from being parsed. This should fix issue #78 reported by @robvitaro.
