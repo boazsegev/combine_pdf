@@ -44,7 +44,7 @@ module CombinePDF
             end
           else
             resolved[obj.object_id] = obj
-            obj.keys.each { |k| should_resolve << obj[k] unless k == :Parent || resolved[obj[k].object_id] || !obj[k].is_a?(Enumerable) }
+            obj.keys.each { |k| should_resolve << obj[k] unless !obj[k].is_a?(Enumerable) || resolved[obj[k].object_id] }
           end
         elsif obj.is_a?(Array)
           resolved[obj.object_id] = obj
@@ -80,7 +80,7 @@ module CombinePDF
 
       # build new Pages object
       page_object_kids = [].dup
-      pages_object = { Type: :Pages, Parent: nil, Count: page_list.length, Kids: page_object_kids }
+      pages_object = { Type: :Pages, Count: page_list.length, Kids: page_object_kids }
       pages_object_reference = { referenced_object: pages_object, is_reference_only: true }
       page_list.each { |pg| pg[:Parent] = pages_object_reference; page_object_kids << ({ referenced_object: pg, is_reference_only: true }) }
 
