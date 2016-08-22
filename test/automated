@@ -36,8 +36,8 @@ pdf.save '05_x2_scribus_test.pdf'
 # pdf = CombinePDF.load "./Ruby/test pdfs/named_dest.pdf";nil
 # pdf.save '05_check_named_dest_links.pdf' # this will take a while
 # pdf = CombinePDF.load "./Ruby/test pdfs/named_dest.pdf";nil
-# pdf << CombinePDF.load('./Ruby/test pdfs/named_dest.pdf'); nil
-# pdf.save '05_1_check_named_dest_links.pdf' # never ends... :-(
+pdf << CombinePDF.load('./Ruby/test pdfs/named_dest.pdf'); nil
+pdf.save '05_1_timeless_check_named_dest_links.pdf' # never ends... :-(
 
 pdf = CombinePDF.load './Ruby/test pdfs/outline_small.pdf'
 pdf << CombinePDF.load('./Ruby/test pdfs/outline_small.pdf')

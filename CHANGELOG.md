@@ -10,6 +10,8 @@ Change log v.0.2.31
 
 **Merge**: Merged pull request #80, fixing an issue with byte decoding. Credit to @gyuchang for the PR.
 
+**Performance**: Improved performance for the reference and duplicate object resolution. Credit to @gyuchang for pointing some optimization options.
+
 ***
 
 Change log v.0.2.30
