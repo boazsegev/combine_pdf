@@ -77,13 +77,14 @@ module CombinePDF
 
       raise 'Unknown PDF parsing error - maleformed PDF file?' unless (@parsed.select { |i| !i.is_a?(Hash) }).empty?
 
-      if @root_object == {}
+      if @root_object == {}.freeze
         xref_streams = @parsed.select { |obj| obj.is_a?(Hash) && obj[:Type] == :XRef }
         xref_streams.each do |xref_dictionary|
           @root_object.merge! xref_dictionary
         end
       end
-      raise 'root is unknown - cannot determine if file is Encrypted' if @root_object == {}
+
+      raise 'root is unknown - cannot determine if file is Encrypted' if @root_object == {}.freeze
 
       if @root_object[:Encrypt]
         # change_references_to_actual_values @root_object
