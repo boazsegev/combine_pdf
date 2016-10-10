@@ -2,6 +2,12 @@
 
 ***
 
+Change log v.0.2.32 (un-released)
+
+**Update**: Better errors when encryption related exceptions occur. Credit to Paul Shumeika ( @pshumeika ).
+
+***
+
 Change log v.0.2.31
 
 **Broke**: Broke the fix for issue #65 so that Radio buttons data might be lost... working on a fix.
