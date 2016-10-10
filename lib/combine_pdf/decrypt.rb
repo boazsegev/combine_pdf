@@ -25,7 +25,7 @@ module CombinePDF
     def initialize(objects = [], root_dictionary = {})
       @objects = objects
       @encryption_dictionary = actual_object(root_dictionary[:Encrypt])
-      raise 'Cannot decrypt an encrypted file without an encryption dictionary!' unless @encryption_dictionary
+      raise EncryptionError, 'Cannot decrypt an encrypted file without an encryption dictionary!' unless @encryption_dictionary
       @root_dictionary = actual_object(root_dictionary)
       @padding_key = [0x28, 0xBF, 0x4E, 0x5E, 0x4E, 0x75, 0x8A, 0x41,
                       0x64, 0x00, 0x4E, 0x56, 0xFF, 0xFA, 0x01, 0x08,
@@ -181,7 +181,7 @@ module CombinePDF
     def raise_encrypted_error(object = nil)
       object ||= @encryption_dictionary.to_s.split(',').join("\n")
       warn "Data raising exception:\n #{object.to_s.split(',').join("\n")}"
-      raise 'File is encrypted - not supported.'
+      raise EncryptionError, 'File is encrypted - not supported.'
     end
 
     def change_references_to_actual_values(hash_with_references = {})
