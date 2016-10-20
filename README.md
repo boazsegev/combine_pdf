@@ -103,7 +103,7 @@ pdf.save "file_with_numbering.pdf"
 
 Numbering can be done with many different options, with different formating, with or without a box object, and even with opacity values - see documentation.
 
-## Loading and Rendering PDF data
+## Loading and Parsing PDF data
 
 Loading PDF data can be done from file system or directly from the memory.
 
@@ -120,14 +120,28 @@ pdf_data = prawn_pdf_document.render # Import PDF data from Prawn
 pdf = CombinePDF.parse(pdf_data)
 ```
 
-Similarly, you can output a string of PDF data using `.to_pdf`. For example, to let a user download the PDF from a [Rails](http://rubyonrails.org) or [Plezi](https://github.com/boazsegev/plezi) app:
+Using `parse` is also effective when loading data from a remote location, circumventing the need for unnecessary temporary files. For example:
+
+```ruby
+require 'combine_pdf'
+require 'net/http'
+
+url = "https://example.com/my.pdf"
+pdf = CombinePDF.parse Net::HTTP.get_response(URI.parse(url)).body
+```
+
+## Rendering PDF data
+
+Similarly, to loading and parsing, rendering can also be performed either to the memory or to a file.
+
+You can output a string of PDF data using `.to_pdf`. For example, to let a user download the PDF from either a [Rails application](http://rubyonrails.org) or a [Plezi application](http://www.plezi.io):
 
 ```ruby
 # in a controller action
 send_data combined_file.to_pdf, filename: "combined.pdf", type: "application/pdf"
 ```
 
-Or in [Sinatra](http://www.sinatrarb.com):
+In [Sinatra](http://www.sinatrarb.com):
 
 ```ruby
 # in your path's block
@@ -135,6 +149,7 @@ status 200
 body combined_file.to_pdf
 headers 'content-type' => "application/pdf"
 ```
+
 
 If you prefer to save the PDF data to a file, you can always use the `save` method as we did in our earlier examples.
 
