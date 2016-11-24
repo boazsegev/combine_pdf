@@ -2,7 +2,7 @@
 
 ***
 
-Change log v.0.2.32 (un-released)
+Change log v.0.2.32
 
 **Update**: Better errors when encryption related exceptions occur. Credit to Paul Shumeika ( @pshumeika ).
 
