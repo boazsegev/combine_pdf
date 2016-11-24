@@ -80,6 +80,8 @@ module CombinePDF
       ('[' + (object.collect { |item| object_to_pdf(item) }).join(' ') + ']').force_encoding(Encoding::ASCII_8BIT)
     end
 
+    EMPTY_PAGE_CONTENT_STREAM = {is_reference_only: true, referenced_object: { indirect_reference_id: 0, raw_stream_content: '' }}
+
     def format_hash_to_pdf(object)
       # if the object is only a reference:
       # special conditions apply, and there is only the setting of the reference (if needed) and output
@@ -107,7 +109,7 @@ module CombinePDF
         end
       end
       # remove extra page references.
-      object[:Contents].delete(is_reference_only: true, referenced_object: { indirect_reference_id: 0, raw_stream_content: '' }) if object[:Type] == :Page && object[:Contents].is_a?(Array)
+      object[:Contents].delete(EMPTY_PAGE_CONTENT_STREAM) if object[:Type] == :Page && object[:Contents].is_a?(Array)
       # correct stream length, if the object is a stream.
       object[:Length] = object[:raw_stream_content].bytesize if object[:raw_stream_content]
 
