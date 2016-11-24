@@ -6,6 +6,8 @@ Change log v.0.2.32 (un-released)
 
 **Update**: Better errors when encryption related exceptions occur. Credit to Paul Shumeika ( @pshumeika ).
 
+**Fix**: Fixed an issue where empty pages with NULL contents value would cause CombinePDF to raise an exception when rendering. Credit to @holtmaat and Jason DeLeon (@progmem) (both in submitted different PRs regarding the issue).
+
 ***
 
 Change log v.0.2.31
