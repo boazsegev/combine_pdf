@@ -107,7 +107,7 @@ module CombinePDF
         end
       end
       # remove extra page references.
-      object[:Contents].delete(is_reference_only: true, referenced_object: { indirect_reference_id: 0, raw_stream_content: '' }) if object[:Type] == :Page
+      object[:Contents].delete(is_reference_only: true, referenced_object: { indirect_reference_id: 0, raw_stream_content: '' }) if object[:Type] == :Page && object[:Contents].is_a?(Array)
       # correct stream length, if the object is a stream.
       object[:Length] = object[:raw_stream_content].bytesize if object[:raw_stream_content]
 
