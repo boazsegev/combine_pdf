@@ -82,7 +82,7 @@ module CombinePDF
       page_object_kids = [].dup
       pages_object = { Type: :Pages, Count: page_list.length, Kids: page_object_kids }
       pages_object_reference = { referenced_object: pages_object, is_reference_only: true }
-      page_list.each { |pg| pg[:Parent] = pages_object_reference; page_object_kids << ({ referenced_object: pg, is_reference_only: true }) }
+      page_list.each { |pg| pg = pg[:referenced_object] if pg[:referenced_object]; pg[:Parent] = pages_object_reference; page_object_kids << ({ referenced_object: pg, is_reference_only: true }) }
 
       # rebuild/rename the names dictionary
       rebuild_names
