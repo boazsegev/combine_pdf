@@ -174,7 +174,7 @@ module CombinePDF
       @objects.each { |obj| obj.delete(:indirect_reference_id); obj.delete(:indirect_generation_number) }
     end
 
-    POSSIBLE_NAME_TREES = [:Dests, :AP, :Pages, :IDS, :Templates, :URLS, :Pages].to_set.freeze
+    POSSIBLE_NAME_TREES = [:Dests, :AP, :Pages, :IDS, :Templates, :URLS, :JavaScript, :EmbeddedFiles, :AlternatePresentations, :Renditions].to_set.freeze
 
     def rebuild_names(name_tree = nil, base = 'CombinePDF_0000000')
       if name_tree

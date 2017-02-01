@@ -2,6 +2,14 @@
 
 ***
 
+Change log v.0.2.33
+
+**Update**: Extended "named tree" support now preserves some advanced PDF feature that weren't supported before.
+
+**Deprecation**: Ruby is deprecating `Fixnum`, as so is CombinePDF... replaced all `Fixnum` occurrences with `Integer`.
+
+***
+
 Change log v.0.2.32
 
 **Update**: Better errors when encryption related exceptions occur. Credit to Paul Shumeika ( @pshumeika ).

@@ -29,7 +29,7 @@ module CombinePDF
     # the info and root objects, as found (if found) in the PDF file.
     #
     # they are mainly to used to know if the file is (was) encrypted and to get more details.
-    attr_reader :info_object, :root_object, :names_object, :forms_object, :outlines_object
+    attr_reader :info_object, :root_object, :names_object, :forms_object, :outlines_object, :metadata
 
     attr_reader :allow_optional_content
     # when creating a parser, it is important to set the data (String) we wish to parse.
@@ -50,6 +50,7 @@ module CombinePDF
       @names_object = {}.dup
       @outlines_object = {}.dup
       @forms_object = {}.dup
+      @metadata = nil
       @strings_dictionary = {}.dup # all strings are one string
       @version = nil
       @scanner = nil
@@ -106,7 +107,7 @@ module CombinePDF
           @scanner = StringScanner.new o[:raw_stream_content]
           stream_data = _parse_
           id_array = []
-          while stream_data[0].is_a? Fixnum
+          while stream_data[0].is_a? (Integer)
             id_array << stream_data.shift
             stream_data.shift
           end
@@ -221,7 +222,7 @@ module CombinePDF
             out << { indirect_without_dictionary: out.pop, indirect_generation_number: out.pop, indirect_reference_id: out.pop }
           end
           fresh = true
-        # puts "!!!!!!!!! Error with :indirect_reference_id\n\nObject #{out.last}  :indirect_reference_id = #{out.last[:indirect_reference_id]}" unless out.last[:indirect_reference_id].is_a?(Fixnum)
+        # puts "!!!!!!!!! Error with :indirect_reference_id\n\nObject #{out.last}  :indirect_reference_id = #{out.last[:indirect_reference_id]}" unless out.last[:indirect_reference_id].is_a?(Integer)
         ##########################################
         ## parse a Hex String
         ##########################################

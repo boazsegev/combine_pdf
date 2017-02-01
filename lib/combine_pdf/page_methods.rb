@@ -172,7 +172,7 @@ module CombinePDF
     # - :"Courier-BoldOblique"
     # - :Symbol
     # - :ZapfDingbats
-    # font_size:: a Fixnum for the font size, or :fit_text to fit the text in the box. defaults to ":fit_text"
+    # font_size:: an Integer for the font size, or :fit_text to fit the text in the box. defaults to ":fit_text"
     # max_font_size:: if font_size is set to :fit_text, this will be the maximum font size. defaults to nil (no maximum)
     # font_color:: text color in [R, G, B], an array with three floats, each in a value between 0 to 1 (gray will be "[0.5, 0.5, 0.5]"). defaults to black.
     # stroke_color:: text stroke color in [R, G, B], an array with three floats, each in a value between 0 to 1 (gray will be "[0.5, 0.5, 0.5]"). defounlts to nil (no stroke).

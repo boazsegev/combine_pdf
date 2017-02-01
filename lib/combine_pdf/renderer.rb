@@ -20,7 +20,7 @@ module CombinePDF
         return format_name_to_pdf object
       elsif object.is_a?(Array)
         return format_array_to_pdf object
-      elsif object.is_a?(Fixnum) || object.is_a?(Float) || object.is_a?(TrueClass) || object.is_a?(FalseClass)
+      elsif object.is_a?(Integer) || object.is_a?(Float) || object.is_a?(TrueClass) || object.is_a?(FalseClass)
         return object.to_s
       elsif object.is_a?(Hash)
         return format_hash_to_pdf object
@@ -154,7 +154,7 @@ module CombinePDF
       elsif object.is_a?(String)
         return object.dup
       else
-        return object # objects that aren't Strings, Arrays or Hashes (such as Symbols and Fixnums) won't be edited inplace.
+        return object # objects that aren't Strings, Arrays or Hashes (such as Symbols and Integers) won't be edited inplace.
       end
     end
   end
@@ -169,5 +169,5 @@ end
 # arrays are Array
 # strings are String
 # names are Symbols (String.to_sym)
-# numbers are Fixnum or Float
+# numbers are Integers or Float
 # boolean are TrueClass or FalseClass
