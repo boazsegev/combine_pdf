@@ -4,6 +4,8 @@
 
 Change log v.0.2.33
 
+**Update**: Fix #97 to allow javascript support for interactive objects. Credit to @joshirashmics for exposing the issue.
+
 **Update**: Extended "named tree" support now preserves some advanced PDF feature that weren't supported before.
 
 **Deprecation**: Ruby is deprecating `Fixnum`, as so is CombinePDF... replaced all `Fixnum` occurrences with `Integer`.
