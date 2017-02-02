@@ -73,7 +73,7 @@ module CombinePDF
 
       # duplicate any non-unique pages - This is a special case to resolve Adobe Acrobat Reader issues (see issues #19 and #81)
       uniqueness = {}.dup
-      page_list.each { |page| page = page.dup if uniqueness[page.object_id]; uniqueness[page.object_id] = page }
+      page_list.each { |page| page = page[:referenced_object] || page; page = page.dup if uniqueness[page.object_id]; uniqueness[page.object_id] = page }
       page_list.clear
       page_list = uniqueness.values
       uniqueness.clear
@@ -82,7 +82,7 @@ module CombinePDF
       page_object_kids = [].dup
       pages_object = { Type: :Pages, Count: page_list.length, Kids: page_object_kids }
       pages_object_reference = { referenced_object: pages_object, is_reference_only: true }
-      page_list.each { |pg| pg = pg[:referenced_object] if pg[:referenced_object]; pg[:Parent] = pages_object_reference; page_object_kids << ({ referenced_object: pg, is_reference_only: true }) }
+      page_list.each { |pg| pg[:Parent] = pages_object_reference; page_object_kids << ({ referenced_object: pg, is_reference_only: true }) }
 
       # rebuild/rename the names dictionary
       rebuild_names
