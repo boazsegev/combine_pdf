@@ -191,6 +191,7 @@ module CombinePDF
             if pos[0].is_a? String
               (pos.length / 2).times do |i|
                 dic << (pos[i * 2].clear << base.next!)
+                pos[(i * 2) + 1][0] = {is_reference_only: true, referenced_object: pages[pos[(i * 2) + 1][0]]} if(pos[(i * 2) + 1].is_a?(Array) && pos[(i * 2) + 1][0].is_a?(Integer))
                 dic << (pos[(i * 2) + 1].is_a?(Array) ? { is_reference_only: true, referenced_object: { indirect_without_dictionary: pos[(i * 2) + 1] } } : pos[(i * 2) + 1])
                 # dic << pos[(i * 2) + 1]
               end

@@ -120,9 +120,6 @@ module CombinePDF
         end
       end
 
-      # Strings were unified, we can let them go..
-      @strings_dictionary.clear
-
       # serialize_objects_and_references.catalog_pages
 
       # Benchmark.bm do |bm|
@@ -134,6 +131,9 @@ module CombinePDF
       serialize_objects_and_references
 
       catalog_pages
+
+      # Strings were unified, we can let them go..
+      @strings_dictionary.clear
 
       # collect any missing objects from the forms_data
       unless @forms_object.nil? || @forms_object.empty?
@@ -222,6 +222,8 @@ module CombinePDF
             out << { indirect_without_dictionary: out.pop, indirect_generation_number: out.pop, indirect_reference_id: out.pop }
           end
           fresh = true
+          # fix wkhtmltopdf use of PDF 1.1 Dest using symbols instead of strings
+          out.last[:Dest] = unify_string(out.last[:Dest].to_s) if out.last[:Dest] && out.last[:Dest].is_a?(Symbol)
         # puts "!!!!!!!!! Error with :indirect_reference_id\n\nObject #{out.last}  :indirect_reference_id = #{out.last[:indirect_reference_id]}" unless out.last[:indirect_reference_id].is_a?(Integer)
         ##########################################
         ## parse a Hex String
@@ -394,6 +396,8 @@ module CombinePDF
             else
               out << { indirect_without_dictionary: out.pop, indirect_generation_number: out.pop, indirect_reference_id: out.pop }
             end
+            # fix wkhtmltopdf use of PDF 1.1 Dest using symbols instead of strings
+            out.last[:Dest] = unify_string(out.last[:Dest].to_s) if out.last[:Dest] && out.last[:Dest].is_a?(Symbol)
             warn "'endobj' keyword was missing for Object ID: #{out.last[:indirect_reference_id]}, trying to auto-fix issue, but might fail."
 
             out << keep.pop
@@ -489,6 +493,11 @@ module CombinePDF
             @forms_object.update((catalogs[:AcroForm][:referenced_object] || catalogs[:AcroForm]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:AcroForm]
             @names_object.update((catalogs[:Names][:referenced_object] || catalogs[:Names]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:Names]
             @outlines_object.update((catalogs[:Outlines][:referenced_object] || catalogs[:Outlines]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:Outlines]
+            if catalogs[:Dests] # convert PDF 1.1 Dests to PDF 1.2+ Dests
+              dests_arry = (@names_object[:Dests] ||= {})
+              dests_arry = ((dests_arry[:referenced_object] || dests_arry)[:Names] ||= [])
+              ((catalogs[:Dests][:referenced_object] || catalogs[:Dests])[:referenced_object] || (catalogs[:Dests][:referenced_object] || catalogs[:Dests])).each {|k,v| next if CombinePDF::PDF::PRIVATE_HASH_KEYS.include?(k); dests_arry << unify_string(k.to_s); dests_arry << v; }
+            end
             catalog_pages(catalogs[:Pages], inheritance_hash.dup) unless catalogs[:Pages].nil?
           end
         end
