@@ -182,6 +182,7 @@ module CombinePDF
     # border_width:: border width in PDF units. defaults to nil (none).
     # box_radius:: border radius in PDF units. defaults to 0 (no corner rounding).
     # opacity:: textbox opacity, a float between 0 (transparent) and 1 (opaque)
+    # ctm:: A PDF complient CTM data array that will manipulate the axis and allow transformations. i.e. `[1,0,0,1,0,0]`
     def textbox(text, properties = {})
       options = {
         x: 0,
@@ -392,6 +393,8 @@ module CombinePDF
     # This method moves the Page[:Rotate] property into the page's data stream, so that
     # "what you see is what you get".
     #
+    # After using thie method, {#orientation} should return the absolute orientation rather than only the data's orientation (unless `:Rotate` is changed).
+    #
     # This is usful in cases where there might be less control over the source PDF files,
     # and the user assums that the PDF page's data is the same as the PDF's pages
     # on screen display (Rotate rotates a page but leaves the data in the original orientation).
@@ -441,7 +444,7 @@ module CombinePDF
       y_ratio = 1.0 * (new_size[3] - new_size[1]) / (c_size[3]) #-c_size[1])
       x_move = new_size[0] - c_size[0]
       y_move = new_size[1] - c_size[1]
-      puts "ctm will be: #{x_ratio.round(4)} 0 0 #{y_ratio.round(4)} #{x_move} #{y_move}"
+      # puts "ctm will be: #{x_ratio.round(4)} 0 0 #{y_ratio.round(4)} #{x_move} #{y_move}"
       self[:MediaBox] = [(c_mediabox[0] + x_move), (c_mediabox[1] + y_move), ((c_mediabox[2] * x_ratio) + x_move), ((c_mediabox[3] * y_ratio) + y_move)]
       self[:CropBox] = [(c_cropbox[0] + x_move), (c_cropbox[1] + y_move), ((c_cropbox[2] * x_ratio) + x_move), ((c_cropbox[3] * y_ratio) + y_move)] if c_cropbox
       x_ratio = y_ratio = [x_ratio, y_ratio].min if conserve_aspect_ratio
@@ -506,7 +509,10 @@ module CombinePDF
       fix_rotation
     end
 
-    # get or set (by clockwise rotation) the page's orientation
+    # get or set (by clockwise rotation) the page's data orientation.
+    #
+    # note that the data's orientation is the way data is oriented on the page.
+    # The display orientati0n (which might different) is controlled by the `:Rotate` property. see {#fix_orientation} for more details.
     #
     # accepts one optional parameter:
     # force:: to get the orientation, pass nil. to set the orientatiom, set fource to either :portrait or :landscape. defaults to nil (get orientation).
