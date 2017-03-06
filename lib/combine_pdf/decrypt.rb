@@ -58,6 +58,8 @@ module CombinePDF
         raise_encrypted_error unless (cfilter[:AuthEvent] == :DocOpen)
         if (cfilter[:CFM] == :V2)
           _perform_decrypt_proc_ @objects, method(:decrypt_RC4)
+        elsif (cfilter[:CFM] == :AESV2)
+          _perform_decrypt_proc_ @objects, method(:decrypt_AES)
         else
           raise_encrypted_error
         end
@@ -134,22 +136,19 @@ module CombinePDF
     end
 
     def decrypt_AES(encrypted, encrypted_id, encrypted_generation, _encrypted_filter)
-      ## extract encryption_iv if it wasn't extracted yet
-      unless @encryption_iv
-        @encryption_iv = encrypted[0..15].to_i
-        # raise "Tryed decrypting using AES and couldn't extract iv" if @encryption_iv == 0
-        @encryption_iv = 0.chr * 16
-        # encrypted = encrypted[16..-1]
-      end
       ## start decryption using padding strings
       object_key = @key.dup
-      (0..2).each { |e| object_key << (encrypted_id >> e * 8 & 0xFF) }
-      (0..1).each { |e| object_key << (encrypted_generation >> e * 8 & 0xFF) }
-      object_key << 'sAlT'
+      object_key << [encrypted_id].pack('i')[0..2]
+      object_key << [encrypted_generation].pack('i')[0..1]
+      object_key << 'sAlT'.force_encoding(Encoding::ASCII_8BIT)
       key_length = object_key.length < 16 ? object_key.length : 16
-      cipher = OpenSSL::Cipher::Cipher.new("aes-#{object_key.length << 3}-cbc").decrypt
+
+      cipher = OpenSSL::Cipher::Cipher.new("aes-#{key_length << 3}-cbc")
+      cipher.decrypt
+      cipher.key = Digest::MD5.digest(object_key)[(0...key_length)]
+      cipher.iv = encrypted[0..15]
       cipher.padding = 0
-      (cipher.update(encrypted) + cipher.final).unpack('C*')
+      cipher.update(encrypted[16..-1]) + cipher.final
     end
 
     protected
