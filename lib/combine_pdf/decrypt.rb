@@ -45,20 +45,22 @@ module CombinePDF
         # raise_encrypted_error
         _perform_decrypt_proc_ @objects, method(:decrypt_RC4)
       when 4
-        # raise unsupported error for now
-        raise_encrypted_error
         # make sure CF is a Hash (as required by the PDF standard for this type of encryption).
         raise_encrypted_error unless actual_object(@encryption_dictionary[:CF]).is_a?(Hash)
 
-        # do nothing if there is no data to decrypt except embeded files...?
-        return true unless (actual_object(@encryption_dictionary[:CF]).values.select { |v| !v[:AuthEvent] || v[:AuthEvent] == :DocOpen }).empty?
+        # support trivial case for now
+        # - same filter for streams (Stmf) and strings(Strf)
+        # - AND :CFM == :V2 (use algorithm 1)
+        raise_encrypted_error unless (@encryption_dictionary[:StmF] == @encryption_dictionary[:StrF])
 
-      # attempt to decrypt all strings?
-      # attempt to decrypy all streams
-      # attempt to decrypt all embeded files?
-
-      else
-        raise_encrypted_error
+        cfilter = actual_object(@encryption_dictionary[:CF])[@encryption_dictionary[:StrF]]
+        raise_encrypted_error unless cfilter
+        raise_encrypted_error unless (cfilter[:AuthEvent] == :DocOpen)
+        if (cfilter[:CFM] == :V2)
+          _perform_decrypt_proc_ @objects, method(:decrypt_RC4)
+        else
+          raise_encrypted_error
+        end
       end
       # rebuild stream lengths?
       @objects
@@ -86,9 +88,9 @@ module CombinePDF
       # # if document metadata is not being encrypted, add 4 bytes with the value 0xFFFFFFFF.
       if actual_object(@encryption_dictionary[:R]) >= 4
         key << if actual_object(@encryption_dictionary)[:EncryptMetadata] == false
-                 "\xFF\xFF\xFF\xFF"
+                 "\xFF\xFF\xFF\xFF".force_encoding(Encoding::ASCII_8BIT)
                else # default is true and nil != false
-                 "\x00\x00\x00\x00"
+                 "\x00\x00\x00\x00".force_encoding(Encoding::ASCII_8BIT)
                end
       end
       # 5) pass everything as a MD5 hash
@@ -166,7 +168,7 @@ module CombinePDF
           # p actual_length
           # p object[:Length]
           # p object
-          warn "Stream registeded length was #{object[:Length]} and the actual length was #{actual_length}." if actual_length < stream_length
+          warn "Stream registered length was #{object[:Length]} and the actual length was #{actual_length}." if actual_length < stream_length
           length = [stream_length, actual_length].min
           object[:raw_stream_content] = decrypt_proc.call((object[:raw_stream_content][0...length]), encrypted_id, encrypted_generation, encrypted_filter)
         end
