@@ -57,15 +57,33 @@ CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err3.pdf").save '08_3-unknown
 
 CombinePDF.load("/Users/2Be/Ruby/test\ pdfs/nil_object.pdf").save('09_nil_in_parsed_array.pdf')
 
+encrypted = [ "./Ruby/test\ pdfs/AESv2\ encrypted.pdf",
+              "./Ruby/test\ pdfs/AES\ enc.pdf",
+              "./Ruby/test\ pdfs/RC4\ enc.pdf"]
+
+encrypted.length.times do |i|
+  fname = File.basename encrypted[i]
+  begin
+    CombinePDF.load(encrypted[i]).save "10_#{i}_#{fname}"
+  rescue => e
+    puts e.message
+    if(i == 0)
+      puts "CombinePDF expected to fail to read AESv2"
+    else
+      puts "ERROR: CombinePDF failed to open #{fname}"
+    end
+  end
+end
+
 require 'prawn'
-IO.binwrite '10_prawn.pdf', (Prawn::Document.new { text 'Hello World!' }).render
+IO.binwrite '11_prawn.pdf', (Prawn::Document.new { text 'Hello World!' }).render
 page = CombinePDF.parse((Prawn::Document.new { text 'Hello World!' }).render)
 pdf = CombinePDF.new
 pdf << page
-pdf.save '10_parsed_from_prawn.pdf'
+pdf.save '11_parsed_from_prawn.pdf'
 pdf = CombinePDF.new
 pdf << page << page
-pdf.save('10_AcrobatReader_is_unique_page.pdf')
+pdf.save('11_AcrobatReader_is_unique_page.pdf')
 
 # unify = [
 #   "./Ruby/test\ pdfs/AESv2\ encrypted.pdf",

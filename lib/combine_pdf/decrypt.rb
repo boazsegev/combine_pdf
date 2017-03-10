@@ -143,7 +143,7 @@ module CombinePDF
       object_key << 'sAlT'.force_encoding(Encoding::ASCII_8BIT)
       key_length = object_key.length < 16 ? object_key.length : 16
 
-      cipher = OpenSSL::Cipher::Cipher.new("aes-#{key_length << 3}-cbc")
+      cipher = OpenSSL::Cipher.new("aes-#{key_length << 3}-cbc")
       cipher.decrypt
       cipher.key = Digest::MD5.digest(object_key)[(0...key_length)]
       cipher.iv = encrypted[0..15]
