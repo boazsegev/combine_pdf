@@ -147,7 +147,8 @@ module CombinePDF
         cipher.iv = encrypted[0..15]
         cipher.padding = 0
         cipher.update(encrypted[16..-1]) + cipher.final
-      rescue Exception => e
+      rescue StandardError => e
+        # puts e.class.name
         encrypted
       end
     end
@@ -161,7 +162,7 @@ module CombinePDF
         encrypted_id ||= actual_object(object[:indirect_reference_id])
         encrypted_generation ||= actual_object(object[:indirect_generation_number])
         encrypted_filter ||= actual_object(object[:Filter])
-        if object[:raw_stream_content]
+        if object[:raw_stream_content] && !object[:raw_stream_content].empty?
           stream_length = actual_object(object[:Length])
           actual_length = object[:raw_stream_content].bytesize
           # p stream_length

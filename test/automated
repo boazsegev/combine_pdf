@@ -57,7 +57,9 @@ CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err3.pdf").save '08_3-unknown
 
 CombinePDF.load("/Users/2Be/Ruby/test\ pdfs/nil_object.pdf").save('09_nil_in_parsed_array.pdf')
 
-encrypted = [ "./Ruby/test\ pdfs/AESv2\ encrypted.pdf",
+encrypted = [ "./Ruby/test\ pdfs/pdf-reader/encrypted_version4_revision4_128bit_aes_user_pass_apples_enc_metadata.pdf",
+              "./Ruby/test\ pdfs/AESv2\ encrypted.pdf",
+              "./Ruby/test\ pdfs/pdf-reader/encrypted_version2_revision3_128bit_rc4_blank_user_pass.pdf",
               "./Ruby/test\ pdfs/AES\ enc.pdf",
               "./Ruby/test\ pdfs/RC4\ enc.pdf"]
 
@@ -66,9 +68,9 @@ encrypted.length.times do |i|
   begin
     CombinePDF.load(encrypted[i]).save "10_#{i}_#{fname}"
   rescue => e
-    puts e.message
+    puts e.class.name, e.message
     if(i == 0)
-      puts "CombinePDF expected to fail to read AESv2"
+      puts "CombinePDF expected to fail to read AESv2 #{fname}"
     else
       puts "ERROR: CombinePDF failed to open #{fname}"
     end
@@ -85,6 +87,7 @@ pdf = CombinePDF.new
 pdf << page << page
 pdf.save('11_AcrobatReader_is_unique_page.pdf')
 
+puts GC.stat.inspect
 # unify = [
 #   "./Ruby/test\ pdfs/AESv2\ encrypted.pdf",
 #   "./Ruby/test\ pdfs/data-in-comment.pdf",

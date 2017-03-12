@@ -2,6 +2,21 @@
 
 ***
 
+Change log v.0.2.35 (Release Candidate)
+
+**Update**: Updated / upgraded our RC4 and AES PDF encryption support (for non-password protected PDFs). Credit to Gyuchang Jun (@gyuchang) for his work on providing CombinePDF with this extra encryption support. I have no idea what magic he used to make this happen, but it's beautiful!
+
+**Release**: This gem had been using a development versioning scheme for far too long. The API is stable enough to switch to a production versioning scheme. This version is expected to be the last 0.x version. Assuming this version will be stable enough, it is expected to be re-released as v.1.0.
+
+
+***
+
+Change log v.0.2.34
+
+**Fix**: issue #44 for wkhtmltopdf compatibility and PDF v.1.2 use of named destinations. Credit to Devin Wadsworth (@daymun) for exposing the issue.
+
+***
+
 Change log v.0.2.33
 
 **Update**: Fix #97 to allow javascript support for interactive objects. Credit to @joshirashmics for exposing the issue.
