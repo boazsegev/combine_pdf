@@ -31,8 +31,7 @@ module CombinePDF
                       0x64, 0x00, 0x4E, 0x56, 0xFF, 0xFA, 0x01, 0x08,
                       0x2E, 0x2E, 0x00, 0xB6, 0xD0, 0x68, 0x3E, 0x80,
                       0x2F, 0x0C, 0xA9, 0xFE, 0x64, 0x53, 0x69, 0x7A]
-      @key_crypt_first_iv_store = nil
-      @encryption_iv = nil
+
       change_references_to_actual_values @encryption_dictionary
     end
 
@@ -89,11 +88,9 @@ module CombinePDF
       # # 4(a) (Security handlers of revision 4 or greater)
       # # if document metadata is not being encrypted, add 4 bytes with the value 0xFFFFFFFF.
       if actual_object(@encryption_dictionary[:R]) >= 4
-        key << if actual_object(@encryption_dictionary)[:EncryptMetadata] == false
-                 "\xFF\xFF\xFF\xFF".force_encoding(Encoding::ASCII_8BIT)
-               else # default is true and nil != false
-                 "\x00\x00\x00\x00".force_encoding(Encoding::ASCII_8BIT)
-               end
+        if actual_object(@encryption_dictionary)[:EncryptMetadata] == false
+          key << "\xFF\xFF\xFF\xFF".force_encoding(Encoding::ASCII_8BIT)
+        end
       end
       # 5) pass everything as a MD5 hash
       key = Digest::MD5.digest(key)
@@ -143,12 +140,16 @@ module CombinePDF
       object_key << 'sAlT'.force_encoding(Encoding::ASCII_8BIT)
       key_length = object_key.length < 16 ? object_key.length : 16
 
-      cipher = OpenSSL::Cipher.new("aes-#{key_length << 3}-cbc")
-      cipher.decrypt
-      cipher.key = Digest::MD5.digest(object_key)[(0...key_length)]
-      cipher.iv = encrypted[0..15]
-      cipher.padding = 0
-      cipher.update(encrypted[16..-1]) + cipher.final
+      begin
+        cipher = OpenSSL::Cipher.new("aes-#{key_length << 3}-cbc")
+        cipher.decrypt
+        cipher.key = Digest::MD5.digest(object_key)[(0...key_length)]
+        cipher.iv = encrypted[0..15]
+        cipher.padding = 0
+        cipher.update(encrypted[16..-1]) + cipher.final
+      rescue Exception => e
+        encrypted
+      end
     end
 
     protected
