@@ -13,7 +13,7 @@ Change log v.0.2.35 (Release Candidate)
 
 Change log v.0.2.34
 
-**Fix**: issue #44 for wkhtmltopdf compatibility and PDF v.1.2 use of named destinations. Credit to Devin Wadsworth (@daymun) for exposing the issue.
+**Fix**: [fixed issue #44 for wkhtmltopdf compatibility](https://github.com/boazsegev/combine_pdf/issues/44) and PDF v.1.2 use of named destinations. Credit to Devin Wadsworth (@daymun) for exposing the issue.
 
 ***
 
