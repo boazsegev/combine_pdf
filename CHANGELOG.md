@@ -2,7 +2,7 @@
 
 ***
 
-Change log v.0.2.35 (Release Candidate)
+#### Change log v.0.2.35 (Release Candidate)
 
 **Update**: Updated / upgraded our RC4 and AES PDF encryption support (for non-password protected PDFs). Credit to Gyuchang Jun (@gyuchang) for his work on providing CombinePDF with this extra encryption support. I have no idea what magic he used to make this happen, but it's beautiful!
 
@@ -11,13 +11,13 @@ Change log v.0.2.35 (Release Candidate)
 
 ***
 
-Change log v.0.2.34
+#### Change log v.0.2.34
 
 **Fix**: [fixed issue #44 for wkhtmltopdf compatibility](https://github.com/boazsegev/combine_pdf/issues/44) and PDF v.1.2 use of named destinations. Credit to Devin Wadsworth (@daymun) for exposing the issue.
 
 ***
 
-Change log v.0.2.33
+#### Change log v.0.2.33
 
 **Update**: Fix #97 to allow javascript support for interactive objects. Credit to @joshirashmics for exposing the issue.
 
@@ -27,7 +27,7 @@ Change log v.0.2.33
 
 ***
 
-Change log v.0.2.32
+#### Change log v.0.2.32
 
 **Update**: Better errors when encryption related exceptions occur. Credit to Paul Shumeika ( @pshumeika ).
 
@@ -35,7 +35,7 @@ Change log v.0.2.32
 
 ***
 
-Change log v.0.2.31
+#### Change log v.0.2.31
 
 **Broke**: Broke the fix for issue #65 so that Radio buttons data might be lost... working on a fix.
 
@@ -47,25 +47,25 @@ Change log v.0.2.31
 
 ***
 
-Change log v.0.2.30
+#### Change log v.0.2.30
 
 **Fix**: Fixed an issue where HTTP artifacts before the beginning of a PDF file / string would prevent the PDF from being parsed. This should fix issue #78 reported by @robvitaro.
 
 ***
 
-Change log v.0.2.29
+#### Change log v.0.2.29
 
 **Fix**: Fixed an issue where updating a page's rotation might raise a `NoMethodError` exception. Credit to Danny (@dikond) both for discovering the issue and for PR #77 that fixes this.
 
 ***
 
-Change log v.0.2.28
+#### Change log v.0.2.28
 
 **Fix**: Fixed an issue related to page stumping, which was introduced when the Rubocop beautification changed the logic of an `if` statement in the Resource merger. Credit to Leon Miller-Out (@sbleon) for noticing the issue, testing and opening PR #76.
 
 ***
 
-Change log v.0.2.27
+#### Change log v.0.2.27
 
 **Fix**: Fixed an issue where a `nil` outline count would cause PDF merger to fail.
 
@@ -75,19 +75,19 @@ Change log v.0.2.27
 
 ***
 
-Change log v.0.2.26
+#### Change log v.0.2.26
 
 **Fix**: Merged PR #72, fixing a typo in the parser that caused incorrect byte substitution to corrupt certain PDF data (adversely effecting encrypted PDFs). Credit to Gyuchang Jun (@gyuchang) for the fix.
 
 ***
 
-Change log v.0.2.25
+#### Change log v.0.2.25
 
 **Fix**: Fixed issue #71, merging PDF outline that exist but have 0 entries fails and raises an exception. Credit to @Kagetsuki for exposing the issue.
 
 ***
 
-Change log v.0.2.24
+#### Change log v.0.2.24
 
 **Fix**: Fixed an issue with PDF Catalog and PDF Page property inheritance that could cause corrupted PDF output (invalid PDF data). Credit to @Kagetsuki for opening an issue that let to this discovery.
 
@@ -97,13 +97,13 @@ Change log v.0.2.24
 
 ***
 
-Change log v.0.2.23
+#### Change log v.0.2.23
 
 **Fix**: fixed an issue introduced in v.0.2.22, where name dictionary conflict resolution would result in corrupted PDF files. The issue was caused because the name conflict resolution wasn't updated to handle the changes in the new reference linking algorithm used by the parser. During this fix, the whole name dictionary algorithm was re-written, providing better support for named destinations, links and (future feature) ToCs. Credit to Kevin Shen (@kevshin2) for exposing the issue.
 
 ***
 
-Change log v.0.2.22 (yanked)
+#### Change log v.0.2.22 (yanked)
 
 **Fix**: fixed an issue with PDF font importing (registering).
 
@@ -119,55 +119,55 @@ Change log v.0.2.22 (yanked)
 
 ***
 
-Change log v.0.2.21
+#### Change log v.0.2.21
 
 **Fix**: fix for issue #54 and #59 (duplicate), discovered by @iggant (Anton Kolodii), related to name conflict resolution and page resources. The issue would cause and error (exception) to occur when attempting to merge pages with specific resource structures. Credit to @cw6365 (Chris Ward) and @DenKey (Den) as well.
 
 ***
 
-Change log v.0.2.20
+#### Change log v.0.2.20
 
 **Fix**: fix for issue #56, discovered by @LeptonHeavy, regarding errors caused by the new PDF form support feature.
 
 ***
 
-Change log v.0.2.19 (yanked)
+#### Change log v.0.2.19 (yanked)
 
 **Partial fix**: unconfirmed fix for issue #56, discovered by @LeptonHeavy, regarding errors caused by the new PDF form support feature.
 
 ***
 
-Change log v.0.2.18 (yanked)
+#### Change log v.0.2.18 (yanked)
 
 **Feature**: added minor (read: initial and incomplete) PDF forms support, in an attempt to preserve form data when combining PDF files.
 
 ***
 
-Change log v.0.2.17
+#### Change log v.0.2.17
 
 **Feature**: added the `page#crop` method to easily crop a PDF file in accordance with the GWG industry association recommendations (updating the `MediaBox` property rather then the `CropBox`). Credit to @wingleungchoi for this feature.
 
 ***
 
-Change log v.0.2.16
+#### Change log v.0.2.16
 
 **Fix**: Fix for issue #49 where specific PDF files containing junk data after the %%EOF marker couldn't be opened (as they were invalid files). The issue was fixed by scanning any trailing data before continuing to parse any PDF file beyond the first %%EOF markers (multiple markers are common when using the PDF format). Credit to @wingleungchoi for providing an example for the issue.
 
 ***
 
-Change log v.0.2.15
+#### Change log v.0.2.15
 
 **Fix**: Fix for issue #22 where specific PDF files with nested references could cause page stamping to fail, raising an exception. Credit to @tomascharad for finding the issue.
 
 ***
 
-Change log v.0.2.14
+#### Change log v.0.2.14
 
 **Fix**: Fix for issue #39, where certain comments could have caused the object after the comments to be ignored, resulting in parsing errors. Credit to @lgn21st for identifying the issue.
 
 ***
 
-Change log v.0.2.13
+#### Change log v.0.2.13
 
 **Fix** fixed issue # 37 reported by @sega (thank you for reporting!), regarding the insability to stamp one PDF page over another when one PDF page used a resource directory propegated with data and another page used a resource directory propegated with references. This was now resolved by checking for references before merging the data.
 
@@ -177,31 +177,31 @@ Change log v.0.2.13
 
 ***
 
-Change log v.0.2.12
+#### Change log v.0.2.12
 
 **Compatability**: fixed issue #36 reported by @vitstradal (thank you for reporting!) regarding PDF files composed by PaperPort. PaperPort (at least version 12) has an issue where PDF data will be placed within a PDF comment. PDF comments start with a "%" sign and end with an EOL marker ("\r" or "\n"). PaperPort ommitted the EOL marker, placing critical data within the comment. A work-around was found by parsing the comment's data and attempting to salvage the misplaced data. This workaround assumes that comments would not contain PDF parsable data at the very end of the comment's line... which is an unsafe assumption. hence, **please let me know if you find _any_ PDF files that worked before the workaround was introduced**.
 
 ***
 
-Change log v.0.2.11
+#### Change log v.0.2.11
 
 **Fix**: fix for issue #35 , which was caused by the broken fix for issue #34. Credit to Davek Rupinski for pointing out the issue.
 
 ***
 
-Change log v.0.2.10
+#### Change log v.0.2.10
 
 **Fix**: fixed page stamping when the page's content was a referenced object instead or a direct array of content references. Credit to vitstradal for discovering the issue.
 
 ***
 
-Change log v.0.2.9
+#### Change log v.0.2.9
 
 **Fix** hopefully fixed issue #33 ([NoMethodError undefined method `[]` for nil:NilClass](https://github.com/boazsegev/combine_pdf/issues/33)).
 
 ***
 
-Change log v.0.2.8
+#### Change log v.0.2.8
 
 * **Fix/Feature**: (related to [issue #32](https://github.com/boazsegev/combine_pdf/issues/32))
 
@@ -215,7 +215,7 @@ Change log v.0.2.8
 
 ***
 
-Change log v.0.2.7
+#### Change log v.0.2.7
 
 **Fix**: Fixed an issue where a malformed PDF String could cause the parser to hang.
 
@@ -225,7 +225,7 @@ Change log v.0.2.7
 
 ***
 
-Change log v.0.2.6
+#### Change log v.0.2.6
 
 **fixed**: Hasan Iskandar fixed issue #30 - Output file cannot be saved from Adobe Reader with "Save As optimizes for Fast Web View" preference enabled. Thank you Hasan.
 
@@ -233,7 +233,7 @@ Change log v.0.2.6
 
 ***
 
-Change log v.0.2.5
+#### Change log v.0.2.5
 
 **feature**: circumvents an issue with 'wkhtmltopdf', where sometimes the `endobj` keyword would be missing, causing malformed PDF data. The parser will now attempt to auto-fix any `endobj` missing keywords.
 
@@ -241,7 +241,7 @@ Change log v.0.2.5
 
 ***
 
-Change log v.0.2.4
+#### Change log v.0.2.4
 
 **fixed**: Fixed the default page sizes which weren't as described in the documentation and now default to US Letter. The documentation was also fixed. No major version bump is declered since the defaults were faulty and weren't as described (fixed a bug, not changed the API).
 
@@ -249,7 +249,7 @@ Change log v.0.2.4
 
 ***
 
-Change log v.0.2.3
+#### Change log v.0.2.3
 
 **update**: a better general error message for CombinePDF.new
 
@@ -261,7 +261,7 @@ Change log v.0.2.3
 
 ***
 
-Change log v.0.2.2
+#### Change log v.0.2.2
 
 **fix**: fixed the default value for the :location attribute of PDF#stamp_pages(String, options). Now, instead of the default stamp being written at [:top, :bottom], it's default location will be set to [:center].
 
@@ -269,7 +269,7 @@ Change log v.0.2.2
 
 ***
 
-Change log v.0.2.1
+#### Change log v.0.2.1
 
 **fix**: better page stamping... or, at least more secure (we hope).
 
@@ -281,7 +281,7 @@ Change log v.0.2.1
 
 ***
 
-Change log v.0.2.0
+#### Change log v.0.2.0
 
 Refractoring of code and API overhall.
 
@@ -293,31 +293,31 @@ Any code relying on inner/advanced API calls might be broken.
 
 ***
 
-Change log v.0.1.23
+#### Change log v.0.1.23
 
 **fix**: @kruszczynski fixed an issue with CombinePDF::PDF#number_pages where the page numbering margines were ignored and only the default values were used. Thank you @kruszczynski .
 
 ***
 
-Change log v.0.1.22
+#### Change log v.0.1.22
 
 **fix**: a tested fix for issue #19, where Acrobat Reader would raise an error if page objects in the Catalog were copied by reference instead of copied in full and each was assigned different a unique object id. (possibly an Acrobat Reader Issue workaround) The issue was resolved by exempting page objects from the duplication reduction algorithm, and in this way, forcing duplicates to be copied rather then referenced in the Catalog object.
 
 ***
 
-Change log v.0.1.21
+#### Change log v.0.1.21
 
 **fix**: an attempted fix for issue #19, where the xref table wasn't read on Acrobat Reader, probably due to a double EOL marker at the end of each entry.
 
 ***
 
-Change log v.0.1.20
+#### Change log v.0.1.20
 
 **fix**: due to some PDF files not conforming to the required EOL marker in the endstream object specifications, the parser is now back to a non-strict parsing mode for PDF Stream Objects. Conforming files weren't found to be effected and although it is unlikely, it is possible that they might be effected if the stream object would contain the 'endstream' keyword without the required EOL marker and without intending to end the stream object.
 
 ***
 
-Change log v.0.1.19
+#### Change log v.0.1.19
 
 **fix**: merged @espinosa's fix for issue #16 which affected windows machines.
 
@@ -327,13 +327,13 @@ Change log v.0.1.19
 
 ***
 
-Change log v.0.1.18
+#### Change log v.0.1.18
 
 **fix**: Thank to Stefan, who reported issue #15 , we discovered that in some cases PDF files presented the wrong PDF standard version, causing an error while attempting to parse their data. The issue has been fixed by allowing the parser to search for PDF Object Streams even when the PDF file claims a PDF version below 1.5.
 
 ***
 
-Change log v.0.1.17
+#### Change log v.0.1.17
 
 **feature**: Although it was possible to create and add empty PDF pages (at any location), it is now even easier with one method call to add empty pages at the end of a PDF object. It's also possible to add text to these empty pages or stamp them with different content.
 
@@ -343,19 +343,19 @@ Change log v.0.1.17
 
 ***
 
-Change log v.0.1.16
+#### Change log v.0.1.16
 
 **fix?**: Compatability reports came in showing that some email servers convery new-line (\n) characters to CRLF (\r\n) - corrupting the binary code in the PDF files. This version attemps to fix this by adding more binary characters to the first comment line of the PDF file (right after the header). Most email programs and Antivirus programs should preserve the original EOL character once they recognize the file as binary.
 
 ***
 
-Change log v.0.1.15
+#### Change log v.0.1.15
 
 **features**: added new PDF#Page API to deal with page rotation and orientation. see the docs for more info.
 
 ***
 
-Change log v.0.1.14
+#### Change log v.0.1.14
 
 **changes**: changed the way the PDF Page objects are 'injected' with their methods, so that the PDF#pages method is faster and more methods can be injected into the Hash object. For instance, textbox can now be called on an existing page without creating a PDFWriter object and 'stumping' the new data.
 
@@ -363,20 +363,20 @@ Change log v.0.1.14
 
 ***
 
-Change log v.0.1.13
+#### Change log v.0.1.13
 
 **fix**: fix for Acrobat Reader compatablity (by removing color-space declarations). Should solve issue #13 , reported originaly by Imanol and Diyei Gomi.
 
 ***
 
-Change log v.0.1.12
+#### Change log v.0.1.12
 
 **fix**: fix for page rotation inheritance.
 
 **fix**: fix for the issue was discovered while observing issue #13, reported originaly by Imanol and Diyei Gomi. The issue was probably caused by parsing errors introduced while parsing hex strings (a case sensitive method was used by mistake and this is now corrected).
 ***
 
-Change log v.0.1.11
+#### Change log v.0.1.11
 
 **fix**: fixed a bug where Page Resources and ColorSpace data wouldn't be inherited correctly from the Catalog and Pages parent objects. This issue could cause pages to render without all their content intact. This issue is now fixed (although more testing should be done for multiple inheritance).
 
@@ -384,31 +384,31 @@ Change log v.0.1.11
 
 ***
 
-Change log v.0.1.10
+#### Change log v.0.1.10
 
 **fix**: fixed a typo that prevented access to the CombinePDF::VERSION constant.
 
 ***
 
-Change log v.0.1.9
+#### Change log v.0.1.9
 
 **fix**: possible fix for bug reported by lamphuongha, regarding PDF 1.5 streams. I await confirmation that the fix actually works, as I cannot seem to reproduce the whole spectrum of the bug on my system...
 
 ***
 
-Change log v.0.1.8
+#### Change log v.0.1.8
 
 **fix**: Fixed an [issue reported by Saba](https://github.com/boazsegev/combine_pdf/issues/8), where PDF files that were written using bad practices (namely, without wrapping their content streams correctly) would not be stamped correctly due to changes in the space matrix (CTM). Fixed by wrapping all existing streams before stamping.
 
 ***
 
-Change log v.0.1.7
+#### Change log v.0.1.7
 
 **fix**: PDF `insert` had a typo in the code that would cause failure when unsupported object insertion was attempted - fixed by Nathan Keyes (nkeyes).
 
 ***
 
-Change log v.0.1.6
+#### Change log v.0.1.6
 
 **fix**: added Mutex to font library (which was shared by all PDFWriter objects) - now fonts are thread safe (PDF objects are NOT thread safe by design).
 
