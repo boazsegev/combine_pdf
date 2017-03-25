@@ -221,9 +221,10 @@ module CombinePDF
     end
 
     # @private
-    # this method reviews a Hash an updates it by merging Hash data,
+    # this method reviews a Hash and updates it by merging Hash data,
     # preffering the new over the old.
     def self.hash_merge_new_no_page(_key, old_data, new_data)
+      return old_data unless new_data
       if old_data.is_a? Hash
         return old_data if old_data[:Type] == :Page
         old_data.merge(new_data, &(@hash_merge_new_no_page_proc ||= method(:hash_merge_new_no_page)))
