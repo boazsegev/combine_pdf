@@ -24,6 +24,11 @@ i = 0
 pdf.pages.each { |pg| pg << pdf2.pages[i] }
 pdf.save '03_check_font_conflict.pdf'
 
+pdf = CombinePDF.load './Ruby/test pdfs/nil_1.pdf'
+pdf2 = CombinePDF.load './Ruby/test pdfs/nil_2.pdf'
+pdf << pdf2
+pdf.save '03_01_nil_value_conflict.pdf'
+
 pdf = CombinePDF.load './Ruby/test pdfs/names_go_haywire_0.pdf'
 pdf << CombinePDF.load('./Ruby/test pdfs/names_go_haywire_1.pdf')
 pdf.save '04_check_view_and_names_reference.pdf'

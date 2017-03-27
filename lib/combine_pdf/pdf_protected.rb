@@ -225,11 +225,14 @@ module CombinePDF
     # preffering the new over the old.
     def self.hash_merge_new_no_page(_key, old_data, new_data)
       return old_data unless new_data
-      if old_data.is_a? Hash
-        return old_data if old_data[:Type] == :Page
+      if old_data.is_a?(Hash) && new_data.is_a?(Hash)
+        return old_data if (old_data[:Type] == :Page)
         old_data.merge(new_data, &(@hash_merge_new_no_page_proc ||= method(:hash_merge_new_no_page)))
       elsif old_data.is_a? Array
+        new_data = [new_data] unless new_data.is_a? Array
         old_data + new_data
+      elsif new_data.is_a? Array
+        new_data + [old_data]
       else
         new_data
       end

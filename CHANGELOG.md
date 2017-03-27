@@ -2,11 +2,18 @@
 
 ***
 
-#### Change log v.0.2.35 (Release Candidate)
+#### Change log v.0.2.36 (Release Candidate)
 
-**Update**: Updated / upgraded our RC4 and AES PDF encryption support (for non-password protected PDFs). Credit to Gyuchang Jun (@gyuchang) for his work on providing CombinePDF with this extra encryption support. I have no idea what magic he used to make this happen, but it's beautiful!
+**Fix**: Fix for [issue #104](https://github.com/boazsegev/combine_pdf/issues/104). Credit to @tomascharad for exposing the issue.
 
 **Release**: This gem had been using a development versioning scheme for far too long. The API is stable enough to switch to a production versioning scheme. This version is expected to be the last 0.x version. Assuming this version will be stable enough, it is expected to be re-released as v.1.0.
+
+
+***
+
+#### Change log v.0.2.35
+
+**Update**: Updated / upgraded our RC4 and AES PDF encryption support (for non-password protected PDFs). Credit to Gyuchang Jun (@gyuchang) for his work on providing CombinePDF with this extra encryption support. I have no idea what magic he used to make this happen, but it's beautiful!
 
 
 ***
