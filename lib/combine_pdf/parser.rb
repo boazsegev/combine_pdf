@@ -76,7 +76,7 @@ module CombinePDF
       @parsed = _parse_
       # puts @parsed
 
-      raise 'Unknown PDF parsing error - maleformed PDF file?' unless (@parsed.select { |i| !i.is_a?(Hash) }).empty?
+      raise 'Unknown PDF parsing error - malformed PDF file?' unless (@parsed.select { |i| !i.is_a?(Hash) }).empty?
 
       if @root_object == {}.freeze
         xref_streams = @parsed.select { |obj| obj.is_a?(Hash) && obj[:Type] == :XRef }

@@ -6,6 +6,8 @@
 
 **Fix**: Fix for [issue #104](https://github.com/boazsegev/combine_pdf/issues/104). Credit to @tomascharad for exposing the issue.
 
+**Fix**: Fix typo on Parser error message for general parser error.
+
 **Release**: This gem had been using a development versioning scheme for far too long. The API is stable enough to switch to a production versioning scheme. This version is expected to be the last 0.x version. Assuming this version will be stable enough, it is expected to be re-released as v.1.0.
 
 
