@@ -56,6 +56,20 @@ pdf = CombinePDF.new
 lists.each { |n| pdf << CombinePDF.load(n) }
 pdf.save('07_named destinations.pdf')
 
+pdf = CombinePDF.new
+lists.each { |n| pdf << CombinePDF.load(n) }
+pdf.number_pages(start_at: 1,
+                           font_size: 14,
+                           font_color: [0, 0, 0.4],
+                           box_color: [0.8, 0.8, 0.8],
+                           border_width: 1,
+                           border_color: [0.3, 0.3, 0.3],
+                           box_radius: 8,
+                           number_location: [:top, :bottom],
+                           opacity: 0.75)
+
+pdf.save('07_named destinations_numbered.pdf')
+
 CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err.pdf").save '08_1-unknown-err-empty-str.pdf'
 CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err2.pdf").save '08_2-unknown-err-empty-str.pdf'
 CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err3.pdf").save '08_3-unknown-err-empty-str.pdf'

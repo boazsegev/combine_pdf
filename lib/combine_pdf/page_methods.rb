@@ -185,8 +185,8 @@ module CombinePDF
     # ctm:: A PDF complient CTM data array that will manipulate the axis and allow transformations. i.e. `[1,0,0,1,0,0]`
     def textbox(text, properties = {})
       options = {
-        x: 0,
-        y: 0,
+        x: page_size[0],
+        y: page_size[1],
         width: 0,
         height: -1,
         text_align: :center,
