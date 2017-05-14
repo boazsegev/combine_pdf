@@ -236,7 +236,7 @@ module CombinePDF
         ##########################################
         elsif str = @scanner.scan(/<[0-9a-fA-F\s]*>/)
           # warn "Found a hex string"
-          str = str.split(/\s/).map! {|b| b.length < 2 ? "0#{b}" : b}
+          str = str.split(/\s/).map! {|b| b.length.odd? ? "0#{b}" : b}
           out << unify_string(str.pack('H*' * str.length).force_encoding(Encoding::ASCII_8BIT))
         ##########################################
         ## parse a Literal String
