@@ -25,7 +25,7 @@ module CombinePDF
       # an existing object map
       resolved = {}.dup
       existing = {}.dup
-      @objects.each { |obj| existing[obj] = obj }
+      @objects.each { |obj| existing[obj.object_id] = obj }
       # loop until should_resolve is empty
       while should_resolve.any?
         obj = should_resolve.pop
@@ -33,12 +33,12 @@ module CombinePDF
         if obj.is_a?(Hash)
           referenced = obj[:referenced_object]
           if referenced && referenced.any?
-            tmp = resolved[referenced.object_id] || existing[referenced]
+            tmp = resolved[referenced.object_id] || existing[referenced.object_id]
             if tmp
               obj[:referenced_object] = tmp
             else
               resolved[obj.object_id] = referenced
-              existing[referenced] = referenced
+              existing[referenced.object_id] = referenced
               should_resolve << referenced
               @objects << referenced
             end
