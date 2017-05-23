@@ -100,7 +100,7 @@ module CombinePDF
       @names = parser.names_object || {}
       @forms_data = parser.forms_object || {}
       @outlines = parser.outlines_object || {}
-      # rebuild the catalo, to fix wkhtmltopdf's use of static page numbers
+      # rebuild the catalog, to fix wkhtmltopdf's use of static page numbers
       rebuild_catalog
 
       # general globals

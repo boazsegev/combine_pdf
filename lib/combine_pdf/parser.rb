@@ -107,7 +107,7 @@ module CombinePDF
           @scanner = StringScanner.new o[:raw_stream_content]
           stream_data = _parse_
           id_array = []
-          while stream_data[0].is_a? (Integer)
+          while stream_data[0].is_a? (Numeric)
             id_array << stream_data.shift
             stream_data.shift
           end
@@ -180,64 +180,34 @@ module CombinePDF
         if @scanner.scan(/\[/)
           out << _parse_
         ##########################################
-        ## parse a Dictionary
+        ## Parse a Name
         ##########################################
-        elsif @scanner.scan(/<</)
-          data = _parse_
-          obj = {}
-          obj[data.shift] = data.shift while data[0]
-          out << obj
+        # old, probably working version: when str = @scanner.scan(/\/[\#\w\d\.\+\-\\\?\,]+/)
+        # I don't know how to write the /[\x21-\x7e___subtract_certain_hex_values_here____]+/
+        # all allowed regular caracters between ! and ~ : /[\x21-\x24\x26\x27\x2a-\x2e\x30-\x3b\x3d\x3f-\x5a\x5c\x5e-\x7a\x7c\x7e]+
+        # all characters that aren't white space or special: /[^\x00\x09\x0a\x0c\x0d\x20\x28\x29\x3c\x3e\x5b\x5d\x7b\x7d\x2f\x25]+
+        elsif str = @scanner.scan(/\/[^\x00\x09\x0a\x0c\x0d\x20\x28\x29\x3c\x3e\x5b\x5d\x7b\x7d\x2f\x25]*/)
+          out << (str[1..-1].gsub(/\#[0-9a-fA-F]{2}/) { |a| a[1..2].hex.chr }).to_sym
         ##########################################
-        ## return content of array or dictionary
+        ## Parse a Number
         ##########################################
-        elsif @scanner.scan(/\]/) || @scanner.scan(/>>/)
-          return out
-        ##########################################
-        ## parse a Stream
-        ##########################################
-        elsif @scanner.scan(/stream[\r\n]/)
-          @scanner.pos += 1 if @scanner.peek(1) == "\n".freeze && @scanner.matched[-1] != "\n".freeze
-          # the following was dicarded because some PDF files didn't have an EOL marker as required
-          # str = @scanner.scan_until(/(\r\n|\r|\n)endstream/)
-          # instead, a non-strict RegExp is used:
-          str = @scanner.scan_until(/endstream/)
-          # raise error if the stream doesn't end.
-          raise "Parsing Error: PDF file error - a stream object wasn't properly closed using 'endstream'!" unless str
-          # need to remove end of stream
-          if out.last.is_a? Hash
-            # out.last[:raw_stream_content] = str[0...-10] #cuts only one EON char (\n or \r)
-            out.last[:raw_stream_content] = unify_string str.sub(/(\r\n|\n|\r)?endstream\z/, '').force_encoding(Encoding::ASCII_8BIT)
-          else
-            warn 'Stream not attached to dictionary!'
-            out << str.sub(/(\r\n|\n|\r)?endstream\z/, '').force_encoding(Encoding::ASCII_8BIT)
-          end
-        ##########################################
-        ## parse an Object after finished
-        ##########################################
-        elsif str = @scanner.scan(/endobj/)
-          # what to do when this is an object?
-          if out.last.is_a? Hash
-            out << out.pop.merge(indirect_generation_number: out.pop, indirect_reference_id: out.pop)
-          else
-            out << { indirect_without_dictionary: out.pop, indirect_generation_number: out.pop, indirect_reference_id: out.pop }
-          end
-          fresh = true
-          # fix wkhtmltopdf use of PDF 1.1 Dest using symbols instead of strings
-          out.last[:Dest] = unify_string(out.last[:Dest].to_s) if out.last[:Dest] && out.last[:Dest].is_a?(Symbol)
-        # puts "!!!!!!!!! Error with :indirect_reference_id\n\nObject #{out.last}  :indirect_reference_id = #{out.last[:indirect_reference_id]}" unless out.last[:indirect_reference_id].is_a?(Integer)
+        elsif str = @scanner.scan(/[\+\-\.\d]+/)
+          str =~ /\./ ? (out << str.to_f) : (out << str.to_i)
         ##########################################
         ## parse a Hex String
         ##########################################
-        elsif str = @scanner.scan(/<[0-9a-fA-F]*>/)
+      elsif str = @scanner.scan(/\<[0-9a-fA-F]*\>/)
           # warn "Found a hex string"
-          out << unify_string([str[1..-2]].pack('H*').force_encoding(Encoding::ASCII_8BIT))
+          str.slice!(1..-2)
+          # str = "0#{str}" if str.length.odd?
+          out << unify_string([str].pack('H*').force_encoding(Encoding::ASCII_8BIT))
         ##########################################
         ## parse a space delimited Hex String
         ##########################################
-        elsif str = @scanner.scan(/<[0-9a-fA-F\s]*>/)
-          # warn "Found a hex string"
-          str = str.split(/\s/).map! {|b| b.length.odd? ? "0#{b}" : b}
-          out << unify_string(str.pack('H*' * str.length).force_encoding(Encoding::ASCII_8BIT))
+      # elsif str = @scanner.scan(/\<[0-9a-fA-F\s]*\>/)
+      #     # warn "Found a space seperated hex string"
+      #     str = str.split(/\s/).map! {|b| b.length.odd? ? "0#{b}" : b}
+      #     out << unify_string(str.pack('H*' * str.length).force_encoding(Encoding::ASCII_8BIT))
         ##########################################
         ## parse a Literal String
         ##########################################
@@ -322,6 +292,52 @@ module CombinePDF
           end
           out << unify_string(str.pack('C*').force_encoding(Encoding::ASCII_8BIT))
         ##########################################
+        ## parse a Dictionary
+        ##########################################
+        elsif @scanner.scan(/<</)
+          data = _parse_
+          obj = {}
+          obj[data.shift] = data.shift while data[0]
+          out << obj
+        ##########################################
+        ## return content of array or dictionary
+        ##########################################
+        elsif @scanner.scan(/\]/) || @scanner.scan(/>>/)
+          return out
+        ##########################################
+        ## parse a Stream
+        ##########################################
+        elsif @scanner.scan(/stream[\r\n]/)
+          @scanner.pos += 1 if @scanner.peek(1) == "\n".freeze && @scanner.matched[-1] != "\n".freeze
+          # the following was dicarded because some PDF files didn't have an EOL marker as required
+          # str = @scanner.scan_until(/(\r\n|\r|\n)endstream/)
+          # instead, a non-strict RegExp is used:
+          str = @scanner.scan_until(/endstream/)
+          # raise error if the stream doesn't end.
+          raise "Parsing Error: PDF file error - a stream object wasn't properly closed using 'endstream'!" unless str
+          # need to remove end of stream
+          if out.last.is_a? Hash
+            # out.last[:raw_stream_content] = str[0...-10] #cuts only one EON char (\n or \r)
+            out.last[:raw_stream_content] = unify_string str.sub(/(\r\n|\n|\r)?endstream\z/, '').force_encoding(Encoding::ASCII_8BIT)
+          else
+            warn 'Stream not attached to dictionary!'
+            out << str.sub(/(\r\n|\n|\r)?endstream\z/, '').force_encoding(Encoding::ASCII_8BIT)
+          end
+        ##########################################
+        ## parse an Object after finished
+        ##########################################
+        elsif str = @scanner.scan(/endobj/)
+          # what to do when this is an object?
+          if out.last.is_a? Hash
+            out << out.pop.merge(indirect_generation_number: out.pop, indirect_reference_id: out.pop)
+          else
+            out << { indirect_without_dictionary: out.pop, indirect_generation_number: out.pop, indirect_reference_id: out.pop }
+          end
+          fresh = true
+          # fix wkhtmltopdf use of PDF 1.1 Dest using symbols instead of strings
+          out.last[:Dest] = unify_string(out.last[:Dest].to_s) if out.last[:Dest] && out.last[:Dest].is_a?(Symbol)
+        # puts "!!!!!!!!! Error with :indirect_reference_id\n\nObject #{out.last}  :indirect_reference_id = #{out.last[:indirect_reference_id]}" unless out.last[:indirect_reference_id].is_a?(Numeric)
+        ##########################################
         ## Parse a comment
         ##########################################
         elsif str = @scanner.scan(/\%/)
@@ -332,20 +348,6 @@ module CombinePDF
             @scanner.scan(/[^\d\r\n]+/) || @scanner.pos += 1
           end
         # puts "AFTER COMMENT: #{@scanner.peek 8}"
-        ##########################################
-        ## Parse a Name
-        ##########################################
-        # old, probably working version: when str = @scanner.scan(/\/[\#\w\d\.\+\-\\\?\,]+/)
-        # I don't know how to write the /[\x21-\x7e___subtract_certain_hex_values_here____]+/
-        # all allowed regular caracters between ! and ~ : /[\x21-\x24\x26\x27\x2a-\x2e\x30-\x3b\x3d\x3f-\x5a\x5c\x5e-\x7a\x7c\x7e]+
-        # all characters that aren't white space or special: /[^\x00\x09\x0a\x0c\x0d\x20\x28\x29\x3c\x3e\x5b\x5d\x7b\x7d\x2f\x25]+
-        elsif str = @scanner.scan(/\/[^\x00\x09\x0a\x0c\x0d\x20\x28\x29\x3c\x3e\x5b\x5d\x7b\x7d\x2f\x25]*/)
-          out << (str[1..-1].gsub(/\#[0-9a-fA-F]{2}/) { |a| a[1..2].hex.chr }).to_sym
-        ##########################################
-        ## Parse a Number
-        ##########################################
-        elsif str = @scanner.scan(/[\+\-\.\d]+/)
-          str =~ /\./ ? (out << str.to_f) : (out << str.to_i)
         ##########################################
         ## Parse an Object Reference
         ##########################################

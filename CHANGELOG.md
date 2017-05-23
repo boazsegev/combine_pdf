@@ -2,7 +2,17 @@
 
 ***
 
-#### Change log v.0.2.37 (Release Candidate)
+#### Change log v.0.2.38 (Release Candidate)
+
+**Fix** (degrade): Fixed an issue related to deeply nested objects causing unreasonable slowdowns. The issue was resolved by degrading the PDF optimization process to review object with `stream` data instead of reviewing every object. This means more duplicate objects might be observed when similar PDF files are merged.
+
+**Fix**: Fixed an issue related to form data where font information was lost during the PDF optimization process.
+
+**Fix**: Fixed issue #108 by adding support for PDFs that have spaces and missing zeros in their hex encoded strings. Credit to @emmanuelmillionaer.
+
+***
+
+#### Change log v.0.2.37
 
 **Fix**: Fixed `Page_Methods#textbox` default `:x`,`:y` to allow for non-zero/cropped page origin. Credit to @donnguyen for exposing the issue.
 

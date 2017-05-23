@@ -138,7 +138,7 @@ end
 # arrays are Array
 # strings are String
 # names are Symbols (String.to_sym)
-# numbers are Fixnum or Float
+# numbers are Integer or Float (Numeric)
 # boolean are TrueClass or FalseClass
 
 ## test performance with:

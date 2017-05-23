@@ -33,12 +33,14 @@ module CombinePDF
         if obj.is_a?(Hash)
           referenced = obj[:referenced_object]
           if referenced && referenced.any?
-            tmp = resolved[referenced.object_id] || existing[referenced]
+            #         tmp = resolved[referenced.object_id] || existing[referenced]
+            tmp = resolved[referenced.object_id] || (referenced[:raw_stream_content] && existing[referenced[:raw_stream_content]])
             if tmp
               obj[:referenced_object] = tmp
             else
               resolved[obj.object_id] = referenced
-              existing[referenced] = referenced
+              #        existing[referenced] = referenced
+              existing[referenced[:raw_stream_content]] = referenced
               should_resolve << referenced
               @objects << referenced
             end
@@ -150,7 +152,8 @@ module CombinePDF
       catalog = rebuild_catalog
       page_objects = catalog[:Pages][:referenced_object][:Kids].map { |e| @objects << e[:referenced_object]; e[:referenced_object] }
       # adds every referenced object to the @objects (root), addition is performed as pointers rather then copies
-      add_referenced([page_objects, @forms_data, @names, @outlines, @info])
+      # add_referenced([page_objects, @forms_data, @names, @outlines, @info])
+      add_referenced(@objects.dup)
       catalog
     end
 
@@ -163,7 +166,7 @@ module CombinePDF
     def renumber_object_ids(start = nil)
       @set_start_id = start || @set_start_id
       start = @set_start_id
-      history = {}
+      # history = {}
       @objects.each do |obj|
         obj[:indirect_reference_id] = start
         start += 1
@@ -191,7 +194,7 @@ module CombinePDF
             if pos[0].is_a? String
               (pos.length / 2).times do |i|
                 dic << (pos[i * 2].clear << base.next!)
-                pos[(i * 2) + 1][0] = {is_reference_only: true, referenced_object: pages[pos[(i * 2) + 1][0]]} if(pos[(i * 2) + 1].is_a?(Array) && pos[(i * 2) + 1][0].is_a?(Integer))
+                pos[(i * 2) + 1][0] = {is_reference_only: true, referenced_object: pages[pos[(i * 2) + 1][0]]} if(pos[(i * 2) + 1].is_a?(Array) && pos[(i * 2) + 1][0].is_a?(Numeric))
                 dic << (pos[(i * 2) + 1].is_a?(Array) ? { is_reference_only: true, referenced_object: { indirect_without_dictionary: pos[(i * 2) + 1] } } : pos[(i * 2) + 1])
                 # dic << pos[(i * 2) + 1]
               end
@@ -225,12 +228,13 @@ module CombinePDF
     # preffering the new over the old.
     def self.hash_merge_new_no_page(_key, old_data, new_data)
       return old_data unless new_data
+      return new_data unless old_data
       if old_data.is_a?(Hash) && new_data.is_a?(Hash)
         return old_data if (old_data[:Type] == :Page)
         old_data.merge(new_data, &(@hash_merge_new_no_page_proc ||= method(:hash_merge_new_no_page)))
       elsif old_data.is_a? Array
-        new_data = [new_data] unless new_data.is_a? Array
-        old_data + new_data
+        return old_data + new_data if new_data.is_a?(Array)
+        return old_data.dup << new_data
       elsif new_data.is_a? Array
         new_data + [old_data]
       else
