@@ -12,13 +12,6 @@ Install with ruby gems:
 gem install combine_pdf
 ```
 
-## Known Issues
-
-I'm working to solve these and would welcome some help:
-
-* Some PDF files with a table of contents might get a corrupted table of contents once rendered. I'm Still looking into this.
-* Some encrypted PDF files won't open correctly. This might be related to the String corruption I can't seem to track down.
-
 ## Known Limitations
 
 Quick rundown:

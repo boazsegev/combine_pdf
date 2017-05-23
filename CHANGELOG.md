@@ -2,7 +2,9 @@
 
 ***
 
-#### Change log v.0.2.38 (Release Candidate)
+#### Change log v.1.0.0
+
+**Fix**: Fixed a possible issue with string corruption... it might have only existed in the development version, I'm not sure, but it's fixed anyway.
 
 **Fix** (degrade): Fixed an issue related to deeply nested objects causing unreasonable slowdowns. The issue was resolved by degrading the PDF optimization process to review object with `stream` data instead of reviewing every object. This means more duplicate objects might be observed when similar PDF files are merged.
 

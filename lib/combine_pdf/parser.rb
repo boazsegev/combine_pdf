@@ -196,18 +196,18 @@ module CombinePDF
         ##########################################
         ## parse a Hex String
         ##########################################
-      elsif str = @scanner.scan(/\<[0-9a-fA-F]*\>/)
+        elsif str = @scanner.scan(/\<[0-9a-fA-F]*\>/)
           # warn "Found a hex string"
-          str.slice!(1..-2)
+          str = str.slice(1..-2).force_encoding(Encoding::ASCII_8BIT)
           # str = "0#{str}" if str.length.odd?
           out << unify_string([str].pack('H*').force_encoding(Encoding::ASCII_8BIT))
         ##########################################
         ## parse a space delimited Hex String
         ##########################################
-      # elsif str = @scanner.scan(/\<[0-9a-fA-F\s]*\>/)
-      #     # warn "Found a space seperated hex string"
-      #     str = str.split(/\s/).map! {|b| b.length.odd? ? "0#{b}" : b}
-      #     out << unify_string(str.pack('H*' * str.length).force_encoding(Encoding::ASCII_8BIT))
+        elsif str = @scanner.scan(/\<[0-9a-fA-F\s]*\>/)
+          # warn "Found a space seperated hex string"
+          str = str.force_encoding(Encoding::ASCII_8BIT).split(/\s/).map! {|b| b.length.odd? ? "0#{b}" : b}
+          out << unify_string(str.pack('H*' * str.length).force_encoding(Encoding::ASCII_8BIT))
         ##########################################
         ## parse a Literal String
         ##########################################
@@ -571,7 +571,7 @@ module CombinePDF
                   o = nil
                 else
                   o[:referenced_object] = obj_dir[[o[:indirect_reference_id], o[:indirect_generation_number]]]
-                  warn "Couldn't connect reference for #{o}" if o[:referenced_object].nil?
+                  warn "Couldn't connect reference for #{o}" if o[:referenced_object].nil? && (o[:indirect_reference_id] + o[:indirect_generation_number] != 0)
                   o.delete :indirect_reference_id
                   o.delete :indirect_generation_number
                   o = (o[:referenced_object] && o[:referenced_object][:indirect_without_dictionary]) || o
