@@ -30,6 +30,9 @@ pdf2 = CombinePDF.load './Ruby/test pdfs/nil_2.pdf'
 pdf << pdf2
 pdf.save '03_01_nil_value_conflict.pdf'
 
+pdf = CombinePDF.load './Ruby/test pdfs/space_after_streram_keyword.pdf'
+pdf.save '03_02_extra_space_after_stream_keyword.pdf'
+
 pdf = CombinePDF.load './Ruby/test pdfs/names_go_haywire_0.pdf'
 pdf << CombinePDF.load('./Ruby/test pdfs/names_go_haywire_1.pdf')
 pdf.save '04_check_view_and_names_reference.pdf'

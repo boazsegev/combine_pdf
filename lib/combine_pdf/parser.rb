@@ -307,7 +307,7 @@ module CombinePDF
         ##########################################
         ## parse a Stream
         ##########################################
-        elsif @scanner.scan(/stream[\r\n]/)
+        elsif @scanner.scan(/stream[ \t]*[\r\n]/)
           @scanner.pos += 1 if @scanner.peek(1) == "\n".freeze && @scanner.matched[-1] != "\n".freeze
           # the following was dicarded because some PDF files didn't have an EOL marker as required
           # str = @scanner.scan_until(/(\r\n|\r|\n)endstream/)

@@ -2,6 +2,12 @@
 
 ***
 
+#### Change log v.1.0.1
+
+**Compatibility**: Some PDF authoring systems (namely the "Microsoft Reporting Services") produce a non-standard extra white-space after the keyword `stream`. This update should provide a compatibility fix for these occurences. Credit to @ilasorsa for exposing the issue.
+
+***
+
 #### Change log v.1.0.0
 
 **Fix**: Fixed a possible issue with string corruption... it might have only existed in the development version, I'm not sure, but it's fixed anyway.
