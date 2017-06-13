@@ -1,5 +1,15 @@
 # Change Log
 
+***
+
+#### Change log v.1.0.3
+
+**Fix**: Fix issue #111 where some fonts would cause `pdf.fonts` to break the PDF. Credit to Pavel Slabý (@paulslaby) for exposing the issue.
+
+***
+
+#### Change log v.1.0.2
+
 **Fix**: Fix NilError when calling `fonts` for a page that has no fonts. Credit to Pavel Slabý (@paulslaby) for PR#110.
 
 **Fix**: Fix issue #109 where nested differences between objects weren't detected properly, causing loss of data if objects (specifically images that use image masks) would merge. The fix implements a manual equality checks with up to three (3) levels of recursion, protecting against stack overflow that can be caused by the combinations of complex PDF files and Ruby's limitless recursion on `eql?`. Credit to Ryan Scott (@Subtletree) exposing the issue.

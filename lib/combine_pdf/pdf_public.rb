@@ -252,11 +252,11 @@ module CombinePDF
     # @param limit_to_type0 [true,false] limits the list to type0 fonts.
     def fonts(limit_to_type0 = false)
       fonts_array = []
-      pages.each do |p|
-        if p[:Resources][:Font]
-          p[:Resources][:Font].values.each do |f|
+      pages.each do |pg|
+        if pg[:Resources][:Font]
+          pg[:Resources][:Font].values.each do |f|
             f = f[:referenced_object] if f[:referenced_object]
-            if (limit_to_type0 || f[:Subtype] = :Type0) && f[:Type] == :Font && !fonts_array.include?(f)
+            if (limit_to_type0 || f[:Subtype] == :Type0) && f[:Type] == :Font && !fonts_array.include?(f)
               fonts_array << f
             end
           end
