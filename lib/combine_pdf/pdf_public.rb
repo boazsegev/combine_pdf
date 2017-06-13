@@ -253,10 +253,12 @@ module CombinePDF
     def fonts(limit_to_type0 = false)
       fonts_array = []
       pages.each do |p|
-        p[:Resources][:Font].values.each do |f|
-          f = f[:referenced_object] if f[:referenced_object]
-          if (limit_to_type0 || f[:Subtype] = :Type0) && f[:Type] == :Font && !fonts_array.include?(f)
-            fonts_array << f
+        if p[:Resources][:Font]
+          p[:Resources][:Font].values.each do |f|
+            f = f[:referenced_object] if f[:referenced_object]
+            if (limit_to_type0 || f[:Subtype] = :Type0) && f[:Type] == :Font && !fonts_array.include?(f)
+              fonts_array << f
+            end
           end
         end
       end
