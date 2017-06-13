@@ -33,8 +33,12 @@ module CombinePDF
         if obj.is_a?(Hash)
           referenced = obj[:referenced_object]
           if referenced && referenced.any?
-            #         tmp = resolved[referenced.object_id] || existing[referenced]
-            tmp = resolved[referenced.object_id] || (referenced[:raw_stream_content] && existing[referenced[:raw_stream_content]])
+            tmp = resolved[referenced.object_id]
+            if !tmp && referenced[:raw_stream_content]
+              tmp = existing[referenced[:raw_stream_content]]
+              # Avoid endless recursion by limiting it to a number of layers (default == 2)
+              tmp = nil unless equal_layers(tmp, referenced)
+            end
             if tmp
               obj[:referenced_object] = tmp
             else
@@ -338,6 +342,21 @@ module CombinePDF
     end
 
     private
+
+    def equal_layers obj1, obj2, layer = 3
+      return true   if(layer == 0)
+      if obj1.is_a? Hash
+        return false unless obj2.is_a? Hash
+        keys = obj1.keys;
+        return false if (keys - obj2.keys).any?
+        keys.each {|k| return false unless equal_layers( obj1[k], obj2[k], layer-1) }
+      elsif obj1.is_a? Array
+        return false unless obj2.is_a? Array
+        (obj1-obj2).any?
+      else
+        obj1 == obj2
+      end
+    end
 
     def renaming_dictionary(object = nil, dictionary = {})
       object ||= @names

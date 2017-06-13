@@ -18,7 +18,7 @@ Quick rundown:
 
 * When reading PDF Forms, some form data might be lost. I tried fixing this to the best of my ability, but I'm not sure it all works just yet.
 
-* When combining PDF Forms, form data might be unified. I couldn't fix this because this is how PDF forms work (filling a feild fills in the data in any field with the same name), but frankly, I kinda liked the issue... it's almost a feature.
+* When combining PDF Forms, form data might be unified. I couldn't fix this because this is how PDF forms work (filling a field fills in the data in any field with the same name), but frankly, I kinda liked the issue... it's almost a feature.
 
 * When unifying the same TOC data more then once, one of the references will be unified with the other (meaning that if the pages look the same, both references will link to the same page instead of linking to two different pages). You can fix this by adding content to the pages before merging the PDF files (i.e. add empty text boxes to all the pages).
 
