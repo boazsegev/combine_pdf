@@ -1,5 +1,12 @@
 # Change Log
 
+
+***
+
+#### Change log v.1.0.4
+
+**Fix**: Fix issue #115 where PDF object versioning was being assumed to update the `indirect generation number`, allowing Object Streams to be inflated at the end of the parsed data collection instead of the middle. Fixed the issue by pre-emptive object deletion and by inflating Object Streams in place. Credit to @joshirashmics for exposing the issue.
+
 ***
 
 #### Change log v.1.0.3
