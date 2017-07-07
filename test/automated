@@ -19,6 +19,10 @@ pdf << CombinePDF.load("./Ruby/test\ pdfs/empty_form.pdf")
 pdf << CombinePDF.load("./Ruby/test\ pdfs/filled_form.pdf")
 pdf.save '02_check_form_unification_middle_is_empty.pdf'
 
+pdf = CombinePDF.load "./Ruby/test\ pdfs/check_form_data__objstreams_w_versions.pdf"
+pdf.save '02_01_check_form_data_ordering_issue.pdf'
+
+
 pdf = CombinePDF.load './Ruby/test pdfs/share-font-background.pdf'
 pdf2 = CombinePDF.load './Ruby/test pdfs/share-font-foreground.pdf'
 i = 0

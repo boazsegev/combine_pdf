@@ -52,6 +52,7 @@ module CombinePDF
       @forms_object = {}.dup
       @metadata = nil
       @strings_dictionary = {}.dup # all strings are one string
+      @resolution_hash = {}.dup
       @version = nil
       @scanner = nil
       @allow_optional_content = options[:allow_optional_content]
@@ -95,18 +96,20 @@ module CombinePDF
         # do we really need to apply to @parsed? No, there is no need.
       end
 
-      ## search for objects streams
-      object_streams = @parsed.select { |obj| obj.is_a?(Hash) && obj[:Type] == :ObjStm }
-      unless object_streams.empty?
-        warn 'PDF 1.5 Object streams found - they are not fully supported! attempting to extract objects.'
-
-        object_streams.each do |o|
+      # search for objects streams and replace them "in-place"
+      # the inplace resolution prevents versioning errors
+      while (true)
+        found_object_streams = false
+        @parsed.length.times do |i|
+          o = @parsed[i]
+          next unless o.is_a?(Hash) && o[:Type] == :ObjStm
           ## un-encode (using the correct filter) the object streams
           PDFFilter.inflate_object o
-          ## extract objects from stream to top level arry @parsed
+          ## extract objects from stream
           @scanner = StringScanner.new o[:raw_stream_content]
           stream_data = _parse_
           id_array = []
+          collection = [nil]
           while stream_data[0].is_a? (Numeric)
             id_array << stream_data.shift
             stream_data.shift
@@ -115,10 +118,41 @@ module CombinePDF
             stream_data[0] = { indirect_without_dictionary: stream_data[0] } unless stream_data[0].is_a?(Hash)
             stream_data[0][:indirect_reference_id] = id_array.shift
             stream_data[0][:indirect_generation_number] = 0
-            @parsed << stream_data.shift
+            collection << (stream_data.shift)
           end
+          # place new objects right after this one (removing this one as well)
+          @parsed[i] = collection
+          found_object_streams = true
         end
+        break unless found_object_streams
+        @parsed.flatten!
+        @parsed.compact!
       end
+
+      #
+      # object_streams = @parsed.select { |obj| obj.is_a?(Hash) && obj[:Type] == :ObjStm }
+      # unless object_streams.empty?
+      #   warn 'PDF 1.5 Object streams found - they are not fully supported! attempting to extract objects.'
+      #
+      #   object_streams.each do |o|
+      #     ## un-encode (using the correct filter) the object streams
+      #     PDFFilter.inflate_object o
+      #     ## extract objects from stream to top level arry @parsed
+      #     @scanner = StringScanner.new o[:raw_stream_content]
+      #     stream_data = _parse_
+      #     id_array = []
+      #     while stream_data[0].is_a? (Numeric)
+      #       id_array << stream_data.shift
+      #       stream_data.shift
+      #     end
+      #     while id_array[0] && stream_data[0]
+      #       stream_data[0] = { indirect_without_dictionary: stream_data[0] } unless stream_data[0].is_a?(Hash)
+      #       stream_data[0][:indirect_reference_id] = id_array.shift
+      #       stream_data[0][:indirect_generation_number] = 0
+      #       @parsed << stream_data.shift
+      #     end
+      #   end
+      # end
 
       # serialize_objects_and_references.catalog_pages
 
@@ -149,6 +183,9 @@ module CombinePDF
       else
         @info_object = {}
       end
+
+      # we can clear the resolution hash now
+      @resolution_hash.clear if @resolution_hash
       # # # ## remove object streams - if they exist
       # @parsed.reject! {|obj| object_streams << obj if obj.is_a?(Hash) && obj[:Type] == :ObjStm}
       # # # ## remove XREF dictionaries - if they exist
@@ -377,7 +414,7 @@ module CombinePDF
           if @scanner.matched[-1] == 'r'
             if @scanner.skip_until(/<</)
               data = _parse_
-              @root_object ||= {}
+              (@root_object ||= {}).clear
               @root_object[data.shift] = data.shift while data[0]
             end
             ##########
@@ -514,39 +551,6 @@ module CombinePDF
       self
     end
 
-    def get_refernced_object(reference_hash = {})
-      @parsed.each do |stored_object|
-        return stored_object if stored_object.is_a?(Hash) &&
-                                reference_hash[:indirect_reference_id] == stored_object[:indirect_reference_id] &&
-                                reference_hash[:indirect_generation_number] == stored_object[:indirect_generation_number]
-        #   return (stored_object[:indirect_without_dictionary] || stored_object) if stored_object.is_a?(Hash) &&
-        #                                                                            reference_hash[:indirect_reference_id] == stored_object[:indirect_reference_id] &&
-        #                                                                            reference_hash[:indirect_generation_number] == stored_object[:indirect_generation_number]
-      end
-      warn "didn't find reference #{reference_hash}"
-      nil
-    end
-
-    # # @private
-    # # connects references and objects, according to their reference id's.
-    # #
-    # # should be moved to the parser's workflow.
-    # #
-    # def serialize_objects_and_references_old
-    #   obj_dir = {}
-    #   # create a dictionary for referenced objects (no value resolution at this point)
-    #   @parsed.each { |o| obj_dir[[o.delete(:indirect_reference_id), o.delete(:indirect_generation_number)]] = o }
-    #   # @parsed.each {|o| obj_dir[ [ o.[](:indirect_reference_id), o.[](:indirect_generation_number) ] ] = o }
-    #   @references.each do |obj|
-    #     obj[:referenced_object] = obj_dir[[obj[:indirect_reference_id], obj[:indirect_generation_number]]]
-    #     warn "couldn't connect a reference!!! could be a null or removed (empty) object, Silent error!!!\n Object raising issue: #{obj}" unless obj[:referenced_object]
-    #     obj.delete(:indirect_reference_id); obj.delete(:indirect_generation_number)
-    #   end
-    #   obj_dir.clear
-    #   @references.clear
-    #   self
-    # end
-
     # @private
     # connects references and objects, according to their reference id's.
     #
@@ -556,9 +560,23 @@ module CombinePDF
     #
     def serialize_objects_and_references
       obj_dir = {}
+      objid_cache = {}
       # create a dictionary for referenced objects (no value resolution at this point)
-      # @parsed.each { |o| obj_dir[[o.delete(:indirect_reference_id), o.delete(:indirect_generation_number)]] = o }
-      @parsed.each { |o| obj_dir[[o[:indirect_reference_id], o[:indirect_generation_number]]] = o }
+      # at the same time, delete duplicates and old versions when objects have multiple versions
+      @parsed.uniq!
+      @parsed.length.times do |i|
+        o = @parsed[i]
+        objid_cache[o.object_id] = i
+        tmp_key = [o[:indirect_reference_id], o[:indirect_generation_number]]
+        if tmp_found = obj_dir[tmp_key]
+          tmp_found.clear
+          @parsed[objid_cache[tmp_found.object_id]] = nil
+        end
+        obj_dir[tmp_key] = o
+      end
+      @parsed.compact!
+      objid_cache.clear
+
       should_resolve = [@parsed, @root_object]
       while should_resolve.count > 0
         obj = should_resolve.pop
