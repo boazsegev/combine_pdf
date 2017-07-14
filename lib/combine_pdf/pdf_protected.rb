@@ -16,16 +16,18 @@ module CombinePDF
     # @private
     # Some PDF objects contain references to other PDF objects.
     #
-    # this function adds the references contained in `@objects`.
+    # this function adds the references contained in these objects.
     #
     # this is used for internal operations, such as injectng data using the << operator.
-    def add_referenced(should_resolve = [])
+    def add_referenced()
       # add references but not root
       dup_pages = nil
       # an existing object map
       resolved = {}.dup
       existing = {}.dup
-      @objects.each { |obj| existing[obj] = obj }
+      should_resolve = [].dup
+      #set all existing objects as resolved and register their children for future resolution
+      @objects.each { |obj| existing[obj] = obj ; resolved[obj.object_id] = obj; should_resolve << obj.values}
       # loop until should_resolve is empty
       while should_resolve.any?
         obj = should_resolve.pop
@@ -112,7 +114,7 @@ module CombinePDF
       # inject new catalog and pages objects
       @objects << @info if @info
       @objects << catalog_object
-      @objects << pages_object
+      # @objects << pages_object
 
       # rebuild/rename the forms dictionary
       if @forms_data.nil? || @forms_data.empty?
@@ -156,8 +158,7 @@ module CombinePDF
       catalog = rebuild_catalog
       page_objects = catalog[:Pages][:referenced_object][:Kids].map { |e| @objects << e[:referenced_object]; e[:referenced_object] }
       # adds every referenced object to the @objects (root), addition is performed as pointers rather then copies
-      # add_referenced([page_objects, @forms_data, @names, @outlines, @info])
-      add_referenced(@objects.dup)
+      add_referenced()
       catalog
     end
 
@@ -345,6 +346,7 @@ module CombinePDF
 
     def equal_layers obj1, obj2, layer = 3
       return true   if(layer == 0)
+      return true if obj1.object_id == obj2.object_id
       if obj1.is_a? Hash
         return false unless obj2.is_a? Hash
         keys = obj1.keys;

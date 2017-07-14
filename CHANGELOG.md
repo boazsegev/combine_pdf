@@ -1,5 +1,10 @@
 # Change Log
 
+***
+
+#### Change log v.1.0.5
+
+**Fix**: Fix issue #116 where some PDF objects (the page catalog and some root information data) were written twice to the saved PDF file (or String). Credit to @albertsaave  for exposing the issue using GhostScript.
 
 ***
 
