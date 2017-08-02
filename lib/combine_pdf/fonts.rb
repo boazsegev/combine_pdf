@@ -389,7 +389,7 @@ module CombinePDF
       until scanner.eos?
         if do_scan
           while do_scan && !scanner.eos?
-            if scanner.scan(/[\<]?[\d\w]+[\>]?/)
+            if scanner.scan(/[\<]?[\w]+[\>]?/)
               if scanner.matched[0] == '<'
                 lines_found.last << scanner.matched[1..-2]
               else

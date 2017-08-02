@@ -20,8 +20,6 @@ module CombinePDF
     #
     # this is used for internal operations, such as injectng data using the << operator.
     def add_referenced()
-      # add references but not root
-      dup_pages = nil
       # an existing object map
       resolved = {}.dup
       existing = {}.dup
@@ -156,7 +154,7 @@ module CombinePDF
     # there is no point is calling the method before preparing the output.
     def rebuild_catalog_and_objects
       catalog = rebuild_catalog
-      page_objects = catalog[:Pages][:referenced_object][:Kids].map { |e| @objects << e[:referenced_object]; e[:referenced_object] }
+      catalog[:Pages][:referenced_object][:Kids].each { |e| @objects << e[:referenced_object]; e[:referenced_object] }
       # adds every referenced object to the @objects (root), addition is performed as pointers rather then copies
       add_referenced()
       catalog
@@ -339,12 +337,12 @@ module CombinePDF
         end
       end
       formatted_outline_str << "\n" * 10
-      File.open(file, 'w') { |file| file.write(formatted_outline_str) }
+      File.open(file, 'w') { |f| f.write(formatted_outline_str) }
     end
 
     private
 
-    def equal_layers obj1, obj2, layer = 3
+    def equal_layers obj1, obj2, layer = CombinePDF.eq_depth_limit
       return true   if(layer == 0)
       return true if obj1.object_id == obj2.object_id
       if obj1.is_a? Hash

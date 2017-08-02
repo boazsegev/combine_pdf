@@ -65,11 +65,11 @@ module CombinePDF
       @scanner = StringScanner.new @string_to_parse
       @scanner.pos = 0
       @scanner.skip(/[^%]*/) if @scanner.exist?(/%PDF/i)
-      if @scanner.scan /\%PDF\-[\d\-\.]+/
+      if @scanner.scan(/\%PDF\-[\d\-\.]+/)
         @version = @scanner.matched.scan(/[\d\.]+/)[0].to_f
         loop do
           break unless @scanner.scan(/[^\d\r\n]+/)
-          break if @scanner.check(/([\d]+[\s]+[\d]+[\s]+obj[\n\r\s]+\<\<)|([\n\r]+)/)
+          break if @scanner.check(/([\d]+[\s]+[\d]+[\s]+obj[\s]+\<\<)|([\n\r]+)/)
           break if @scanner.eos?
           @scanner.pos += 1
         end
@@ -381,7 +381,7 @@ module CombinePDF
           # is a comment, skip until new line
           loop do
             # break unless @scanner.scan(/[^\d\r\n]+/)
-            break if @scanner.check(/([\d]+[\s]+[\d]+[\s]+obj[\n\r\s]+\<\<)|([\n\r]+)/) || @scanner.eos? # || @scanner.scan(/[^\d]+[\r\n]+/) ||
+            break if @scanner.check(/([\d]+[\s]+[\d]+[\s]+obj[\s]+\<\<)|([\n\r]+)/) || @scanner.eos? # || @scanner.scan(/[^\d]+[\r\n]+/) ||
             @scanner.scan(/[^\d\r\n]+/) || @scanner.pos += 1
           end
         # puts "AFTER COMMENT: #{@scanner.peek 8}"

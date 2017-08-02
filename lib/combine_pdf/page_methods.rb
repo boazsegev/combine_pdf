@@ -63,9 +63,9 @@ module CombinePDF
       # setup references to avoid method calls.
       local_res = resources
       local_val = nil
-      # setup references to avoid method calls.
-      remote_res = obj.resources
-      remote_val = nil
+      # # setup references to avoid method calls.
+      # remote_res = obj.resources
+      # remote_val = nil
 
       # add each of the new resources in the uncoming Page to the local resource Hash
       obj.resources.each do |key, new_val|
@@ -493,19 +493,19 @@ module CombinePDF
 
     # rotate the page 90 degrees counter clockwise
     def rotate_left
-      self[:Rotate] = self[:Rotate].to_f + 90
+      self[:Rotate] = (self[:Rotate].to_f() + 90)
       fix_rotation
     end
 
     # rotate the page 90 degrees clockwise
     def rotate_right
-      self[:Rotate] = self[:Rotate].to_f - 90
+      self[:Rotate] = (self[:Rotate].to_f() - 90)
       fix_rotation
     end
 
     # rotate the page by 180 degrees
     def rotate_180
-      self[:Rotate] = self[:Rotate].to_f +180
+      self[:Rotate] = (self[:Rotate].to_f() + 180)
       fix_rotation
     end
 
@@ -816,9 +816,9 @@ module CombinePDF
       out = []
       scanner = StringScanner.new text
       until scanner.eos?
-        if scanner.scan /[#{rtl_characters} ]/
+        if scanner.scan(/[#{rtl_characters} ]/)
           out.unshift scanner.matched
-        elsif scanner.scan /[^#{rtl_characters}]+/
+        elsif scanner.scan(/[^#{rtl_characters}]+/)
           if out.empty? && scanner.matched.match(/[\s]$/) && !scanner.eos?
             white_space_to_move = scanner.matched.match(/[\s]+$/).to_s
             out.unshift scanner.matched[0..-1 - white_space_to_move.length]

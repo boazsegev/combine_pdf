@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+$VERBOSE = true
+
 require 'benchmark'
 $LOAD_PATH.unshift File.expand_path(File.join('..', '..', 'lib'), __FILE__)
 require 'combine_pdf'

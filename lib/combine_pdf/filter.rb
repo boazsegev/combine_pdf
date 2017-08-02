@@ -51,14 +51,14 @@ module CombinePDF
         when :FlateDecode
           raise_unsupported_error params_array[0] unless params_array[0].nil?
           if params_array[0] && params_array[0][:Predictor].to_i > 1
-            bits = params_array[0][:BitsPerComponent] || 8
             predictor = params_array[0][:Predictor].to_i
-            columns = params_array[0][:Columns] || 1
-            if (2..9).cover? params_array[0][:Predictor].to_i
+            # bits = params_array[0][:BitsPerComponent] || 8
+            # columns = params_array[0][:Columns] || 1
+            if (2..9).cover? predictor
               ####
               # prepare TIFF group
               raise_unsupported_error params_array[0]
-            elsif (10..15).cover? params_array[0][:Predictor].to_i == 2
+            elsif (10..15).cover? predictor
               ####
               # prepare PNG group
               raise_unsupported_error params_array[0]

@@ -147,7 +147,7 @@ module CombinePDF
         cipher.iv = encrypted[0..15]
         cipher.padding = 0
         cipher.update(encrypted[16..-1]) + cipher.final
-      rescue StandardError => e
+      rescue StandardError => _e
         # puts e.class.name
         encrypted
       end

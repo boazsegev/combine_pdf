@@ -28,7 +28,7 @@ module CombinePDF
    rescue
      false
    end) ? load(string) : parse(string)
-    rescue => e
+   rescue => _e
       raise 'General PDF error - Use CombinePDF.load or CombinePDF.parse for a non-general error message (the requested file was not found OR the string received is not a valid PDF stream OR the file was found but not valid).'
     end
   end
@@ -167,4 +167,14 @@ module CombinePDF
   def register_font_from_pdf_object(font_name, font_object)
     register_existing_font font_name, font_object
   end
+
+  # Gets the equality depth limit. This is the point at which CombinePDF will stop testing for nested items being equal.
+  def eq_depth_limit
+    @eq_depth_limit
+  end
+  # Sets the equality depth limit. This is the point at which CombinePDF will stop testing for nested items being equal.
+  def eq_depth_limit= value
+    @eq_depth_limit = value
+  end
+  @eq_depth_limit = 8
 end

@@ -42,7 +42,7 @@ module CombinePDF
 
     def format_string_to_pdf(object)
       # object.force_encoding(Encoding::ASCII_8BIT)
-      if !object.match(/[^D\:\d\+\-\Z\']/) # if format is set to Literal and string isn't a date
+      if !object.match(/[^D\:\d\+\-Z\']/) # if format is set to Literal and string isn't a date
         ('(' + ([].tap { |out| object.bytes.to_a.each { |byte| STRING_REPLACEMENT_HASH[byte.chr] ? (STRING_REPLACEMENT_HASH[byte.chr].bytes.each { |b| out << b }) : out << byte } }).pack('C*') + ')').force_encoding(Encoding::ASCII_8BIT)
       else
         # A hexadecimal string shall be written as a sequence of hexadecimal digits (0–9 and either A–F or a–f)

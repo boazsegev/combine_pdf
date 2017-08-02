@@ -275,7 +275,7 @@ module CombinePDF
     #   pdf.save "both_files_merged.pdf"
     # data:: is PDF page (Hash), and Array of PDF pages or a parsed PDF object to be added.
     def <<(data)
-      insert -1, data
+      insert(-1, data)
     end
 
     # add the pages (or file) to the BEGINNING of the PDF (combine/merge) and RETURNS SELF for nesting operators.
