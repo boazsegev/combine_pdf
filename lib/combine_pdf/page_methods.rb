@@ -649,7 +649,6 @@ module CombinePDF
         page_res.each do |k, v|
           v = page_res[k] = v.dup if v.is_a?(Array) || v.is_a?(Hash)
           v = v[:referenced_object] = v[:referenced_object].dup if v.is_a?(Hash) && v[:referenced_object]
-          v = v[:referenced_object] = v[:referenced_object].dup if v.is_a?(Hash) && v[:referenced_object]
         end
       end
       page_copy.instance_exec(secure || @secure_injection) { |s| secure_for_copy if s; init_contents; self }

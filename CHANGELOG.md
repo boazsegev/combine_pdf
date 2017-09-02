@@ -2,6 +2,16 @@
 
 ***
 
+#### Change log v.1.0.7
+
+**Fix**: Fix an issue where page property inheritance might break PDF structure if there's a conflict between property types (inheritance using properties by reference vs. nested properties), fixing issue #124. Credit to @erikaxel for exposing the issue.
+
+#### Change log v.1.0.6
+
+**Fix**: Fix warnings, issue #120. Credit to @lloeki for exposing the issue.
+
+**Fix**: Fix / add adjustable nesting protection, fixing issue #117. Credit to @emmanuelmillionaer for exposing the issue.
+
 #### Change log v.1.0.5
 
 **Fix**: Fix issue #116 where some PDF objects (the page catalog and some root information data) were written twice to the saved PDF file (or String). Credit to @albertsaave  for exposing the issue using GhostScript.

@@ -516,11 +516,13 @@ module CombinePDF
             catalogs[:Rotate] ||= inheritance_hash[:Rotate] if inheritance_hash[:Rotate]
             if inheritance_hash[:Resources]
               catalogs[:Resources] ||= { referenced_object: {}, is_reference_only: true }.dup
-              (catalogs[:Resources][:referenced_object] || catalogs[:Resources]).update((inheritance_hash[:Resources][:referenced_object] || inheritance_hash[:Resources]), &self.class.method(:hash_update_proc_for_old))
+              catalogs[:Resources] = { referenced_object: catalogs[:Resources], is_reference_only: true } unless catalogs[:Resources][:referenced_object]
+              catalogs[:Resources][:referenced_object].update((inheritance_hash[:Resources][:referenced_object] || inheritance_hash[:Resources]), &self.class.method(:hash_update_proc_for_old))
             end
             if inheritance_hash[:ColorSpace]
               catalogs[:ColorSpace] ||= { referenced_object: {}, is_reference_only: true }.dup
-              (catalogs[:ColorSpace][:referenced_object] || catalogs[:ColorSpace]).update((inheritance_hash[:ColorSpace][:referenced_object] || inheritance_hash[:ColorSpace]), &self.class.method(:hash_update_proc_for_old))
+              catalogs[:ColorSpace] = { referenced_object: catalogs[:ColorSpace], is_reference_only: true } unless catalogs[:ColorSpace][:referenced_object]
+              catalogs[:ColorSpace][:referenced_object].update((inheritance_hash[:ColorSpace][:referenced_object] || inheritance_hash[:ColorSpace]), &self.class.method(:hash_update_proc_for_old))
             end
             # (catalogs[:ColorSpace] ||= {}).update(inheritance_hash[:ColorSpace], &self.class.method(:hash_update_proc_for_old)) if inheritance_hash[:ColorSpace]
             # catalogs[:Order] ||= inheritance_hash[:Order] if inheritance_hash[:Order]
