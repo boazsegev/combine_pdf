@@ -2,6 +2,10 @@
 
 ***
 
+#### Change log v.1.0.8
+
+**Update**: Improved parsing error handling, courtesy of Evgeny Garlukovich (@evgenygarl).
+
 #### Change log v.1.0.7
 
 **Fix**: Fix an issue where page property inheritance might break PDF structure if there's a conflict between property types (inheritance using properties by reference vs. nested properties), fixing issue #124. Credit to @erikaxel for exposing the issue.
