@@ -6,6 +6,8 @@
 ########################################################
 
 module CombinePDF
+  ParsingError = Class.new(StandardError)
+
   # @!visibility private
   # @private
   #:nodoc: all
@@ -77,7 +79,9 @@ module CombinePDF
       @parsed = _parse_
       # puts @parsed
 
-      raise 'Unknown PDF parsing error - malformed PDF file?' unless (@parsed.select { |i| !i.is_a?(Hash) }).empty?
+      unless (@parsed.select { |i| !i.is_a?(Hash) }).empty?
+        raise ParsingError, 'Unknown PDF parsing error - malformed PDF file?'
+      end
 
       if @root_object == {}.freeze
         xref_streams = @parsed.select { |obj| obj.is_a?(Hash) && obj[:Type] == :XRef }
@@ -86,7 +90,9 @@ module CombinePDF
         end
       end
 
-      raise 'root is unknown - cannot determine if file is Encrypted' if @root_object == {}.freeze
+      if @root_object == {}.freeze
+        raise ParsingError, 'root is unknown - cannot determine if file is Encrypted'
+      end
 
       if @root_object[:Encrypt]
         # change_references_to_actual_values @root_object
@@ -350,8 +356,12 @@ module CombinePDF
           # str = @scanner.scan_until(/(\r\n|\r|\n)endstream/)
           # instead, a non-strict RegExp is used:
           str = @scanner.scan_until(/endstream/)
+
           # raise error if the stream doesn't end.
-          raise "Parsing Error: PDF file error - a stream object wasn't properly closed using 'endstream'!" unless str
+          unless str
+            raise ParsingError, "Parsing Error: PDF file error - a stream object wasn't properly closed using 'endstream'!"
+          end
+
           # need to remove end of stream
           if out.last.is_a? Hash
             # out.last[:raw_stream_content] = str[0...-10] #cuts only one EON char (\n or \r)
@@ -475,7 +485,9 @@ module CombinePDF
         @parsed.delete_if { |obj| obj.nil? || obj[:Type] == :Catalog }
         @parsed << catalogs
 
-        raise "Unknown error - parsed data doesn't contain a cataloged object!" unless catalogs
+        unless catalogs
+          raise ParsingError, "Unknown error - parsed data doesn't contain a cataloged object!"
+        end
       end
       if catalogs.is_a?(Array)
         catalogs.each { |c| catalog_pages(c, inheritance_hash) unless c.nil? }
@@ -488,7 +500,10 @@ module CombinePDF
           end
         else
           unless catalogs[:Type] == :Page
-            raise "Optional Content PDF files aren't supported and their pages cannot be safely extracted." if (catalogs[:AS] || catalogs[:OCProperties]) && !@allow_optional_content
+            if (catalogs[:AS] || catalogs[:OCProperties]) && !@allow_optional_content
+              raise ParsingError, "Optional Content PDF files aren't supported and their pages cannot be safely extracted."
+            end
+
             inheritance_hash[:MediaBox] = catalogs[:MediaBox] if catalogs[:MediaBox]
             inheritance_hash[:CropBox] = catalogs[:CropBox] if catalogs[:CropBox]
             inheritance_hash[:Rotate] = catalogs[:Rotate] if catalogs[:Rotate]
