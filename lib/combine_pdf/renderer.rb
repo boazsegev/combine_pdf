@@ -31,6 +31,9 @@ module CombinePDF
 
     STRING_REPLACEMENT_ARRAY = []
     256.times {|i| STRING_REPLACEMENT_ARRAY[i] = [i]}
+    8.times { |i| STRING_REPLACEMENT_ARRAY[i] =  "\\00#{i.to_s(8)}".bytes.to_a }
+    24.times { |i| STRING_REPLACEMENT_ARRAY[i + 7] =  "\\0#{i.to_s(8)}".bytes.to_a }
+    (256 - 127).times { |i| STRING_REPLACEMENT_ARRAY[(i + 127)] ||= "\\#{(i + 127).to_s(8)}".bytes.to_a }
     STRING_REPLACEMENT_ARRAY[0x0A] = '\\n'.bytes.to_a
     STRING_REPLACEMENT_ARRAY[0x0D] = '\\r'.bytes.to_a
     STRING_REPLACEMENT_ARRAY[0x09] = '\\t'.bytes.to_a
@@ -39,17 +42,17 @@ module CombinePDF
     STRING_REPLACEMENT_ARRAY[0x28] = '\\('.bytes.to_a
     STRING_REPLACEMENT_ARRAY[0x29] = '\\)'.bytes.to_a
     STRING_REPLACEMENT_ARRAY[0x5C] = '\\\\'.bytes.to_a
-    32.times { |i| STRING_REPLACEMENT_ARRAY[i] ||= "\\#{i.to_s(8)}".bytes.to_a }
-    (256 - 127).times { |i| STRING_REPLACEMENT_ARRAY[(i + 127)] ||= "\\#{(i + 127).to_s(8)}".bytes.to_a }
 
     def format_string_to_pdf(object)
+      obj_bytes = object.bytes.to_a
       # object.force_encoding(Encoding::ASCII_8BIT)
-      if !object.match(/[^D\:\d\+\-Z\']/) # if format is set to Literal and string isn't a date
-        ('(' + ([].tap { |out| object.bytes.to_a.each { |byte| out.concat(STRING_REPLACEMENT_ARRAY[byte]) } } ).pack('C*') + ')').force_encoding(Encoding::ASCII_8BIT)
-      else
+      if object.length == 0 || obj_bytes.min <= 31 || obj_bytes.max >= 127 # || (obj_bytes[0] != 68  object.match(/[^D\:\d\+\-Z\']/))
         # A hexadecimal string shall be written as a sequence of hexadecimal digits (0–9 and either A–F or a–f)
         # encoded as ASCII characters and enclosed within angle brackets (using LESS-THAN SIGN (3Ch) and GREATER- THAN SIGN (3Eh)).
         "<#{object.unpack('H*')[0]}>".force_encoding(Encoding::ASCII_8BIT)
+      else
+        # a good fit for a Literal String or the string is a date (MUST be literal)
+        ('(' + ([].tap { |out| obj_bytes.each { |byte| out.concat(STRING_REPLACEMENT_ARRAY[byte]) } } ).pack('C*') + ')').force_encoding(Encoding::ASCII_8BIT)
       end
     end
 
