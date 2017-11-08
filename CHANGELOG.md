@@ -2,6 +2,10 @@
 
 ***
 
+#### Change log v.1.0.9
+
+**Fix**: Improbable, but possibly a fix for issue #127, where the JRuby interpreter would fail to pass the correct arguments to the Hash update Proc. Since I'm trying to author a workaround, I have my doubts... but an attempt is better than nothing.
+
 #### Change log v.1.0.8
 
 **Update**: Improved parsing error handling, courtesy of Evgeny Garlukovich (@evgenygarl).

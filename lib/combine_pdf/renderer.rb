@@ -29,21 +29,23 @@ module CombinePDF
       end
     end
 
-    STRING_REPLACEMENT_HASH = { "\x0A" => '\\n',
-                                "\x0D" => '\\r',
-                                "\x09" => '\\t',
-                                "\x08" => '\\b',
-                                "\x0C" => '\\f', # form-feed (\f) == 0x0C
-                                "\x28" => '\\(',
-                                "\x29" => '\\)',
-                                "\x5C" => '\\\\' }.dup
-    32.times { |i| STRING_REPLACEMENT_HASH[i.chr] ||= "\\#{i}" }
-    (256 - 127).times { |i| STRING_REPLACEMENT_HASH[(i + 127).chr] ||= "\\#{i + 127}" }
+    STRING_REPLACEMENT_ARRAY = []
+    256.times {|i| STRING_REPLACEMENT_ARRAY[i] = [i]}
+    STRING_REPLACEMENT_ARRAY[0x0A] = '\\n'.bytes.to_a
+    STRING_REPLACEMENT_ARRAY[0x0D] = '\\r'.bytes.to_a
+    STRING_REPLACEMENT_ARRAY[0x09] = '\\t'.bytes.to_a
+    STRING_REPLACEMENT_ARRAY[0x08] = '\\b'.bytes.to_a
+    STRING_REPLACEMENT_ARRAY[0x0C] = '\\f'.bytes.to_a # form-feed (\f) == 0x0C
+    STRING_REPLACEMENT_ARRAY[0x28] = '\\('.bytes.to_a
+    STRING_REPLACEMENT_ARRAY[0x29] = '\\)'.bytes.to_a
+    STRING_REPLACEMENT_ARRAY[0x5C] = '\\\\'.bytes.to_a
+    32.times { |i| STRING_REPLACEMENT_ARRAY[i] ||= "\\#{i.to_s(8)}".bytes.to_a }
+    (256 - 127).times { |i| STRING_REPLACEMENT_ARRAY[(i + 127)] ||= "\\#{(i + 127).to_s(8)}".bytes.to_a }
 
     def format_string_to_pdf(object)
       # object.force_encoding(Encoding::ASCII_8BIT)
       if !object.match(/[^D\:\d\+\-Z\']/) # if format is set to Literal and string isn't a date
-        ('(' + ([].tap { |out| object.bytes.to_a.each { |byte| STRING_REPLACEMENT_HASH[byte.chr] ? (STRING_REPLACEMENT_HASH[byte.chr].bytes.each { |b| out << b }) : out << byte } }).pack('C*') + ')').force_encoding(Encoding::ASCII_8BIT)
+        ('(' + ([].tap { |out| object.bytes.to_a.each { |byte| out.concat(STRING_REPLACEMENT_ARRAY[byte]) } } ).pack('C*') + ')').force_encoding(Encoding::ASCII_8BIT)
       else
         # A hexadecimal string shall be written as a sequence of hexadecimal digits (0–9 and either A–F or a–f)
         # encoded as ASCII characters and enclosed within angle brackets (using LESS-THAN SIGN (3Ch) and GREATER- THAN SIGN (3Eh)).

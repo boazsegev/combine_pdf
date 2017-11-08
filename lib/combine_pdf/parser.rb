@@ -509,14 +509,14 @@ module CombinePDF
             inheritance_hash[:Rotate] = catalogs[:Rotate] if catalogs[:Rotate]
             if catalogs[:Resources]
               inheritance_hash[:Resources] ||= { referenced_object: {}, is_reference_only: true }.dup
-              (inheritance_hash[:Resources][:referenced_object] || inheritance_hash[:Resources]).update((catalogs[:Resources][:referenced_object] || catalogs[:Resources]), &self.class.method(:hash_update_proc_for_old))
+              (inheritance_hash[:Resources][:referenced_object] || inheritance_hash[:Resources]).update((catalogs[:Resources][:referenced_object] || catalogs[:Resources]), &HASH_UPDATE_PROC_FOR_OLD)
             end
             if catalogs[:ColorSpace]
               inheritance_hash[:ColorSpace] ||= { referenced_object: {}, is_reference_only: true }.dup
-              (inheritance_hash[:ColorSpace][:referenced_object] || inheritance_hash[:ColorSpace]).update((catalogs[:ColorSpace][:referenced_object] || catalogs[:ColorSpace]), &self.class.method(:hash_update_proc_for_old))
+              (inheritance_hash[:ColorSpace][:referenced_object] || inheritance_hash[:ColorSpace]).update((catalogs[:ColorSpace][:referenced_object] || catalogs[:ColorSpace]), &HASH_UPDATE_PROC_FOR_OLD)
             end
-            # (inheritance_hash[:Resources] ||= {}).update((catalogs[:Resources][:referenced_object] || catalogs[:Resources]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:Resources]
-            # (inheritance_hash[:ColorSpace] ||= {}).update((catalogs[:ColorSpace][:referenced_object] || catalogs[:ColorSpace]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:ColorSpace]
+            # (inheritance_hash[:Resources] ||= {}).update((catalogs[:Resources][:referenced_object] || catalogs[:Resources]), &HASH_UPDATE_PROC_FOR_NEW) if catalogs[:Resources]
+            # (inheritance_hash[:ColorSpace] ||= {}).update((catalogs[:ColorSpace][:referenced_object] || catalogs[:ColorSpace]), &HASH_UPDATE_PROC_FOR_NEW) if catalogs[:ColorSpace]
 
             # inheritance_hash[:Order] = catalogs[:Order] if catalogs[:Order]
             # inheritance_hash[:OCProperties] = catalogs[:OCProperties] if catalogs[:OCProperties]
@@ -532,14 +532,14 @@ module CombinePDF
             if inheritance_hash[:Resources]
               catalogs[:Resources] ||= { referenced_object: {}, is_reference_only: true }.dup
               catalogs[:Resources] = { referenced_object: catalogs[:Resources], is_reference_only: true } unless catalogs[:Resources][:referenced_object]
-              catalogs[:Resources][:referenced_object].update((inheritance_hash[:Resources][:referenced_object] || inheritance_hash[:Resources]), &self.class.method(:hash_update_proc_for_old))
+              catalogs[:Resources][:referenced_object].update((inheritance_hash[:Resources][:referenced_object] || inheritance_hash[:Resources]), &HASH_UPDATE_PROC_FOR_OLD)
             end
             if inheritance_hash[:ColorSpace]
               catalogs[:ColorSpace] ||= { referenced_object: {}, is_reference_only: true }.dup
               catalogs[:ColorSpace] = { referenced_object: catalogs[:ColorSpace], is_reference_only: true } unless catalogs[:ColorSpace][:referenced_object]
-              catalogs[:ColorSpace][:referenced_object].update((inheritance_hash[:ColorSpace][:referenced_object] || inheritance_hash[:ColorSpace]), &self.class.method(:hash_update_proc_for_old))
+              catalogs[:ColorSpace][:referenced_object].update((inheritance_hash[:ColorSpace][:referenced_object] || inheritance_hash[:ColorSpace]), &HASH_UPDATE_PROC_FOR_OLD)
             end
-            # (catalogs[:ColorSpace] ||= {}).update(inheritance_hash[:ColorSpace], &self.class.method(:hash_update_proc_for_old)) if inheritance_hash[:ColorSpace]
+            # (catalogs[:ColorSpace] ||= {}).update(inheritance_hash[:ColorSpace], &HASH_UPDATE_PROC_FOR_OLD) if inheritance_hash[:ColorSpace]
             # catalogs[:Order] ||= inheritance_hash[:Order] if inheritance_hash[:Order]
             # catalogs[:AS] ||= inheritance_hash[:AS] if inheritance_hash[:AS]
             # catalogs[:OCProperties] ||= inheritance_hash[:OCProperties] if inheritance_hash[:OCProperties]
@@ -553,9 +553,9 @@ module CombinePDF
           when :Pages
             catalog_pages(catalogs[:Kids], inheritance_hash.dup) unless catalogs[:Kids].nil?
           when :Catalog
-            @forms_object.update((catalogs[:AcroForm][:referenced_object] || catalogs[:AcroForm]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:AcroForm]
-            @names_object.update((catalogs[:Names][:referenced_object] || catalogs[:Names]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:Names]
-            @outlines_object.update((catalogs[:Outlines][:referenced_object] || catalogs[:Outlines]), &self.class.method(:hash_update_proc_for_new)) if catalogs[:Outlines]
+            @forms_object.update((catalogs[:AcroForm][:referenced_object] || catalogs[:AcroForm]), &HASH_UPDATE_PROC_FOR_NEW) if catalogs[:AcroForm]
+            @names_object.update((catalogs[:Names][:referenced_object] || catalogs[:Names]), &HASH_UPDATE_PROC_FOR_NEW) if catalogs[:Names]
+            @outlines_object.update((catalogs[:Outlines][:referenced_object] || catalogs[:Outlines]), &HASH_UPDATE_PROC_FOR_NEW) if catalogs[:Outlines]
             if catalogs[:Dests] # convert PDF 1.1 Dests to PDF 1.2+ Dests
               dests_arry = (@names_object[:Dests] ||= {})
               dests_arry = ((dests_arry[:referenced_object] || dests_arry)[:Names] ||= [])
@@ -669,30 +669,45 @@ module CombinePDF
 
     # All Strings are one String
     def unify_string(str)
+      str.force_encoding(Encoding::ASCII_8BIT)
       @strings_dictionary[str] ||= str
     end
 
     # @private
     # this method reviews a Hash and updates it by merging Hash data,
     # preffering the old over the new.
-    def self.hash_update_proc_for_old(_key, old_data, new_data)
+    HASH_UPDATE_PROC_FOR_OLD = Proc.new do |_key, old_data, new_data|
       if old_data.is_a? Hash
-        old_data.merge(new_data, &method(:hash_update_proc_for_old))
+        old_data.merge(new_data, &HASH_UPDATE_PROC_FOR_OLD)
       else
         old_data
       end
     end
+    # def self.hash_update_proc_for_old(_key, old_data, new_data)
+    #   if old_data.is_a? Hash
+    #     old_data.merge(new_data, &method(:hash_update_proc_for_old))
+    #   else
+    #     old_data
+    #   end
+    # end
 
     # @private
     # this method reviews a Hash an updates it by merging Hash data,
     # preffering the new over the old.
-    def self.hash_update_proc_for_new(_key, old_data, new_data)
+    HASH_UPDATE_PROC_FOR_NEW = Proc.new do |_key, old_data, new_data|
       if old_data.is_a? Hash
-        old_data.merge(new_data, &method(:hash_update_proc_for_new))
+        old_data.merge(new_data, &HASH_UPDATE_PROC_FOR_NEW)
       else
         new_data
       end
     end
+    # def self.hash_update_proc_for_new(_key, old_data, new_data)
+    #   if old_data.is_a? Hash
+    #     old_data.merge(new_data, &method(:hash_update_proc_for_new))
+    #   else
+    #     new_data
+    #   end
+    # end
 
     # # run block of code on evey PDF object (PDF objects are class Hash)
     # def each_object(object, limit_references = true, already_visited = {}, &block)
