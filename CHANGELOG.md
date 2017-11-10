@@ -10,6 +10,8 @@
 
 **Update**: Improved parsing error handling, courtesy of Evgeny Garlukovich (@evgenygarl).
 
+**Update**: Added reader methods for the `names` and `outlines` PDF objects in response to issue #133. Use with care.
+
 #### Change log v.1.0.7
 
 **Fix**: Fix an issue where page property inheritance might break PDF structure if there's a conflict between property types (inheritance using properties by reference vs. nested properties), fixing issue #124. Credit to @erikaxel for exposing the issue.
