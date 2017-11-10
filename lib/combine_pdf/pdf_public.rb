@@ -82,6 +82,10 @@ module CombinePDF
     # use, for example:
     #   pdf.viewer_preferences[:HideMenubar] = true
     attr_reader :viewer_preferences
+    # Access the Outlines PDF object Hash (or reference). Use with care.
+    attr_reader :outlines
+    # Access the Names PDF object Hash (or reference). Use with care.
+    attr_reader :names
 
     def initialize(parser = nil)
       # default before setting
@@ -302,8 +306,8 @@ module CombinePDF
       if data.is_a? PDF
         @version = [@version, data.version].max
         pages_to_add = data.pages
-        actual_value(@names ||= {}.dup).update actual_value(data.names_object), &self.class.method(:hash_merge_new_no_page)
-        merge_outlines((@outlines ||= {}.dup), data.outlines_object, location) unless actual_value(data.outlines_object).empty?
+        actual_value(@names ||= {}.dup).update data.names, &self.class.method(:hash_merge_new_no_page)
+        merge_outlines((@outlines ||= {}.dup), actual_value(data.outlines), location) unless actual_value(data.outlines).empty?
         if actual_value(@forms_data)
           actual_value(@forms_data).update actual_value(data.forms_data), &self.class.method(:hash_merge_new_no_page) if data.forms_data
         else

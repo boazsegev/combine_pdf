@@ -137,11 +137,14 @@ module CombinePDF
       catalog_object
     end
 
+    # Deprecation Notice
     def names_object
+      puts "CombinePDF Deprecation Notice: the protected method `names_object` will be deprecated in the upcoming version. Use `names` instead."
       @names
     end
 
     def outlines_object
+      puts "CombinePDF Deprecation Notice: the protected method `outlines_object` will be deprecated in the upcoming version. Use `oulines` instead."
       @outlines
     end
     # def forms_data
