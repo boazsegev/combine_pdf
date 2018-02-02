@@ -4,6 +4,8 @@
 
 #### Change log v.1.0.8
 
+**Fix**: Fixed an issue with octal representation in escaped string data. The issue would (usually) go unnoticed (altering internal labels in a non-disruptive manner), however the issue did effect `ColorSpace` data in the rare use of `ICCBased` color maps, causing color distortion and transparency loss.
+
 **Fix**: Fixed an issue with non English alphabet in PDF literal strings. This issue went undetected since PDF literal strings aren't used by CombinePDF except for the date stamping...
 
 **Fix**: Improbable, but possibly a fix for issue #127, where the JRuby interpreter would fail to pass the correct arguments to the Hash update Proc. Since I'm trying to author a workaround, I have my doubts... but an attempt is better than nothing.

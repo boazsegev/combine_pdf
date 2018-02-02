@@ -316,10 +316,10 @@ module CombinePDF
               when 102 # f, form-feed
                 str << 12
               when 48..57 # octal notation for byte?
-                rep = rep.chr
-                rep += str_bytes.shift.chr if str_bytes[0].between?(48, 57)
-                rep += str_bytes.shift.chr if str_bytes[0].between?(48, 57) && ((rep + str_bytes[0].chr).to_i <= 255)
-                str << rep.to_i
+                rep -= 48
+                rep = (rep << 3) + (str_bytes.shift-48) if str_bytes[0].between?(48, 57)
+                rep = (rep << 3) + (str_bytes.shift-48) if str_bytes[0].between?(48, 57) && (((rep << 3) + (str_bytes[0] - 48)) <= 255)
+                str << rep
               when 10 # new line, ignore
                 str_bytes.shift if str_bytes[0] == 13
                 true
