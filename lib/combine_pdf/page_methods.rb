@@ -403,7 +403,7 @@ module CombinePDF
     def fix_rotation
       return self if self[:Rotate].to_f == 0.0 || mediabox.nil?
       # calculate the rotation
-      r = self[:Rotate].to_f * Math::PI / 180
+      r = (360.0 - self[:Rotate].to_f) * Math::PI / 180
       s = Math.sin(r).round 6
       c = Math.cos(r).round 6
       ctm = [c, s, -s, c]

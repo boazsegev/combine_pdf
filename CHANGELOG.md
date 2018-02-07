@@ -2,6 +2,10 @@
 
 ***
 
+#### Change log v.1.0.9
+
+**Fix**: Fixed issue #136 where the `#fix_rotation` function would rotate the page to the wrong direction. Credit to @dmkash for exposing this issue
+
 #### Change log v.1.0.8
 
 **Fix**: Fixed an issue with octal representation in escaped string data. The issue would (usually) go unnoticed (altering internal labels in a non-disruptive manner), however the issue did effect `ColorSpace` data in the rare use of `ICCBased` color maps, causing color distortion and transparency loss. Credit to @react-rails and @bedaronco for exposing the issue (issue #130).
