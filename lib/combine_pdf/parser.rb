@@ -80,6 +80,7 @@ module CombinePDF
       # puts @parsed
 
       unless (@parsed.select { |i| !i.is_a?(Hash) }).empty?
+        p @parsed.select
         raise ParsingError, 'Unknown PDF parsing error - malformed PDF file?'
       end
 
@@ -385,17 +386,6 @@ module CombinePDF
           out.last[:Dest] = unify_string(out.last[:Dest].to_s) if out.last[:Dest] && out.last[:Dest].is_a?(Symbol)
         # puts "!!!!!!!!! Error with :indirect_reference_id\n\nObject #{out.last}  :indirect_reference_id = #{out.last[:indirect_reference_id]}" unless out.last[:indirect_reference_id].is_a?(Numeric)
         ##########################################
-        ## Parse a comment
-        ##########################################
-        elsif str = @scanner.scan(/\%/)
-          # is a comment, skip until new line
-          loop do
-            # break unless @scanner.scan(/[^\d\r\n]+/)
-            break if @scanner.check(/([\d]+[\s]+[\d]+[\s]+obj[\s]+\<\<)|([\n\r]+)/) || @scanner.eos? # || @scanner.scan(/[^\d]+[\r\n]+/) ||
-            @scanner.scan(/[^\d\r\n]+/) || @scanner.pos += 1
-          end
-        # puts "AFTER COMMENT: #{@scanner.peek 8}"
-        ##########################################
         ## Parse an Object Reference
         ##########################################
         elsif @scanner.scan(/R/)
@@ -414,32 +404,57 @@ module CombinePDF
         elsif @scanner.scan(/null/)
           out << nil
         ##########################################
+        ## Parse file trailer
+        ##########################################
+        elsif @scanner.scan(/trailer/)
+          if @scanner.skip_until(/<</)
+            data = _parse_
+            (@root_object ||= {}).clear
+            @root_object[data.shift] = data.shift while data[0]
+          end
+        ##########################################
         ## XREF - check for encryption... anything else?
         ##########################################
-        elsif @scanner.scan(/(startxref)|(xref)/)
-          ##########
-          ## get root object to check for encryption
-          @scanner.scan_until(/(trailer)|(\%EOF)/)
-          fresh = true
-          if @scanner.matched[-1] == 'r'
-            if @scanner.skip_until(/<</)
-              data = _parse_
-              (@root_object ||= {}).clear
-              @root_object[data.shift] = data.shift while data[0]
-            end
-            ##########
-            ## skip untill end of segment, maked by %%EOF
-            @scanner.skip_until(/\%\%EOF/)
-            ##########
-            ## If this was the last valid segment, ignore any trailing garbage
-            ## (issue #49 resolution)
-            break unless @scanner.exist?(/\%\%EOF/)
-
+        elsif @scanner.scan(/xref/)
+          # skip first xref line
+          @scanner.scan(/[\s]+[\d]+[\s]+[\d]+[\s]+/)
+          while @scanner.scan(/[\d]+[\s][\d]+[\s]+[nf][\s]+/)
+            # skip all xref lines
+            nil
           end
-
+        ##########################################
+        ## XREF location can be ignored
+        ##########################################
+        elsif @scanner.scan(/startxref/)
+          @scanner.scan(/[\s]+[\d]+[\s]+/)
+        ##########################################
+        ## Skip Whitespace
+        ##########################################
         elsif @scanner.scan(/[\s]+/)
           # Generally, do nothing
           nil
+        ##########################################
+        ## EOF?
+        ##########################################
+        elsif @scanner.scan(/\%\%EOF/)
+          ##########
+          ## If this was the last valid segment, ignore any trailing garbage
+          ## (issue #49 resolution)
+          break unless @scanner.exist?(/\%\%EOF/)
+        ##########################################
+        ## Parse a comment
+        ##########################################
+        elsif str = @scanner.scan(/\%/)
+          # is a comment, skip until new line
+          loop do
+            # break unless @scanner.scan(/[^\d\r\n]+/)
+            break if @scanner.check(/([\d]+[\s]+[\d]+[\s]+obj[\s]+\<\<)|([\n\r]+)/) || @scanner.eos? # || @scanner.scan(/[^\d]+[\r\n]+/) ||
+            @scanner.scan(/[^\d\r\n]+/) || @scanner.pos += 1
+          end
+        # puts "AFTER COMMENT: #{@scanner.peek 8}"
+        ##########################################
+        ## Fix wkhtmltopdf - missing 'endobj' keywords
+        ##########################################
         elsif @scanner.scan(/obj[\s]*/)
           # Fix wkhtmltopdf PDF authoring issue - missing 'endobj' keywords
           unless fresh || (out[-4].nil? || out[-4].is_a?(Hash))
@@ -460,9 +475,12 @@ module CombinePDF
             out << keep.pop
           end
           fresh = false
+        ##########################################
+        ## Unknown, warn and advance
+        ##########################################
         else
           # always advance
-          # warn "Advancing for unknown reason... #{@scanner.string[@scanner.pos - 4, 8]} ... #{@scanner.peek(4)}" unless @scanner.peek(1) =~ /[\s\n]/
+          warn "Advancing for unknown reason... #{@scanner.string[@scanner.pos - 4, 8]} ... #{@scanner.peek(4)}" unless @scanner.peek(1) =~ /[\s\n]/
           warn 'Warning: parser advancing for unknown reason. Potential data-loss.'
           @scanner.pos = @scanner.pos + 1
         end
