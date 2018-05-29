@@ -95,6 +95,7 @@ pdf.save('07_named destinations_numbered.pdf')
 CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err.pdf").save '08_1-unknown-err-empty-str.pdf'
 CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err2.pdf").save '08_2-unknown-err-empty-str.pdf'
 CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err3.pdf").save '08_3-unknown-err-empty-str.pdf'
+CombinePDF.load("./Ruby/test\ pdfs/xref_in_middle.pdf").save '08_4-xref-in-middle.pdf'
 
 CombinePDF.load("/Users/2Be/Ruby/test\ pdfs/nil_object.pdf").save('09_nil_in_parsed_array.pdf')
 
