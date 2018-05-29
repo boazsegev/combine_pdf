@@ -80,7 +80,7 @@ module CombinePDF
       # puts @parsed
 
       unless (@parsed.select { |i| !i.is_a?(Hash) }).empty?
-        p @parsed.select
+        # p @parsed.select
         raise ParsingError, 'Unknown PDF parsing error - malformed PDF file?'
       end
 
@@ -480,7 +480,7 @@ module CombinePDF
         ##########################################
         else
           # always advance
-          warn "Advancing for unknown reason... #{@scanner.string[@scanner.pos - 4, 8]} ... #{@scanner.peek(4)}" unless @scanner.peek(1) =~ /[\s\n]/
+          # warn "Advancing for unknown reason... #{@scanner.string[@scanner.pos - 4, 8]} ... #{@scanner.peek(4)}" unless @scanner.peek(1) =~ /[\s\n]/
           warn 'Warning: parser advancing for unknown reason. Potential data-loss.'
           @scanner.pos = @scanner.pos + 1
         end
