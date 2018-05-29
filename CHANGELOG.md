@@ -2,9 +2,13 @@
 
 ***
 
+#### Change log v.1.0.10
+
+**Fix**: Fixed an issue related to issue #131 where parsing would fail if the `xref` section appears to be misplaced within the PDF. Credit to @bharat303 (Bharat Godhani) for exposing this issue.
+
 #### Change log v.1.0.9
 
-**Fix**: Fixed issue #136 where the `#fix_rotation` function would rotate the page to the wrong direction. Credit to @dmkash for exposing this issue
+**Fix**: Fixed issue #136 where the `#fix_rotation` function would rotate the page to the wrong direction. Credit to @dmkash for exposing this issue.
 
 #### Change log v.1.0.8
 
