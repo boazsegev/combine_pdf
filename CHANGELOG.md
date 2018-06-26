@@ -2,6 +2,10 @@
 
 ***
 
+#### Change log v.1.0.11
+
+**Fix**: Fixed an issue where small floating point numbers would produce invalid PDF rendering (where exponent notation was used instead of decimal notation). Credit to @avit (Andrew Vit) for PR #139.
+
 #### Change log v.1.0.10
 
 **Fix**: Fixed an issue related to issue #131 where parsing would fail if the `xref` section appears to be misplaced within the PDF. Credit to @bharat303 (Bharat Godhani) for exposing this issue.
