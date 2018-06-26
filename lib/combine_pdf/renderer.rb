@@ -49,7 +49,7 @@ module CombinePDF
       obj_bytes = object.bytes.to_a
       # object.force_encoding(Encoding::ASCII_8BIT)
       if object.length == 0 || obj_bytes.min <= 31 || obj_bytes.max >= 127 # || (obj_bytes[0] != 68  object.match(/[^D\:\d\+\-Z\']/))
-        # A hexadecimal string shall be written as a sequence of hexadecimal digits (0–9 and either A–F or a–f)
+        # A hexadecimal string shall be written as a sequence of hexadecimal digits (0-9 and either A-F or a-f)
         # encoded as ASCII characters and enclosed within angle brackets (using LESS-THAN SIGN (3Ch) and GREATER- THAN SIGN (3Eh)).
         "<#{object.unpack('H*')[0]}>".force_encoding(Encoding::ASCII_8BIT)
       else
