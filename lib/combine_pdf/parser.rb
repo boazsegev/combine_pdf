@@ -416,10 +416,8 @@ module CombinePDF
         ## XREF - check for encryption... anything else?
         ##########################################
         elsif @scanner.scan(/xref/)
-          # skip first xref line
-          @scanner.scan(/[\s]+[\d]+[\s]+[\d]+[\s]+/)
-          while @scanner.scan(/[\d]+[\s][\d]+[\s]+[nf][\s]+/)
-            # skip all xref lines
+          # skip list indetifier lines or list lines ([\d] [\d][\r\n]) ot ([\d] [\d] [nf][\r\n])
+          while @scanner.scan(/[\s]*[\d]+[ \t]+[\d]+[ \t\r]*\n[\r]?/) || @scanner.scan(/[ \t]*[\d]+[ \t]+[\d]+[ \t]+[nf][\s]*/)
             nil
           end
         ##########################################
@@ -480,7 +478,7 @@ module CombinePDF
         ##########################################
         else
           # always advance
-          # warn "Advancing for unknown reason... #{@scanner.string[@scanner.pos - 4, 8]} ... #{@scanner.peek(4)}" unless @scanner.peek(1) =~ /[\s\n]/
+          warn "Advancing for unknown reason... #{@scanner.string[@scanner.pos - 4, 8]} ... #{@scanner.peek(4)}" unless @scanner.peek(1) =~ /[\s\n]/
           warn 'Warning: parser advancing for unknown reason. Potential data-loss.'
           @scanner.pos = @scanner.pos + 1
         end

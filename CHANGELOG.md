@@ -2,6 +2,10 @@
 
 ***
 
+#### Change log v.1.0.12
+
+**Fix**: Fixed an issue introduced in version 1.0.11, where a fragmented XREF table might cause the CombinePDF::Parser to fail. Credit to @solasdev for reporting issue #140.
+
 #### Change log v.1.0.11
 
 **Fix**: Fixed an issue where small floating point numbers would produce invalid PDF rendering (where exponent notation was used instead of decimal notation). Credit to @avit (Andrew Vit) for PR #139.
