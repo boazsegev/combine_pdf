@@ -2,6 +2,10 @@
 
 ***
 
+#### Change log v.1.0.13
+
+**Fix**: Fixed an issue related to PDF object streams (version 1.6) where a numerical object at the beginning of the stream might be mis-parsed as an object reference number rather than an object. Credit to @Defoncesko for reporting issue #141.
+
 #### Change log v.1.0.12
 
 **Fix**: Fixed an issue introduced in version 1.0.11, where a fragmented XREF table might cause the CombinePDF::Parser to fail. Credit to @solasdev for reporting issue #140.

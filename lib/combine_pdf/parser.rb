@@ -112,12 +112,13 @@ module CombinePDF
           next unless o.is_a?(Hash) && o[:Type] == :ObjStm
           ## un-encode (using the correct filter) the object streams
           PDFFilter.inflate_object o
+          # puts "Object Stream Found:", o[:raw_stream_content]
           ## extract objects from stream
           @scanner = StringScanner.new o[:raw_stream_content]
           stream_data = _parse_
           id_array = []
           collection = [nil]
-          while stream_data[0].is_a? (Numeric)
+          while (stream_data[0].is_a?(Numeric) && stream_data[1].is_a?(Numeric))
             id_array << stream_data.shift
             stream_data.shift
           end
@@ -478,7 +479,7 @@ module CombinePDF
         ##########################################
         else
           # always advance
-          warn "Advancing for unknown reason... #{@scanner.string[@scanner.pos - 4, 8]} ... #{@scanner.peek(4)}" unless @scanner.peek(1) =~ /[\s\n]/
+          # warn "Advancing for unknown reason... #{@scanner.string[@scanner.pos - 4, 8]} ... #{@scanner.peek(4)}" unless @scanner.peek(1) =~ /[\s\n]/
           warn 'Warning: parser advancing for unknown reason. Potential data-loss.'
           @scanner.pos = @scanner.pos + 1
         end
