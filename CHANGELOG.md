@@ -2,6 +2,10 @@
 
 ***
 
+#### Change log v.1.0.14
+
+**Fix**: Fixed an issue related to PDF XRef table data, where a malformed EOL marker would cause the parser to fail. Credit to @dangerous (David Rainsford) for exposing this issue in a comment to issue #140.
+
 #### Change log v.1.0.13
 
 **Fix**: Fixed an issue related to PDF object streams (version 1.6) where a numerical object at the beginning of the stream might be mis-parsed as an object reference number rather than an object. Credit to @Defoncesko for reporting issue #141.

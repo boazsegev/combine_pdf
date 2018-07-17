@@ -418,7 +418,7 @@ module CombinePDF
         ##########################################
         elsif @scanner.scan(/xref/)
           # skip list indetifier lines or list lines ([\d] [\d][\r\n]) ot ([\d] [\d] [nf][\r\n])
-          while @scanner.scan(/[\s]*[\d]+[ \t]+[\d]+[ \t\r]*\n[\r]?/) || @scanner.scan(/[ \t]*[\d]+[ \t]+[\d]+[ \t]+[nf][\s]*/)
+          while @scanner.scan(/[\s]*[\d]+[ \t]+[\d]+[ \t]*[\n\r]+/) || @scanner.scan(/[ \t]*[\d]+[ \t]+[\d]+[ \t]+[nf][\s]*/)
             nil
           end
         ##########################################
