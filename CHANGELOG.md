@@ -2,6 +2,10 @@
 
 ***
 
+#### Change log v.1.0.15
+
+**Fix**: An attempt to fix JRuby compatibility concerns (issue #127).
+
 #### Change log v.1.0.14
 
 **Fix**: Fixed an issue related to PDF XRef table data, where a malformed EOL marker would cause the parser to fail. Credit to @dangerous (David Rainsford) for exposing this issue in a comment to issue #140.

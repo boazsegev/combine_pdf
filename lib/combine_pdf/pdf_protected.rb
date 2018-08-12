@@ -232,15 +232,42 @@ module CombinePDF
     # @private
     # this method reviews a Hash and updates it by merging Hash data,
     # preffering the new over the old.
-    def self.hash_merge_new_no_page(_key, old_data, new_data)
-      return old_data unless new_data
-      return new_data unless old_data
-      if old_data.is_a?(Hash) && new_data.is_a?(Hash)
-        return old_data if (old_data[:Type] == :Page)
-        old_data.merge(new_data, &(@hash_merge_new_no_page_proc ||= method(:hash_merge_new_no_page)))
+    # def self.hash_merge_new_no_page(_key = nil, old_data = nil, new_data = nil)
+    #   return old_data unless new_data
+    #   return new_data unless old_data
+    #   if old_data.is_a?(Hash) && new_data.is_a?(Hash)
+    #     return old_data if (old_data[:Type] == :Page)
+    #     old_data.merge(new_data, &(@hash_merge_new_no_page_proc ||= method(:hash_merge_new_no_page)))
+    #   elsif old_data.is_a? Array
+    #     return old_data + new_data if new_data.is_a?(Array)
+    #     return old_data.dup << new_data
+    #   elsif new_data.is_a? Array
+    #     new_data + [old_data]
+    #   else
+    #     new_data
+    #   end
+    # end
+
+    # @private
+    # JRuby Alternative this method reviews a Hash and updates it by merging Hash data,
+    # preffering the new over the old.
+    HASH_MERGE_NEW_NO_PAGE = Proc.new do |_key = nil, old_data = nil, new_data = nil|
+      if !new_data
+        old_data
+      elsif !old_data
+        new_data
+      elsif old_data.is_a?(Hash) && new_data.is_a?(Hash)
+        if (old_data[:Type] == :Page)
+          old_data
+        else
+          old_data.merge(new_data, &HASH_MERGE_NEW_NO_PAGE)
+        end
       elsif old_data.is_a? Array
-        return old_data + new_data if new_data.is_a?(Array)
-        return old_data.dup << new_data
+        if new_data.is_a?(Array)
+          old_data + new_data
+        else
+          old_data.dup << new_data
+        end
       elsif new_data.is_a? Array
         new_data + [old_data]
       else

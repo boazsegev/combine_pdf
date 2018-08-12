@@ -306,10 +306,10 @@ module CombinePDF
       if data.is_a? PDF
         @version = [@version, data.version].max
         pages_to_add = data.pages
-        actual_value(@names ||= {}.dup).update data.names, &self.class.method(:hash_merge_new_no_page)
+        actual_value(@names ||= {}.dup).update data.names, &HASH_MERGE_NEW_NO_PAGE
         merge_outlines((@outlines ||= {}.dup), actual_value(data.outlines), location) unless actual_value(data.outlines).empty?
         if actual_value(@forms_data)
-          actual_value(@forms_data).update actual_value(data.forms_data), &self.class.method(:hash_merge_new_no_page) if data.forms_data
+          actual_value(@forms_data).update actual_value(data.forms_data), &HASH_MERGE_NEW_NO_PAGE if data.forms_data
         else
           @forms_data = data.forms_data
         end
