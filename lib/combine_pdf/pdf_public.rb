@@ -358,9 +358,9 @@ module CombinePDF
     #
     # options:: a Hash of options setting the behavior and format of the page numbers:
     # - :number_format a string representing the format for page number. defaults to ' - %s - ' (allows for letter numbering as well, such as "a", "b"...).
-    # - :location an Array containing the location for the page numbers, can be :top, :buttom, :top_left, :top_right, :bottom_left, :bottom_right or :center (:center == full page). defaults to [:top, :buttom].
+    # - :location an Array containing the location for the page numbers, can be :top, :bottom, :top_left, :top_right, :bottom_left, :bottom_right or :center (:center == full page). defaults to [:top, :bottom].
     # - :start_at an Integer that sets the number for first page number. also accepts a letter ("a") for letter numbering. defaults to 1.
-    # - :margin_from_height a number (PDF points) for the top and buttom margins. defaults to 45.
+    # - :margin_from_height a number (PDF points) for the top and bottom margins. defaults to 45.
     # - :margin_from_side a number (PDF points) for the left and right margins. defaults to 15.
     # - :page_range a range of pages to be numbered (i.e. (2..-1) ) defaults to all the pages (nil). Remember to set the :start_at to the correct value.
     # the options Hash can also take all the options for {Page_Methods#textbox}.

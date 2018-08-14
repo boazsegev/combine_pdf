@@ -140,7 +140,7 @@ module CombinePDF
   # this function enables plug-ins to expend the font functionality of CombinePDF.
   #
   # font_name:: a Symbol with the name of the font. if the fonts exists in the library, it will be overwritten!
-  # font_metrics:: a Hash of font metrics, of the format char => {wx: char_width, boundingbox: [left_x, buttom_y, right_x, top_y]} where char == character itself (i.e. " " for space). The Hash should contain a special value :missing for the metrics of missing characters. an optional :wy might be supported in the future, for up to down fonts.
+  # font_metrics:: a Hash of font metrics, of the format char => {wx: char_width, boundingbox: [left_x, bottom_y, right_x, top_y]} where char == character itself (i.e. " " for space). The Hash should contain a special value :missing for the metrics of missing characters. an optional :wy might be supported in the future, for up to down fonts.
   # font_pdf_object:: a Hash in the internal format recognized by CombinePDF, that represents the font object.
   # font_cmap:: a CMap dictionary Hash) which maps unicode characters to the hex CID for the font (i.e. {"a" => "61", "z" => "7a" }).
   def register_font(font_name, font_metrics, font_pdf_object, font_cmap = nil)
