@@ -151,11 +151,11 @@ module CombinePDF
     # properties:: a Hash of box properties.
     # the symbols and values in the properties Hash could be any or all of the following:
     # x:: the left position of the box.
-    # y:: the BUTTOM position of the box.
+    # y:: the BOTTOM position of the box.
     # width:: the width/length of the box. negative values will be computed from edge of page. defaults to 0 (end of page).
     # height:: the height of the box. negative values will be computed from edge of page. defaults to 0 (end of page).
     # text_align:: symbol for horizontal text alignment, can be ":center" (default), ":right", ":left"
-    # text_valign:: symbol for vertical text alignment, can be ":center" (default), ":top", ":buttom"
+    # text_valign:: symbol for vertical text alignment, can be ":center" (default), ":top", ":bottom"
     # text_padding:: a Float between 0 and 1, setting the padding for the text. defaults to 0.05 (5%).
     # font:: a registered font name or an Array of names. defaults to ":Helvetica". The 14 standard fonts names are:
     # - :"Times-Roman"
@@ -244,8 +244,8 @@ module CombinePDF
         half_radius = (radius.to_f / 2).round 4
         ## set starting point
         box_stream << "#{options[:x] + radius} #{options[:y]} m\n"
-        ## buttom and right corner - first line and first corner
-        box_stream << "#{options[:x] + options[:width] - radius} #{options[:y]} l\n" # buttom
+        ## bottom and right corner - first line and first corner
+        box_stream << "#{options[:x] + options[:width] - radius} #{options[:y]} l\n" # bottom
         if options[:box_radius] != 0 # make first corner, if not straight.
           box_stream << "#{options[:x] + options[:width] - half_radius} #{options[:y]} "
           box_stream << "#{options[:x] + options[:width]} #{options[:y] + half_radius} "
@@ -265,7 +265,7 @@ module CombinePDF
           box_stream << "#{options[:x]} #{options[:y] + options[:height] - half_radius} "
           box_stream << "#{options[:x]} #{options[:y] + options[:height] - radius} c\n"
         end
-        ## left and buttom-left corner
+        ## left and bottom-left corner
         box_stream << "#{options[:x]} #{options[:y] + radius} l\n"
         if options[:box_radius] != 0
           box_stream << "#{options[:x]} #{options[:y] + half_radius} "
@@ -287,7 +287,7 @@ module CombinePDF
       end
       contents << box_stream
 
-      # reset x,y by text alignment - x,y are calculated from the buttom left
+      # reset x,y by text alignment - x,y are calculated from the bottom left
       # each unit (1) is 1/72 Inch
       # create text stream
       text_stream = ''
