@@ -2,6 +2,10 @@
 
 ***
 
+#### Change log v.1.0.16
+
+**Fix**: some documentation typos were fixed (PR #147) - credit to @djhopper01 (Derek Hopper).
+
 #### Change log v.1.0.15
 
 **Fix**: An attempt to fix JRuby compatibility concerns (issue #127).
