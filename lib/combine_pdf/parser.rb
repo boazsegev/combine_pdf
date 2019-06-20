@@ -623,7 +623,9 @@ module CombinePDF
                   o = nil
                 else
                   o[:referenced_object] = obj_dir[[o[:indirect_reference_id], o[:indirect_generation_number]]]
-                  warn "Couldn't connect reference for #{o}" if o[:referenced_object].nil? && (o[:indirect_reference_id] + o[:indirect_generation_number] != 0)
+                  warn "Couldn't connect reference for #{o}" if o[:referenced_object].nil? &&
+                    o[:indirect_reference_id].is_a?(Numeric) && o[:indirect_generation_number].is_a?(Numeric) &&
+                    (o[:indirect_reference_id] + o[:indirect_generation_number] != 0)
                   o.delete :indirect_reference_id
                   o.delete :indirect_generation_number
                   o = (o[:referenced_object] && o[:referenced_object][:indirect_without_dictionary]) || o
