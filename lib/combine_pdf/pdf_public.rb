@@ -86,8 +86,10 @@ module CombinePDF
     attr_reader :outlines
     # Access the Names PDF object Hash (or reference). Use with care.
     attr_reader :names
+    # For skip reset anchors' name
+    attr_reader :skip_rename_anchor
 
-    def initialize(parser = nil)
+    def initialize(parser = nil, options = {})
       # default before setting
       @objects = []
       @version = 0
@@ -104,6 +106,10 @@ module CombinePDF
       @names = parser.names_object || {}
       @forms_data = parser.forms_object || {}
       @outlines = parser.outlines_object || {}
+
+      # Default is to change all anchors' name, but can be skipped by skip_rename_anchor option.
+      @skip_rename_anchor = options[:skip_rename_anchor] || false
+
       # rebuild the catalog, to fix wkhtmltopdf's use of static page numbers
       rebuild_catalog
 
@@ -304,6 +310,7 @@ module CombinePDF
     def insert(location, data)
       pages_to_add = nil
       if data.is_a? PDF
+        @skip_rename_anchor = data.skip_rename_anchor
         @version = [@version, data.version].max
         pages_to_add = data.pages
         actual_value(@names ||= {}.dup).update data.names, &HASH_MERGE_NEW_NO_PAGE
