@@ -41,7 +41,7 @@ module CombinePDF
     # string:: the data to be parsed, as a String object.
     def initialize(string, options = {})
       raise TypeError, "couldn't parse data, expecting type String" unless string.is_a? String
-      @string_to_parse = string.force_encoding(Encoding::ASCII_8BIT)
+      @string_to_parse = string.dup.force_encoding(Encoding::ASCII_8BIT)
       @literal_strings = [].dup
       @hex_strings = [].dup
       @streams = [].dup
@@ -243,22 +243,22 @@ module CombinePDF
         ##########################################
         elsif str = @scanner.scan(/\<[0-9a-fA-F]*\>/)
           # warn "Found a hex string"
-          str = str.slice(1..-2).force_encoding(Encoding::ASCII_8BIT)
+          str = str.slice(1..-2).dup.force_encoding(Encoding::ASCII_8BIT)
           # str = "0#{str}" if str.length.odd?
-          out << unify_string([str].pack('H*').force_encoding(Encoding::ASCII_8BIT))
+          out << unify_string([str].pack('H*').dup.force_encoding(Encoding::ASCII_8BIT))
         ##########################################
         ## parse a space delimited Hex String
         ##########################################
         elsif str = @scanner.scan(/\<[0-9a-fA-F\s]*\>/)
           # warn "Found a space seperated hex string"
-          str = str.force_encoding(Encoding::ASCII_8BIT).split(/\s/).map! {|b| b.length.odd? ? "0#{b}" : b}
-          out << unify_string(str.pack('H*' * str.length).force_encoding(Encoding::ASCII_8BIT))
+          str = str.dup.force_encoding(Encoding::ASCII_8BIT).split(/\s/).map! {|b| b.length.odd? ? "0#{b}" : b}
+          out << unify_string(str.pack('H*' * str.length).dup.force_encoding(Encoding::ASCII_8BIT))
         ##########################################
         ## parse a Literal String
         ##########################################
         elsif @scanner.scan(/\(/)
           # warn "Found a literal string"
-          str = ''.force_encoding(Encoding::ASCII_8BIT)
+          str = ''.dup.force_encoding(Encoding::ASCII_8BIT)
           count = 1
           while count > 0 && @scanner.rest?
             scn = @scanner.scan_until(/[\(\)]/)
@@ -285,7 +285,7 @@ module CombinePDF
           end
           # The PDF formatted string is: str[0..-2]
           # now starting to convert to regular string
-          str_bytes = str.force_encoding(Encoding::ASCII_8BIT)[0..-2].bytes.to_a
+          str_bytes = str.dup.force_encoding(Encoding::ASCII_8BIT)[0..-2].bytes.to_a
           str = []
           until str_bytes.empty?
             case str_bytes[0]
@@ -335,7 +335,7 @@ module CombinePDF
               str << str_bytes.shift
             end
           end
-          out << unify_string(str.pack('C*').force_encoding(Encoding::ASCII_8BIT))
+          out << unify_string(str.pack('C*').dup.force_encoding(Encoding::ASCII_8BIT))
         ##########################################
         ## parse a Dictionary
         ##########################################
@@ -367,10 +367,10 @@ module CombinePDF
           # need to remove end of stream
           if out.last.is_a? Hash
             # out.last[:raw_stream_content] = str[0...-10] #cuts only one EON char (\n or \r)
-            out.last[:raw_stream_content] = unify_string str.sub(/(\r\n|\n|\r)?endstream\z/, '').force_encoding(Encoding::ASCII_8BIT)
+            out.last[:raw_stream_content] = unify_string str.sub(/(\r\n|\n|\r)?endstream\z/, '').dup.force_encoding(Encoding::ASCII_8BIT)
           else
             warn 'Stream not attached to dictionary!'
-            out << str.sub(/(\r\n|\n|\r)?endstream\z/, '').force_encoding(Encoding::ASCII_8BIT)
+            out << str.sub(/(\r\n|\n|\r)?endstream\z/, '').dup.force_encoding(Encoding::ASCII_8BIT)
           end
         ##########################################
         ## parse an Object after finished
@@ -686,7 +686,7 @@ module CombinePDF
 
     # All Strings are one String
     def unify_string(str)
-      str.force_encoding(Encoding::ASCII_8BIT)
+      str.dup.force_encoding(Encoding::ASCII_8BIT)
       @strings_dictionary[str] ||= str
     end
 

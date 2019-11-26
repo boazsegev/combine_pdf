@@ -187,7 +187,7 @@ module CombinePDF
       xref = []
       indirect_object_count = 1 # the first object is the null object
       # write head (version and binanry-code)
-      out << "%PDF-#{@version}\n%\xFF\xFF\xFF\xFF\xFF\x00\x00\x00\x00".force_encoding(Encoding::ASCII_8BIT)
+      out << "%PDF-#{@version}\n%\xFF\xFF\xFF\xFF\xFF\x00\x00\x00\x00".dup.force_encoding(Encoding::ASCII_8BIT)
 
       # collect objects and set xref table locations
       loc = 0
@@ -211,7 +211,7 @@ module CombinePDF
       # when finished, remove the numbering system and keep only pointers
       remove_old_ids
       # output the pdf stream
-      out.join("\n".force_encoding(Encoding::ASCII_8BIT)).force_encoding(Encoding::ASCII_8BIT)
+      out.join("\n".dup.force_encoding(Encoding::ASCII_8BIT)).dup.force_encoding(Encoding::ASCII_8BIT)
     end
 
     # this method returns all the pages cataloged in the catalog.

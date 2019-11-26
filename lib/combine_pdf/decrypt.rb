@@ -76,7 +76,7 @@ module CombinePDF
 
     def set_general_key(password = '')
       # 1) make sure the initial key is 32 byte long (if no password, uses padding).
-      key = (password.bytes[0..32].to_a + @padding_key)[0..31].to_a.pack('C*').force_encoding(Encoding::ASCII_8BIT)
+      key = (password.bytes[0..32].to_a + @padding_key)[0..31].to_a.pack('C*').dup.force_encoding(Encoding::ASCII_8BIT)
       # 2) add the value of the encryption dictionary’s O entry
       key << actual_object(@encryption_dictionary[:O]).to_s
       # 3) Convert the integer value of the P entry to a 32-bit unsigned binary number
@@ -89,7 +89,7 @@ module CombinePDF
       # # if document metadata is not being encrypted, add 4 bytes with the value 0xFFFFFFFF.
       if actual_object(@encryption_dictionary[:R]) >= 4
         if actual_object(@encryption_dictionary)[:EncryptMetadata] == false
-          key << "\xFF\xFF\xFF\xFF".force_encoding(Encoding::ASCII_8BIT)
+          key << "\xFF\xFF\xFF\xFF".dup.force_encoding(Encoding::ASCII_8BIT)
         end
       end
       # 5) pass everything as a MD5 hash
@@ -137,7 +137,7 @@ module CombinePDF
       object_key = @key.dup
       object_key << [encrypted_id].pack('i')[0..2]
       object_key << [encrypted_generation].pack('i')[0..1]
-      object_key << 'sAlT'.force_encoding(Encoding::ASCII_8BIT)
+      object_key << 'sAlT'.dup.force_encoding(Encoding::ASCII_8BIT)
       key_length = object_key.length < 16 ? object_key.length : 16
 
       begin
