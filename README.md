@@ -41,6 +41,8 @@ Quick rundown:
 
 * Sometimes the CombinePDF will raise an exception even if the PDF could be parsed (i.e., when PDF optional content exists)... I find it better to err on the side of caution, although for optional content PDFs an exception is avoidable using `CombinePDF.load(pdf_file, allow_optional_content: true)`.
 
+* The CombinePDF gem runs recursive code to both parse and format the PDF files. Hence, PDF files that have heavily nested objects, as well as those that where combined in a way that results in cyclic nesting, might explode the stack - resulting in an exception or program failure.
+
 CombinePDF is written natively in Ruby and should (presumably) work on all Ruby platforms that follow Ruby 2.0 compatibility.
 
 However, PDF files are quite complex creatures and no guaranty is provided.
