@@ -2,6 +2,10 @@
 
 ***
 
+#### Change log v.1.0.17
+
+**Fix**: fixed issue where nested structure equality tests might provide false positives, resulting in lost data (issue #166) - credit to @cschilbe (Conrad Schilbe).
+
 #### Change log v.1.0.16
 
 **Fix**: some documentation typos were fixed (PR #147) - credit to @djhopper01 (Derek Hopper).
