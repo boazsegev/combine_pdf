@@ -94,7 +94,7 @@ module CombinePDF
       # end
 
       # set ProcSet to recommended value
-      resources[:ProcSet] = [:PDF, :Text, :ImageB, :ImageC, :ImageI] # this was recommended by the ISO. 32000-1:2008
+      resources[:ProcSet] ||= [:PDF, :Text, :ImageB, :ImageC, :ImageI] # this was recommended by the ISO. 32000-1:2008
 
       if top # if this is a stamp (overlay)
         insert_content CONTENT_CONTAINER_START, 0
@@ -147,7 +147,7 @@ module CombinePDF
 
     # This method adds a simple text box to the Page represented by the PDFWriter class.
     # This function takes two values:
-    # text:: the text to potin the box.
+    # text:: the text to write in the box.
     # properties:: a Hash of box properties.
     # the symbols and values in the properties Hash could be any or all of the following:
     # x:: the left position of the box.

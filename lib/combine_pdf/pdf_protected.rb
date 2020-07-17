@@ -373,16 +373,19 @@ module CombinePDF
     private
 
     def equal_layers obj1, obj2, layer = CombinePDF.eq_depth_limit
-      return true   if(layer == 0)
       return true if obj1.object_id == obj2.object_id
       if obj1.is_a? Hash
         return false unless obj2.is_a? Hash
+        return false unless obj1.length == obj2.length
         keys = obj1.keys;
-        return false if (keys - obj2.keys).any?
+        keys2 = obj2.keys;
+        return false if (keys - keys2).any? || (keys2 - keys).any?
+        return (warn("CombinePDF nesting limit reached") || true) if(layer == 0)
         keys.each {|k| return false unless equal_layers( obj1[k], obj2[k], layer-1) }
       elsif obj1.is_a? Array
         return false unless obj2.is_a? Array
-        (obj1-obj2).any?
+        return false unless obj1.length == obj2.length
+        (obj1-obj2).any? || (obj2-obj1).any?
       else
         obj1 == obj2
       end
