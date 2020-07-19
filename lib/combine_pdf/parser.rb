@@ -233,16 +233,18 @@ module CombinePDF
         # all characters that aren't white space or special: /[^\x00\x09\x0a\x0c\x0d\x20\x28\x29\x3c\x3e\x5b\x5d\x7b\x7d\x2f\x25]+
         elsif str = @scanner.scan(/\/[^\x00\x09\x0a\x0c\x0d\x20\x28\x29\x3c\x3e\x5b\x5d\x7b\x7d\x2f\x25]*/)
           out << (str[1..-1].gsub(/\#[0-9a-fA-F]{2}/) { |a| a[1..2].hex.chr }).to_sym
+          # warn "CombinePDF detected name: #{out.last.to_s}"
         ##########################################
         ## Parse a Number
         ##########################################
         elsif str = @scanner.scan(/[\+\-\.\d]+/)
           str =~ /\./ ? (out << str.to_f) : (out << str.to_i)
+          # warn "CombinePDF detected number: #{out.last.to_s}"
         ##########################################
         ## parse a Hex String
         ##########################################
         elsif str = @scanner.scan(/\<[0-9a-fA-F]*\>/)
-          # warn "Found a hex string"
+          # warn "Found a hex string #{str}"
           str = str.slice(1..-2).force_encoding(Encoding::ASCII_8BIT)
           # str = "0#{str}" if str.length.odd?
           out << unify_string([str].pack('H*').force_encoding(Encoding::ASCII_8BIT))
@@ -336,6 +338,7 @@ module CombinePDF
             end
           end
           out << unify_string(str.pack('C*').force_encoding(Encoding::ASCII_8BIT))
+          # warn "Found Literal String: #{out.last}"
         ##########################################
         ## parse a Dictionary
         ##########################################
@@ -348,6 +351,7 @@ module CombinePDF
         ## return content of array or dictionary
         ##########################################
         elsif @scanner.scan(/\]/) || @scanner.scan(/>>/)
+          # warn "Dictionary / Array ended with #{@scanner.peek(5)}"
           return out
         ##########################################
         ## parse a Stream
@@ -363,6 +367,8 @@ module CombinePDF
           unless str
             raise ParsingError, "Parsing Error: PDF file error - a stream object wasn't properly closed using 'endstream'!"
           end
+
+          # warn "CombinePDF parser: detected Stream #{str.length} bytes long #{str[0..3]}...#{str[-4..-1]}"
 
           # need to remove end of stream
           if out.last.is_a? Hash
