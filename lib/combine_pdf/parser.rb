@@ -534,9 +534,13 @@ module CombinePDF
               inheritance_hash[:Resources] ||= { referenced_object: {}, is_reference_only: true }.dup
               (inheritance_hash[:Resources][:referenced_object] || inheritance_hash[:Resources]).update((catalogs[:Resources][:referenced_object] || catalogs[:Resources]), &HASH_UPDATE_PROC_FOR_OLD)
             end
-            if catalogs[:ProcSet]
-              inheritance_hash[:ProcSet] ||= { referenced_object: {}, is_reference_only: true }.dup
-              (inheritance_hash[:ProcSet][:referenced_object] || inheritance_hash[:ProcSet]).update((catalogs[:ProcSet][:referenced_object] || catalogs[:ProcSet]), &HASH_UPDATE_PROC_FOR_OLD)
+            if catalogs[:ProcSet].is_a?(Array)
+              if(inheritance_hash[:ProcSet])
+                inheritance_hash[:ProcSet][:referenced_object].concat(catalogs[:ProcSet])
+                inheritance_hash[:ProcSet][:referenced_object].uniq!
+              else
+                inheritance_hash[:ProcSet] ||= { referenced_object: catalogs[:ProcSet], is_reference_only: true }.dup
+              end
             end
             if catalogs[:ColorSpace]
               inheritance_hash[:ColorSpace] ||= { referenced_object: {}, is_reference_only: true }.dup
@@ -567,9 +571,16 @@ module CombinePDF
               catalogs[:ColorSpace][:referenced_object].update((inheritance_hash[:ColorSpace][:referenced_object] || inheritance_hash[:ColorSpace]), &HASH_UPDATE_PROC_FOR_OLD)
             end
             if inheritance_hash[:ProcSet]
-              catalogs[:ProcSet] ||= { referenced_object: {}, is_reference_only: true }.dup
-              catalogs[:ProcSet] = { referenced_object: catalogs[:ProcSet], is_reference_only: true } unless catalogs[:ProcSet][:referenced_object]
-              catalogs[:ProcSet][:referenced_object].update((inheritance_hash[:ProcSet][:referenced_object] || inheritance_hash[:ProcSet]), &HASH_UPDATE_PROC_FOR_OLD)
+              if(catalogs[:ProcSet])
+                if catalogs[:ProcSet].is_a?(Array)
+                  catalogs[:ProcSet] = { referenced_object: catalogs[:ProcSet], is_reference_only: true }
+                end
+                catalogs[:ProcSet][:referenced_object].concat(inheritance_hash[:ProcSet][:referenced_object])
+                catalogs[:ProcSet][:referenced_object].uniq!
+              else
+                catalogs[:ProcSet] = { is_reference_only: true }.dup
+                catalogs[:ProcSet][:referenced_object] = catalogs[:ProcSet][:referenced_object].dup
+              end
             end
             # (catalogs[:ColorSpace] ||= {}).update(inheritance_hash[:ColorSpace], &HASH_UPDATE_PROC_FOR_OLD) if inheritance_hash[:ColorSpace]
             # catalogs[:Order] ||= inheritance_hash[:Order] if inheritance_hash[:Order]

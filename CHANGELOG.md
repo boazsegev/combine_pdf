@@ -2,6 +2,10 @@
 
 ***
 
+#### Change log v.1.0.18
+
+**Fix**: fixed issue with the 1.0.17 release where `ProcSet` PDF Arrays should have been expected but where ignored and a PDF Object was assumed instead (issue #171) - credit to @chuchiperriman (Jesús Barbero Rodríguez).
+
 #### Change log v.1.0.17
 
 **Fix**: fixed issue where nested structure equality tests might provide false positives, resulting in lost data (issue #166) - credit to @cschilbe (Conrad Schilbe).

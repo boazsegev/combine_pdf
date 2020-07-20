@@ -5,6 +5,7 @@ require 'securerandom'
 require 'strscan'
 require 'matrix'
 require 'set'
+require 'digest'
 
 # require the RC4 Gem
 require 'rc4'
