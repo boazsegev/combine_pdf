@@ -11,12 +11,6 @@ module CombinePDF
     PDF.new(PDFParser.new(IO.read(file_name, mode: 'rb').force_encoding(Encoding::ASCII_8BIT), options))
   end
 
-  def encrypted?(file_name, options = {})
-    parser = PDFParser.new(IO.read(file_name, mode: 'rb').force_encoding(Encoding::ASCII_8BIT), options)
-    parser.parse rescue Zlib::DataError
-    !parser.root_object[:Encrypt].nil?
-  end
-
   # creats a new PDF object.
   #
   # Combine PDF will check to see if `string` is a filename.
