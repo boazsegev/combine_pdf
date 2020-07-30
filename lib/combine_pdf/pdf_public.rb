@@ -99,7 +99,7 @@ module CombinePDF
       begin
         @objects = parser.parse
       rescue Zlib::DataError => e
-        raise CombinePDF::EncryptionError if parser.root_object[:Encrypt] && parser.raise_on_encrypted
+        raise CombinePDF::EncryptionError, 'the file is encrypted' if parser.root_object[:Encrypt] && parser.raise_on_encrypted
         raise e
       end
 

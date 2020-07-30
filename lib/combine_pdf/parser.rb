@@ -97,7 +97,7 @@ module CombinePDF
       end
 
       if @root_object[:Encrypt]
-        raise EncryptionError if @raise_on_encrypted
+        raise EncryptionError, 'the file is encrypted' if @raise_on_encrypted
         # change_references_to_actual_values @root_object
         warn 'PDF is Encrypted! Attempting to decrypt - not yet fully supported.'
         decryptor = PDFDecrypt.new @parsed, @root_object

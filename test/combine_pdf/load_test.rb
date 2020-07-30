@@ -19,7 +19,8 @@ describe 'CombinePDF.load' do
       let(:raise_on_encrypted) { true }
 
       it('raises an CombinePDF::EncryptionError') do
-        assert_raises(CombinePDF::EncryptionError) { subject }
+        error = assert_raises(CombinePDF::EncryptionError) { subject }
+        assert_match 'the file is encrypted', error.message
       end
 
       describe 'non-encrypted files' do
@@ -49,7 +50,8 @@ describe 'CombinePDF.load' do
           let(:encrypted?) { true }
 
           it('raises an CombinePDF::EncryptionError') do
-            assert_raises(CombinePDF::EncryptionError) { subject }
+            error = assert_raises(CombinePDF::EncryptionError) { subject }
+            assert_match 'the file is encrypted', error.message
           end
         end
       end
