@@ -1,7 +1,9 @@
 # CombinePDF - the ruby way for merging PDF files
 [![Gem Version](https://badge.fury.io/rb/combine_pdf.svg)](http://badge.fury.io/rb/combine_pdf)
 [![GitHub](https://img.shields.io/badge/GitHub-Open%20Source-blue.svg)](https://github.com/boazsegev/combine_pdf)
+[![Documentation](http://inch-ci.org/github/boazsegev/combine_pdf.svg?branch=master)](https://www.rubydoc.info/github/boazsegev/combine_pdf)
 [![Maintainers Wanted](https://img.shields.io/badge/maintainers-wanted-red.svg)](https://github.com/pickhardt/maintainers-wanted)
+
 
 CombinePDF is a nifty model, written in pure Ruby, to parse PDF files and combine (merge) them with other PDF files, watermark them or stamp them (all using the PDF file format and pure Ruby code).
 
@@ -114,7 +116,40 @@ pdf.number_pages
 pdf.save "file_with_numbering.pdf"
 ```
 
-Numbering can be done with many different options, with different formating, with or without a box object, and even with opacity values - see documentation.
+Numbering can be done with many different options, with different formating, with or without a box object, and even with opacity values - [see documentation](https://www.rubydoc.info/github/boazsegev/combine_pdf/CombinePDF/PDF#number_pages-instance_method).
+
+For example, should you prefer to place the page number on the bottom right side of all PDF pages, do:
+
+```ruby
+pdf.number_pages(location: [:bottom_right])
+```
+
+As another example, the dashes around the number are removed and a box is placed around it. The numbering is semi-transparent and the first 3 pages are numbered using letters (a,b,c) rather than numbers:
+
+
+```ruby
+# number first 3 pages as "a", "b", "c"
+pdf.number_pages(number_format: " %s ",
+                 location: [:top, :bottom, :top_left, :top_right, :bottom_left, :bottom_right],
+                 start_at: "a",
+                 page_range: (0..2),
+                 box_color: [0.4,0.4,0.4],
+                 border_color: [0.8, 0.8, 0.8],
+                 box_radius: 4,
+                 opacity: 0.75)
+# number the rest of the pages as 4, 5, ... etc'
+pdf.number_pages(number_format: " %s ",
+                 location: [:top, :bottom, :top_left, :top_right, :bottom_left, :bottom_right],
+                 start_at: 4,
+                 page_range: (3..-1),
+                 box_color: [0.4,0.4,0.4],
+                 border_color: [0.8, 0.8, 0.8],
+                 box_radius: 4,
+                 opacity: 0.75)
+```
+
+    pdf.number_pages(number_format: " %s ", location: :bottom_right, font_size: 44)
+
 
 ## Loading and Parsing PDF data
 
