@@ -8,6 +8,8 @@
 
 #### Change log v.1.0.17
 
+NB: yanked from RubyGems.org.
+
 **Fix**: fixed issue where nested structure equality tests might provide false positives, resulting in lost data (issue #166) - credit to @cschilbe (Conrad Schilbe).
 
 #### Change log v.1.0.16
