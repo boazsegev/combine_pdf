@@ -133,18 +133,20 @@ pdf.number_pages(number_format: " %s ",
                  location: [:top, :bottom, :top_left, :top_right, :bottom_left, :bottom_right],
                  start_at: "a",
                  page_range: (0..2),
-                 box_color: [0.4,0.4,0.4],
-                 border_color: [0.8, 0.8, 0.8],
-                 box_radius: 4,
+                 box_color: [0.8,0.8,0.8],
+                 border_color: [0.4, 0.4, 0.4],
+                 border_width: 1,
+                 box_radius: 6,
                  opacity: 0.75)
 # number the rest of the pages as 4, 5, ... etc'
 pdf.number_pages(number_format: " %s ",
                  location: [:top, :bottom, :top_left, :top_right, :bottom_left, :bottom_right],
                  start_at: 4,
                  page_range: (3..-1),
-                 box_color: [0.4,0.4,0.4],
-                 border_color: [0.8, 0.8, 0.8],
-                 box_radius: 4,
+                 box_color: [0.8,0.8,0.8],
+                 border_color: [0.4, 0.4, 0.4],
+                 border_width: 1,
+                 box_radius: 6,
                  opacity: 0.75)
 ```
 
