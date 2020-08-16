@@ -2,6 +2,10 @@
 
 ***
 
+#### Change log v.1.0.19
+
+**Fix**: fixes an indentation warning. Issue #173. Credit to @rubyFeedback for exposing this issue.
+
 #### Change log v.1.0.18
 
 **Fix**: fixed issue with the 1.0.17 release where `ProcSet` PDF Arrays should have been expected but where ignored and a PDF Object was assumed instead (issue #171) - credit to @chuchiperriman (Jesús Barbero Rodríguez).
