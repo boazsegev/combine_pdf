@@ -24,11 +24,11 @@ module CombinePDF
     raise TypeError, "couldn't create PDF object, expecting type String" unless string.is_a?(String) || string.is_a?(Pathname)
     begin
       (begin
-     File.file? string
-   rescue
-     false
-   end) ? load(string) : parse(string)
-   rescue => _e
+        File.file? string
+      rescue
+        false
+      end) ? load(string) : parse(string)
+    rescue => _e
       raise 'General PDF error - Use CombinePDF.load or CombinePDF.parse for a non-general error message (the requested file was not found OR the string received is not a valid PDF stream OR the file was found but not valid).'
     end
   end
