@@ -4,6 +4,8 @@
 
 #### Change log v.1.0.19
 
+**Fix**: fixes font height and width detection issue. Issue #179. Credit to @5anchezzz for opening the issue.
+
 **Fix**: fixes an indentation warning. Issue #173. Credit to @rubyFeedback for exposing this issue.
 
 #### Change log v.1.0.18
