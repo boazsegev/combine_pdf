@@ -138,12 +138,21 @@ module CombinePDF
       text.each_char do |c|
         metrics_array << (merged_metrics[c] || { wx: 0, boundingbox: [0, 0, 0, 0] })
       end
-      height = metrics_array.map { |m| (m && m[:boundingbox]) ? m[:boundingbox][3] : 0 } .max
-      height -= (metrics_array.map { |m| (m && m[:boundingbox]) ? m[:boundingbox][1] : 0 }).min
+      metrics_array_mapped_top = [].dup
+      metrics_array_mapped_bottom = [].dup
       width = 0.0
       metrics_array.each do |m|
-        width += (m[:wx] || m[:wy])
+        if (m && m[:boundingbox])
+          metrics_array_mapped_top << m[:boundingbox][3]
+          metrics_array_mapped_bottom << m[:boundingbox][1]
+        else
+          metrics_array_mapped_top << 0
+          metrics_array_mapped_bottom << 0
+        end
+        width += (m[:wx] || m[:wy] || 0) if m
       end
+      height = metrics_array_mapped_top.max
+      height -=metrics_array_mapped_bottom.min
       return [height.to_f / 1000 * size, width.to_f / 1000 * size] if metrics_array[0][:wy]
       [width.to_f / 1000 * size, height.to_f / 1000 * size]
     end
