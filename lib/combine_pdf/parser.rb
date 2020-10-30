@@ -579,7 +579,7 @@ module CombinePDF
                 catalogs[:ProcSet][:referenced_object].uniq!
               else
                 catalogs[:ProcSet] = { is_reference_only: true }.dup
-                catalogs[:ProcSet][:referenced_object] = catalogs[:ProcSet][:referenced_object].dup
+                catalogs[:ProcSet][:referenced_object] = inheritance_hash[:ProcSet][:referenced_object].dup
               end
             end
             # (catalogs[:ColorSpace] ||= {}).update(inheritance_hash[:ColorSpace], &HASH_UPDATE_PROC_FOR_OLD) if inheritance_hash[:ColorSpace]
