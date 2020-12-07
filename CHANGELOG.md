@@ -2,6 +2,11 @@
 
 ***
 
+
+#### Change log v.1.0.20
+
+**Fix**: merges PR #180, `TypeError: can't dup NilClass`. Credit to Adam Trepanier (@adam-e-trepanier) for the merge.
+
 #### Change log v.1.0.19
 
 **Fix**: fixes font height and width detection issue. Issue #179. Credit to @5anchezzz for opening the issue.
