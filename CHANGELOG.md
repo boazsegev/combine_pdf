@@ -2,6 +2,10 @@
 
 ***
 
+#### Change log v.1.0.22
+
+**Fix**: fix `metrix` dependency, credit to @casperisfine (Jean byroot Boussier) for PR #195.
+
 #### Change log v.1.0.21
 
 **Fix**: possible fix for issue #184, where nested PDF files within an object stream could break the parser. Credit to Greg Sparrow (@hazelsparrow) for exposng the issue.
