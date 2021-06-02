@@ -33,7 +33,7 @@ module CombinePDF
     # they are mainly to used to know if the file is (was) encrypted and to get more details.
     attr_reader :info_object, :root_object, :names_object, :forms_object, :outlines_object, :metadata
 
-    attr_reader :allow_optional_content
+    attr_reader :allow_optional_content, :raise_on_encrypted
     # when creating a parser, it is important to set the data (String) we wish to parse.
     #
     # <b>the data is required and it is not possible to set the data at a later stage</b>
@@ -58,6 +58,7 @@ module CombinePDF
       @version = nil
       @scanner = nil
       @allow_optional_content = options[:allow_optional_content]
+      @raise_on_encrypted = options[:raise_on_encrypted]
     end
 
     # parse the data in the new parser (the data already set through the initialize / new method)
@@ -96,6 +97,7 @@ module CombinePDF
       end
 
       if @root_object[:Encrypt]
+        raise EncryptionError, 'the file is encrypted' if @raise_on_encrypted
         # change_references_to_actual_values @root_object
         warn 'PDF is Encrypted! Attempting to decrypt - not yet fully supported.'
         decryptor = PDFDecrypt.new @parsed, @root_object
