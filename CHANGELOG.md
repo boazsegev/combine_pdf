@@ -4,6 +4,8 @@
 
 #### Change log v.1.0.22
 
+**Fix**: fix `fonts` dereferencing issue (#203), credit to @MarcWeber (Marc Weber) for identifying the issue.
+
 **Fix**: fix `metrix` dependency, credit to @casperisfine (Jean byroot Boussier) for PR #195.
 
 #### Change log v.1.0.21
