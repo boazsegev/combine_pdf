@@ -262,10 +262,12 @@ module CombinePDF
         next if !r
         r = r[:referenced_object] if r[:referenced_object]
         r = r[:Font]
-        next if !r        
+        next if !r
         r = r[:referenced_object] if r[:referenced_object]
         r.values.each do |f|
+          next if f.class != Hash
           f = f[:referenced_object] if f[:referenced_object]
+          next if f.class != Hash
           if (limit_to_type0 || f[:Subtype] == :Type0) && f[:Type] == :Font && !fonts_array.include?(f)
             fonts_array << f
           end
