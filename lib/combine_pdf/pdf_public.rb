@@ -174,10 +174,37 @@ module CombinePDF
     def to_pdf(options = {})
       # reset version if not specified
       @version = 1.5 if @version.to_f == 0.0
+
       # set info for merged file
       @info[:ModDate] = @info[:CreationDate] = Time.now.strftime "D:%Y%m%d%H%M%S%:::z'00"
+
+      @info[:Author] = options[:author] if options[:author]
+      @info[:Title] = options[:title] if options[:title]
       @info[:Subject] = options[:subject] if options[:subject]
+      @info[:Keywords] = options[:keywords] if options[:keywords]
+      @info[:Creator] = options[:creator] if options[:creator]
       @info[:Producer] = options[:producer] if options[:producer]
+      
+      if options[:creation_date]
+        if options[:creation_date].respond_to?(:strftime)
+          # if we've been passed a Date or Time object, format it properly
+          @info[:CreationDate] = options[:creation_date].strftime "D:%Y%m%d%H%M%S%:::z'00"
+        else
+          # otherwise just trust/assume the caller has passed a correctly formatted string
+          @info[:CreationDate] = options[:creation_date]
+        end
+      end
+
+      if options[:mod_date]
+        if options[:mod_date].respond_to?(:strftime)
+          # if we've been passed a Date or Time object, format it properly
+          @info[:ModDate] = options[:mod_date].strftime "D:%Y%m%d%H%M%S%:::z'00"
+        else
+          # otherwise just trust/assume the caller has passed a correctly formatted string
+          @info[:ModDate] = options[:mod_date]
+        end
+      end
+
       # rebuild_catalog
       catalog = rebuild_catalog_and_objects
       # add ID and generation numbers to objects
