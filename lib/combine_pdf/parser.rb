@@ -34,6 +34,7 @@ module CombinePDF
     attr_reader :info_object, :root_object, :names_object, :forms_object, :outlines_object, :metadata
 
     attr_reader :allow_optional_content, :raise_on_encrypted
+    attr_reader :relaxed
     # when creating a parser, it is important to set the data (String) we wish to parse.
     #
     # <b>the data is required and it is not possible to set the data at a later stage</b>
@@ -59,6 +60,7 @@ module CombinePDF
       @scanner = nil
       @allow_optional_content = options[:allow_optional_content]
       @raise_on_encrypted = options[:raise_on_encrypted]
+      @relaxed = options[:relaxed]
     end
 
     # parse the data in the new parser (the data already set through the initialize / new method)
@@ -363,7 +365,21 @@ module CombinePDF
           # advance by the publshed stream length (if any)
           old_pos = @scanner.pos
           if(out.last.is_a?(Hash) && out.last[:Length].is_a?(Integer) && out.last[:Length] > 2)
-            @scanner.pos += out.last[:Length] - 2
+            begin
+              @scanner.pos += out.last[:Length] - 2
+            rescue RangeError => error
+              raise error unless @relaxed
+              oldpos = @scanner.pos
+              skipped = @scanner.skip_until(/endstream/)
+              if skipped
+                len = skipped - 'endstream'.length
+                warn "CombinePDF parser: invalid length: #{out.last[:Length]} for object: #{out.last} should be: #{len}"
+                @scanner.pos = oldpos
+                @scanner.pos += len
+              else
+                raise ParsingError, "Parsing Error: PDF file error - a stream object with invalid length of #{out.last[:Length]} for object #{out.last} and no endstream found, to work around it"
+              end
+            end
           end
 
           # the following was dicarded because some PDF files didn't have an EOL marker as required
