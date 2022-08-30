@@ -33,12 +33,11 @@ module CombinePDF
         if obj.is_a?(Hash)
           referenced = obj[:referenced_object]
           if referenced && referenced.any?
-            tmp = resolved[referenced.object_id] || existing[referenced]
+            tmp = resolved[referenced.object_id]
             if tmp
               obj[:referenced_object] = tmp
             else
               resolved[obj.object_id] = referenced
-              #        existing[referenced] = referenced
               existing[referenced[:raw_stream_content]] = referenced
               should_resolve << referenced
               @objects << referenced
