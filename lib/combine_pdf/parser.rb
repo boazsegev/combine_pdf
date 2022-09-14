@@ -373,10 +373,6 @@ module CombinePDF
           # instead, a non-strict RegExp is used:
           
 
-          # raise error if the stream doesn't end.
-          unless @scanner.skip_until(/endstream/)
-            raise ParsingError, "Parsing Error: PDF file error - a stream object wasn't properly closed using 'endstream'!"
-          end
           length = @scanner.pos - (old_pos + 9)
           length = 0 if(length < 0)
           length -= 1 if(@scanner.string[old_pos + length - 1] == "\n") 
