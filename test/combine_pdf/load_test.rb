@@ -9,51 +9,39 @@ describe 'CombinePDF.load' do
   subject { CombinePDF.load "test/fixtures/files/#{file}", options }
 
   describe 'raise_on_encrypted option' do
-    let(:raise_on_encrypted) { false }
     let(:file) { 'sample_encrypted_pdf.pdf' }
     let(:options) { { raise_on_encrypted: raise_on_encrypted } }
 
-    it('has a PDF') { assert_instance_of CombinePDF::PDF, subject }
-
-    describe 'raise_on_encrypted: true' do
+    describe 'when raise_on_encrypted: true' do
       let(:raise_on_encrypted) { true }
 
-      it('raises an CombinePDF::EncryptionError') do
-        error = assert_raises(CombinePDF::EncryptionError) { subject }
-        assert_match 'the file is encrypted', error.message
+      describe 'with encrypted file' do
+        it('raises an CombinePDF::EncryptionError') do
+          error = assert_raises(CombinePDF::EncryptionError) { subject }
+          assert_match 'the file is encrypted', error.message
+        end
       end
 
-      describe 'non-encrypted files' do
+      describe 'with unencrypted file' do
         let(:file) { 'sample_pdf.pdf' }
 
         it('has a PDF') { assert_instance_of CombinePDF::PDF, subject }
       end
+    end
 
-      describe 'Zlib::DataError' do
-        let(:encrypted?) { false }
-        let(:parser) { Minitest::Mock.new }
+    describe 'when raise_on_encrypted: false' do
+      let(:raise_on_encrypted) { false }
 
-        around do |example|
-          parser.expect(:parse, true) { raise Zlib::DataError, 'incorrect data header' }
-          root_object = encrypted? ? { Encrypt: :yes } : { NotEncrypted: :cool }
-          parser.expect(:root_object, root_object)
-          parser.expect(:raise_on_encrypted, raise_on_encrypted)
-          parser.expect(:is_a?, true, [CombinePDF::PDFParser])
-          CombinePDF::PDFParser.stub(:new, parser) { |_| example.call }
+      describe 'with encrypted file' do
+        it('does not raise an CombinePDF::EncryptionError') do
+          assert_instance_of CombinePDF::PDF, subject
         end
+      end
 
-        it('raises Zlib::DataError') do
-          assert_raises(Zlib::DataError) { subject }
-        end
+      describe 'with unencrypted file' do
+        let(:file) { 'sample_pdf.pdf' }
 
-        describe 'encrypted' do
-          let(:encrypted?) { true }
-
-          it('raises an CombinePDF::EncryptionError') do
-            error = assert_raises(CombinePDF::EncryptionError) { subject }
-            assert_match 'the file is encrypted', error.message
-          end
-        end
+        it('has a PDF') { assert_instance_of CombinePDF::PDF, subject }
       end
     end
   end

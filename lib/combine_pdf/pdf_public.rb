@@ -95,13 +95,7 @@ module CombinePDF
       @info = {}
       parser ||= PDFParser.new('')
       raise TypeError, "initialization error, expecting CombinePDF::PDFParser or nil, but got #{parser.class.name}" unless parser.is_a? PDFParser
-
-      begin
-        @objects = parser.parse
-      rescue Zlib::DataError => e
-        raise CombinePDF::EncryptionError, 'the file is encrypted' if parser.root_object[:Encrypt] && parser.raise_on_encrypted
-        raise e
-      end
+      @objects = parser.parse
 
       # remove any existing id's
       remove_old_ids
