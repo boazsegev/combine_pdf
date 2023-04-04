@@ -96,6 +96,7 @@ module CombinePDF
       parser ||= PDFParser.new('')
       raise TypeError, "initialization error, expecting CombinePDF::PDFParser or nil, but got #{parser.class.name}" unless parser.is_a? PDFParser
       @objects = parser.parse
+
       # remove any existing id's
       remove_old_ids
       # set data from parser
