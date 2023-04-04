@@ -1,6 +1,6 @@
 # Change Log
 
-#### Change log v.1.0.23 (2023-03-04)
+#### Change log v.1.0.23 (2023-04-04)
 
 **Feature**: merged PR #177 for the `raise_on_encrypted: true` option support. Credit to @leviwilson and @kimyu92 for the PR.
 
