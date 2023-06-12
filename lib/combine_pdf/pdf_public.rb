@@ -110,7 +110,7 @@ module CombinePDF
 
       # general globals
       @set_start_id = 1
-      @info[:Producer] = "Ruby CombinePDF #{CombinePDF::VERSION} Library"
+      producer = "Ruby CombinePDF #{CombinePDF::VERSION} Library"
       @info.delete :CreationDate
       @info.delete :ModDate
     end
@@ -124,33 +124,6 @@ module CombinePDF
       p = PDFWriter.new(mediabox)
       insert(-1, p)
       p
-    end
-
-    # get the title for the pdf
-    # The title is stored in the information dictionary and isn't required
-    def title
-      @info[:Title]
-    end
-
-    # set the title for the pdf
-    # The title is stored in the information dictionary and isn't required
-    # new_title:: a string that is the new author value.
-    def title=(new_title = nil)
-      @info[:Title] = new_title
-    end
-
-    # get the author value for the pdf.
-    # The author is stored in the information dictionary and isn't required
-    def author
-      @info[:Author]
-    end
-
-    # set the author value for the pdf.
-    # The author is stored in the information dictionary and isn't required
-    #
-    # new_title:: a string that is the new author value.
-    def author=(new_author = nil)
-      @info[:Author] = new_author
     end
 
     # Clears any existing form data.
@@ -175,10 +148,17 @@ module CombinePDF
     def to_pdf(options = {})
       # reset version if not specified
       @version = 1.5 if @version.to_f == 0.0
+
       # set info for merged file
-      @info[:ModDate] = @info[:CreationDate] = Time.now.strftime "D:%Y%m%d%H%M%S%:::z'00"
-      @info[:Subject] = options[:subject] if options[:subject]
-      @info[:Producer] = options[:producer] if options[:producer]
+      mod_date = Time.now
+
+      # set creation date to mod date if it doesn't already exist
+      creation_date ||= mod_date
+
+      # legacy behavior... assign subject and producer to metadata
+      subject = options[:subject] if options[:subject]
+      producer = options[:producer] if options[:producer]
+      
       # rebuild_catalog
       catalog = rebuild_catalog_and_objects
       # add ID and generation numbers to objects
