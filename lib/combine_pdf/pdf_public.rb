@@ -96,6 +96,7 @@ module CombinePDF
       parser ||= PDFParser.new('')
       raise TypeError, "initialization error, expecting CombinePDF::PDFParser or nil, but got #{parser.class.name}" unless parser.is_a? PDFParser
       @objects = parser.parse
+
       # remove any existing id's
       remove_old_ids
       # set data from parser
@@ -261,10 +262,12 @@ module CombinePDF
         next if !r
         r = r[:referenced_object] if r[:referenced_object]
         r = r[:Font]
-        next if !r        
+        next if !r
         r = r[:referenced_object] if r[:referenced_object]
         r.values.each do |f|
+          next if f.class != Hash
           f = f[:referenced_object] if f[:referenced_object]
+          next if f.class != Hash
           if (limit_to_type0 || f[:Subtype] == :Type0) && f[:Type] == :Font && !fonts_array.include?(f)
             fonts_array << f
           end

@@ -5,7 +5,7 @@ $VERBOSE = true
 require 'benchmark'
 $LOAD_PATH.unshift File.expand_path(File.join('..', '..', 'lib'), __FILE__)
 require 'combine_pdf'
-require 'bundler/setup'
+# require 'bundler/setup'
 
 # You can add fixtures and/or initialization code here to make experimenting
 # with your gem easier. You can also use a different console, if you like.
@@ -14,54 +14,54 @@ require 'bundler/setup'
 # require "pry"
 # Pry.start
 
-pdf = CombinePDF.load "./Ruby/test\ pdfs/filled_form.pdf"
+pdf = CombinePDF.load "../../test\ pdfs/filled_form.pdf"
 pdf.save '01_check_radio_buttuns.pdf'
-pdf = CombinePDF.load "./Ruby/test\ pdfs/filled_form.pdf"
-pdf << CombinePDF.load("./Ruby/test\ pdfs/empty_form.pdf")
-pdf << CombinePDF.load("./Ruby/test\ pdfs/filled_form.pdf")
+pdf = CombinePDF.load "../../test\ pdfs/filled_form.pdf"
+pdf << CombinePDF.load("../../test\ pdfs/empty_form.pdf")
+pdf << CombinePDF.load("../../test\ pdfs/filled_form.pdf")
 pdf.save '02_check_form_unification_middle_is_empty.pdf'
 
-pdf = CombinePDF.load "./Ruby/test\ pdfs/check_form_data__objstreams_w_versions.pdf"
+pdf = CombinePDF.load "../../test\ pdfs/check_form_data__objstreams_w_versions.pdf"
 pdf.save '02_01_check_form_data_ordering_issue.pdf'
 
 
-pdf = CombinePDF.load './Ruby/test pdfs/share-font-background.pdf'
-pdf2 = CombinePDF.load './Ruby/test pdfs/share-font-foreground.pdf'
+pdf = CombinePDF.load '../../test pdfs/share-font-background.pdf'
+pdf2 = CombinePDF.load '../../test pdfs/share-font-foreground.pdf'
 i = 0
 pdf.pages.each { |pg| pg << pdf2.pages[i] }
 pdf.save '03_check_font_conflict.pdf'
 
-pdf = CombinePDF.load './Ruby/test pdfs/nil_1.pdf'
-pdf2 = CombinePDF.load './Ruby/test pdfs/nil_2.pdf'
+pdf = CombinePDF.load '../../test pdfs/nil_1.pdf'
+pdf2 = CombinePDF.load '../../test pdfs/nil_2.pdf'
 pdf << pdf2
 pdf.save '03_01_nil_value_conflict.pdf'
 
-pdf = CombinePDF.load './Ruby/test pdfs/space_after_streram_keyword.pdf'
+pdf = CombinePDF.load '../../test pdfs/space_after_streram_keyword.pdf'
 pdf.save '03_02_extra_space_after_stream_keyword.pdf'
 
-pdf = CombinePDF.load './Ruby/test pdfs/nested_difference.pdf'
+pdf = CombinePDF.load '../../test pdfs/nested_difference.pdf'
 pdf.save '03_03_nested_difference.pdf'
 
-pdf = CombinePDF.load './Ruby/test pdfs/names_go_haywire_0.pdf'
-pdf << CombinePDF.load('./Ruby/test pdfs/names_go_haywire_1.pdf')
+pdf = CombinePDF.load '../../test pdfs/names_go_haywire_0.pdf'
+pdf << CombinePDF.load('../../test pdfs/names_go_haywire_1.pdf')
 pdf.save '04_check_view_and_names_reference.pdf'
 
-pdf = CombinePDF.load('./Ruby/test pdfs/outlines/self_merge_err.pdf')
+pdf = CombinePDF.load('../../test pdfs/outlines/self_merge_err.pdf')
 pdf.save '05_x1_scribus_test.pdf'
-pdf = CombinePDF.load('./Ruby/test pdfs/outlines/self_merge_err.pdf')
-pdf << CombinePDF.load('./Ruby/test pdfs/outlines/self_merge_err.pdf')
+pdf = CombinePDF.load('../../test pdfs/outlines/self_merge_err.pdf')
+pdf << CombinePDF.load('../../test pdfs/outlines/self_merge_err.pdf')
 pdf.save '05_x2_scribus_test.pdf'
-# pdf = CombinePDF.load "./Ruby/test pdfs/named_dest.pdf";nil
-# pdf.save '05_check_named_dest_links.pdf' # this will take a while
-# pdf = CombinePDF.load "./Ruby/test pdfs/named_dest.pdf";nil
-pdf << CombinePDF.load('./Ruby/test pdfs/named_dest.pdf'); nil
+pdf = CombinePDF.load "../../test pdfs/outlines/named_dest.pdf";nil
+pdf.save '05_check_named_dest_links.pdf' # this will take a while
+pdf = CombinePDF.load "../../test pdfs/outlines/named_dest.pdf";nil
+pdf << CombinePDF.load('../../test pdfs/outlines/named_dest.pdf'); nil
 pdf.save '05_1_timeless_check_named_dest_links.pdf' # never ends... :-(
 
-pdf = CombinePDF.load './Ruby/test pdfs/outline_small.pdf'
-pdf << CombinePDF.load('./Ruby/test pdfs/outline_small.pdf')
+pdf = CombinePDF.load '../../test pdfs/outline_small.pdf'
+pdf << CombinePDF.load('../../test pdfs/outline_small.pdf')
 pdf.save '06_check_links_to_second_copy.pdf'
 
-lists = %w(./Ruby/test\ pdfs/outlines/self_merge_err.pdf ./Ruby/test\ pdfs/outlines/big_toc.pdf ./Ruby/test\ pdfs/outlines/bigger_toc.pdf ./Ruby/test\ pdfs/outlines/named_dest_no_toc.pdf ./Ruby/test\ pdfs/outlines/named_dest_no_toc2.pdf ./Ruby/test\ pdfs/outlines/named_dest.pdf ./Ruby/test\ pdfs/outlines/named_dest2.pdf)
+lists = %w(../../test\ pdfs/outlines/self_merge_err.pdf ../../test\ pdfs/outlines/big_toc.pdf ../../test\ pdfs/outlines/bigger_toc.pdf ../../test\ pdfs/outlines/named_dest_no_toc.pdf ../../test\ pdfs/outlines/named_dest_no_toc2.pdf ../../test\ pdfs/outlines/named_dest.pdf ../../test\ pdfs/outlines/named_dest2.pdf)
 
 i = 0
 lists.each do |n|
@@ -92,19 +92,19 @@ pdf.number_pages(start_at: 1,
 
 pdf.save('07_named destinations_numbered.pdf')
 
-CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err.pdf").save '08_1-unknown-err-empty-str.pdf'
-CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err2.pdf").save '08_2-unknown-err-empty-str.pdf'
-CombinePDF.load("./Ruby/test\ pdfs/Scribus-unknown_err3.pdf").save '08_3-unknown-err-empty-str.pdf'
-CombinePDF.load("./Ruby/test\ pdfs/xref_in_middle.pdf").save '08_4-xref-in-middle.pdf'
-CombinePDF.load("./Ruby/test\ pdfs/xref_split.pdf").save '08_5-xref-fragmented.pdf'
+CombinePDF.load("../../test\ pdfs/Scribus-unknown_err.pdf").save '08_1-unknown-err-empty-str.pdf'
+CombinePDF.load("../../test\ pdfs/Scribus-unknown_err2.pdf").save '08_2-unknown-err-empty-str.pdf'
+CombinePDF.load("../../test\ pdfs/Scribus-unknown_err3.pdf").save '08_3-unknown-err-empty-str.pdf'
+CombinePDF.load("../../test\ pdfs/xref_in_middle.pdf").save '08_4-xref-in-middle.pdf'
+CombinePDF.load("../../test\ pdfs/xref_split.pdf").save '08_5-xref-fragmented.pdf'
 
-CombinePDF.load("/Users/2Be/Ruby/test\ pdfs/nil_object.pdf").save('09_nil_in_parsed_array.pdf')
+CombinePDF.load("../../test\ pdfs/nil_object.pdf").save('09_nil_in_parsed_array.pdf')
 
-encrypted = [ "./Ruby/test\ pdfs/pdf-reader/encrypted_version4_revision4_128bit_aes_user_pass_apples_enc_metadata.pdf",
-              "./Ruby/test\ pdfs/AESv2\ encrypted.pdf",
-              "./Ruby/test\ pdfs/pdf-reader/encrypted_version2_revision3_128bit_rc4_blank_user_pass.pdf",
-              "./Ruby/test\ pdfs/AES\ enc.pdf",
-              "./Ruby/test\ pdfs/RC4\ enc.pdf"]
+encrypted = [ "../../test\ pdfs/pdf-reader/encrypted_version4_revision4_128bit_aes_user_pass_apples_enc_metadata.pdf",
+              "../../test\ pdfs/AESv2\ encrypted.pdf",
+              "../../test\ pdfs/pdf-reader/encrypted_version2_revision3_128bit_rc4_blank_user_pass.pdf",
+              "../../test\ pdfs/AES\ enc.pdf",
+              "../../test\ pdfs/RC4\ enc.pdf"]
 
 encrypted.length.times do |i|
   fname = File.basename encrypted[i]
@@ -132,17 +132,17 @@ pdf.save('11_AcrobatReader_is_unique_page.pdf')
 
 puts GC.stat.inspect
 # unify = [
-#   "./Ruby/test\ pdfs/AESv2\ encrypted.pdf",
-#   "./Ruby/test\ pdfs/data-in-comment.pdf",
-#   "./Ruby/test\ pdfs/file_name.pdf",
-#   "./Ruby/test\ pdfs/garbage_after_eof.pdf",
-#   "./Ruby/test\ pdfs/Many\ comments.pdf",
-#   "./Ruby/test\ pdfs/nested\ contents\ array.PDF",
-#   "./Ruby/test\ pdfs/nested_resources.pdf",
-#   "./Ruby/test\ pdfs/original-missing-endobje.pdf",
-#   "./Ruby/test\ pdfs/original-multi-issue.pdf",
-#   "./Ruby/test\ pdfs/page_stap_nil_secure.pdf",
-#   "./Ruby/test\ pdfs/referenced\ decryption.pdf",
+#   "../../test\ pdfs/AESv2\ encrypted.pdf",
+#   "../../test\ pdfs/data-in-comment.pdf",
+#   "../../test\ pdfs/file_name.pdf",
+#   "../../test\ pdfs/garbage_after_eof.pdf",
+#   "../../test\ pdfs/Many\ comments.pdf",
+#   "../../test\ pdfs/nested\ contents\ array.PDF",
+#   "../../test\ pdfs/nested_resources.pdf",
+#   "../../test\ pdfs/original-missing-endobje.pdf",
+#   "../../test\ pdfs/original-multi-issue.pdf",
+#   "../../test\ pdfs/page_stap_nil_secure.pdf",
+#   "../../test\ pdfs/referenced\ decryption.pdf",
 #   '',
 #   '',
 #   '',
