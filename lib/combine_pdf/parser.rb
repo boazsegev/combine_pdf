@@ -323,8 +323,8 @@ module CombinePDF
                 str << 12
               when 48..57 # octal notation for byte?
                 rep -= 48
-                rep = (rep << 3) + (str_bytes.shift-48) if str_bytes[0].between?(48, 57)
-                rep = (rep << 3) + (str_bytes.shift-48) if str_bytes[0].between?(48, 57) && (((rep << 3) + (str_bytes[0] - 48)) <= 255)
+                rep = (rep << 3) + (str_bytes.shift-48) if str_bytes[0]&.between?(48, 57)
+                rep = (rep << 3) + (str_bytes.shift-48) if str_bytes[0]&.between?(48, 57) && (((rep << 3) + (str_bytes[0] - 48)) <= 255)
                 str << rep
               when 10 # new line, ignore
                 str_bytes.shift if str_bytes[0] == 13
