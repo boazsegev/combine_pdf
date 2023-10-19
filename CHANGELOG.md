@@ -1,5 +1,11 @@
 # Change Log
 
+#### Change log v.1.0.24 (2023-10-19)
+
+**Fix**: possible `nil` in loop. Credit to @jkowens for PR #231 and adding a quick fix using a simple guard.
+
+**Fix**: preserve file creation date metadata where relevant.
+
 #### Change log v.1.0.23 (2023-04-04)
 
 **Feature**: merged PR #177 for the `raise_on_encrypted: true` option support. Credit to @leviwilson and @kimyu92 for the PR.

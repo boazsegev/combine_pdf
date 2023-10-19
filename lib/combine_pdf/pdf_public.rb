@@ -175,8 +175,12 @@ module CombinePDF
     def to_pdf(options = {})
       # reset version if not specified
       @version = 1.5 if @version.to_f == 0.0
+
       # set info for merged file
-      @info[:ModDate] = @info[:CreationDate] = Time.now.strftime "D:%Y%m%d%H%M%S%:::z'00"
+      unless(@info[:CreationDate].is_a?(String))
+        @info[:CreationDate] = Time.now unless @info[:CreationDate].is_a?(Time)
+        @info[:CreationDate] = @info[:CreationDate].getgm.strftime("D:%Y%m%d%H%M%S%:::z'00")
+      end
       @info[:Subject] = options[:subject] if options[:subject]
       @info[:Producer] = options[:producer] if options[:producer]
       # rebuild_catalog
