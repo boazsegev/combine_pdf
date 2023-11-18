@@ -70,6 +70,8 @@ module CombinePDF
     # differentiate between complex PDF objects.
     PRIVATE_HASH_KEYS = [:indirect_reference_id, :indirect_generation_number, :raw_stream_content, :is_reference_only, :referenced_object, :indirect_without_dictionary, :related_objects].freeze
 
+    OFFSET_FORMAT = "%010d 00000 n \n".freeze
+
     # the objects attribute is an Array containing all the PDF sub-objects for te class.
     attr_reader :objects
     # the info attribute is a Hash that sets the Info data for the PDF.
@@ -207,8 +209,8 @@ module CombinePDF
       # xref_location = 0
       # out.each { |line| xref_location += line.bytesize + 1}
       out << "xref\n0 #{indirect_object_count}\n0000000000 65535 f \n"
-      xref.each { |offset| out << (out.pop + ("%010d 00000 n \n" % offset)) }
-      out << out.pop + 'trailer'
+      xref.each { |offset| out.last << (OFFSET_FORMAT % offset) }
+      out.last << 'trailer'
       out << "<<\n/Root #{false || "#{catalog[:indirect_reference_id]} #{catalog[:indirect_generation_number]} R"}"
       out << "/Size #{indirect_object_count}"
       out << "/Info #{@info[:indirect_reference_id]} #{@info[:indirect_generation_number]} R"
