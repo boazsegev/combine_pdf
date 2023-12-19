@@ -206,9 +206,9 @@ module CombinePDF
       xref_location = loc
       # xref_location = 0
       # out.each { |line| xref_location += line.bytesize + 1}
-      out << "xref\n0 #{indirect_object_count}\n0000000000 65535 f \n"
-      xref.each { |offset| out << (out.pop + ("%010d 00000 n \n" % offset)) }
-      out << out.pop + 'trailer'
+      out << "xref\n0 #{indirect_object_count}\n0000000000 65535 f "
+      xref.each { |offset| out << ("%010d 00000 n " % offset) }
+      out << 'trailer'.freeze
       out << "<<\n/Root #{false || "#{catalog[:indirect_reference_id]} #{catalog[:indirect_generation_number]} R"}"
       out << "/Size #{indirect_object_count}"
       out << "/Info #{@info[:indirect_reference_id]} #{@info[:indirect_generation_number]} R"

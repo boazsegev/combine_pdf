@@ -1,5 +1,9 @@
 # Change Log
 
+#### Change log v.1.0.25 (2023-12-19)
+
+**Fix**: possible improve memory usage. Credit to @denislavski (Denislav Naydenov) for opening PR #223 and suggesting this change.
+
 #### Change log v.1.0.24 (2023-10-19)
 
 **Fix**: possible `nil` in loop. Credit to @jkowens for PR #231 and adding a quick fix using a simple guard.
