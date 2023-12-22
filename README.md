@@ -7,6 +7,16 @@
 
 CombinePDF is a nifty model, written in pure Ruby, to parse PDF files and combine (merge) them with other PDF files, watermark them or stamp them (all using the PDF file format and pure Ruby code).
 
+## Unmaintained - Help Wanted(!)
+
+I decided to stop maintaining this gem and hope someone could take over the PR reviews and maintenance of this gem (or simply open a successful fork).
+
+I wrote this gem because I needed to solve an issue with bates-numbering existing PDF documents.
+
+However, since 2014 I have been maintaining the gem for free and for no reason at all, except that I enjoyed sharing it with the community.
+
+I love this gem, but I cannot keep maintaining it as I have my own projects to focus own and I need both the time and (more importantly) the mindspace.
+
 ## Install
 
 Install with ruby gems:
@@ -14,16 +24,6 @@ Install with ruby gems:
 ```ruby
 gem install combine_pdf
 ```
-
-## Help Wanted
-
-I need help maintaining the CombinePDF Ruby gem.
-
-I wrote this gem because I needed to solve an issue with bates-numbering existing PDF documents. However, during the last three years or so I have been maintaining the project for no reason at all, except that I enjoyed sharing it with the community.
-
-I love this gem, but I feel it's time I took a step back from maintaining it and concentrate on my music and other things I want to develop.
-
-Please hit me up if you would like to join in and eventually take over.
 
 ## Known Limitations
 
