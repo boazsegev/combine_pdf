@@ -1,5 +1,9 @@
 # Change Log
 
+#### Change log v.1.0.26 (2023-12-22)
+
+**Performance**: possible performance bump. Credit to @denislavski (Denislav Naydenov) for opening PR #235.
+
 #### Change log v.1.0.25 (2023-12-19)
 
 **Fix**: possible improve memory usage. Credit to @denislavski (Denislav Naydenov) for opening PR #233 and suggesting this change.
