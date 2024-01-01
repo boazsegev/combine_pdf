@@ -34,16 +34,10 @@ module CombinePDF
           referenced = obj[:referenced_object]
           if referenced && referenced.any?
             tmp = resolved[referenced.object_id]
-            if !tmp && referenced[:raw_stream_content]
-              tmp = existing[referenced[:raw_stream_content]]
-              # Avoid endless recursion by limiting it to a number of layers (default == 2)
-              tmp = nil unless equal_layers(tmp, referenced)
-            end
             if tmp
               obj[:referenced_object] = tmp
             else
               resolved[obj.object_id] = referenced
-              #        existing[referenced] = referenced
               existing[referenced[:raw_stream_content]] = referenced
               should_resolve << referenced
               @objects << referenced
