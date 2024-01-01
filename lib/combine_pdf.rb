@@ -10,21 +10,21 @@ require 'digest'
 # require the RC4 Gem
 require 'rc4'
 
-load 'combine_pdf/api.rb'
-load 'combine_pdf/renderer.rb'
-load 'combine_pdf/page_methods.rb'
-load 'combine_pdf/basic_writer.rb'
-load 'combine_pdf/decrypt.rb'
-load 'combine_pdf/fonts.rb'
-load 'combine_pdf/filter.rb'
-load 'combine_pdf/parser.rb'
-load 'combine_pdf/pdf_public.rb'
-load 'combine_pdf/pdf_protected.rb'
-load 'combine_pdf/exceptions.rb'
+require 'combine_pdf/api'
+require 'combine_pdf/renderer'
+require 'combine_pdf/page_methods'
+require 'combine_pdf/basic_writer'
+require 'combine_pdf/decrypt'
+require 'combine_pdf/fonts'
+require 'combine_pdf/filter'
+require 'combine_pdf/parser'
+require 'combine_pdf/pdf_public'
+require 'combine_pdf/pdf_protected'
+require 'combine_pdf/exceptions'
 
-# load "combine_pdf/operations.rb"
+# require 'combine_pdf/operations'
 
-load 'combine_pdf/version.rb'
+require 'combine_pdf/version'
 
 # This is a pure ruby library to combine/merge, stmap/overlay and number PDF files - as well as to create tables (ment for indexing combined files).
 #
