@@ -12,7 +12,7 @@ class CombinePDFRendererTest < Minitest::Test
 
   def test_numeric_array_to_pdf
     input = [1.234567, 0.000054, 5, -0.000099]
-    expected = "[1.234567 0.000054 5 -0.000099]".force_encoding('BINARY')
+    expected = "[1.234567 0.000054 5 -0.000099]".b
     actual = TestRenderer.new.test_object(input)
 
     assert_equal(expected, actual)
