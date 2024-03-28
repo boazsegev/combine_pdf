@@ -1,5 +1,6 @@
 # -*- encoding : utf-8 -*-
-########################################################
+## frozen_string_literal: true
+#######################################################
 ## Thoughts from reading the ISO 32000-1:2008
 ## this file is part of the CombinePDF library and the code
 ## is subject to the same license.
@@ -93,7 +94,7 @@ module CombinePDF
       @version = 0
       @viewer_preferences = {}
       @info = {}
-      parser ||= PDFParser.new('')
+      parser ||= PDFParser.new(+'')
       raise TypeError, "initialization error, expecting CombinePDF::PDFParser or nil, but got #{parser.class.name}" unless parser.is_a? PDFParser
       @objects = parser.parse
 
@@ -216,7 +217,7 @@ module CombinePDF
       # when finished, remove the numbering system and keep only pointers
       remove_old_ids
       # output the pdf stream
-      out.join("\n".force_encoding(Encoding::ASCII_8BIT)).force_encoding(Encoding::ASCII_8BIT)
+      out.join("\n").force_encoding(Encoding::ASCII_8BIT)
     end
 
     # this method returns all the pages cataloged in the catalog.

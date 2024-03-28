@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module CombinePDF
   ################################################################
   ## These are common functions, used within the different classes
@@ -123,12 +124,12 @@ module CombinePDF
       # if the object is not a simple object, it is a dictionary
       # A dictionary shall be written as a sequence of key-value pairs enclosed in double angle brackets (<<...>>)
       # (using LESS-THAN SIGNs (3Ch) and GREATER-THAN SIGNs (3Eh)).
-      out << "<<\n".force_encoding(Encoding::ASCII_8BIT)
+      out << "<<\n".b
       object.each do |key, value|
         out << "#{object_to_pdf key} #{object_to_pdf value}\n".force_encoding(Encoding::ASCII_8BIT) unless PDF::PRIVATE_HASH_KEYS.include? key
       end
       object.delete :Length
-      out << '>>'.force_encoding(Encoding::ASCII_8BIT)
+      out << '>>'.b
       out << "\nstream\n#{object[:raw_stream_content]}\nendstream".force_encoding(Encoding::ASCII_8BIT) if object[:raw_stream_content]
       out << "\nendobj\n" if object[:indirect_reference_id]
       out.join.force_encoding(Encoding::ASCII_8BIT)
