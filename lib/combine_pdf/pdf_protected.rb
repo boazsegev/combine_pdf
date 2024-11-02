@@ -192,11 +192,11 @@ module CombinePDF
         dic = []
         # map a names tree and return a valid name tree. Do not recourse.
         should_resolve = [name_tree[:Kids], name_tree[:Names]]
-        resolved = [].to_set
+        resolved = Set.new.compare_by_identity
         while should_resolve.any?
           pos = should_resolve.pop
           if pos.is_a? Array
-            next if resolved.include?(pos.object_id)
+            next if resolved.include?(pos)
             if pos[0].is_a? String
               (pos.length / 2).times do |i|
                 dic << (pos[i * 2].clear << base.next!)
@@ -209,11 +209,11 @@ module CombinePDF
             end
           elsif pos.is_a? Hash
             pos = pos[:referenced_object] || pos
-            next if resolved.include?(pos.object_id)
+            next if resolved.include?(pos)
             should_resolve << pos[:Kids] if pos[:Kids]
             should_resolve << pos[:Names] if pos[:Names]
           end
-          resolved << pos.object_id
+          resolved << pos
         end
         return { referenced_object: { Names: dic }, is_reference_only: true }
       end
