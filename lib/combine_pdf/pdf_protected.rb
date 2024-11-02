@@ -21,9 +21,9 @@ module CombinePDF
     # this is used for internal operations, such as injectng data using the << operator.
     def add_referenced()
       # an existing object map
-      resolved = {}.dup
-      existing = {}.dup
-      should_resolve = [].dup
+      resolved = {}
+      existing = {}
+      should_resolve = []
       #set all existing objects as resolved and register their children for future resolution
       @objects.each { |obj| existing[obj] = obj ; resolved[obj.object_id] = obj; should_resolve << obj.values}
       # loop until should_resolve is empty
@@ -78,14 +78,14 @@ module CombinePDF
       page_list.concat(with_pages) unless with_pages.empty?
 
       # duplicate any non-unique pages - This is a special case to resolve Adobe Acrobat Reader issues (see issues #19 and #81)
-      uniqueness = {}.dup
+      uniqueness = {}
       page_list.each { |page| page = page[:referenced_object] || page; page = page.dup if uniqueness[page.object_id]; uniqueness[page.object_id] = page }
       page_list.clear
       page_list = uniqueness.values
       uniqueness.clear
 
       # build new Pages object
-      page_object_kids = [].dup
+      page_object_kids = []
       pages_object = { Type: :Pages, Count: page_list.length, Kids: page_object_kids }
       pages_object_reference = { referenced_object: pages_object, is_reference_only: true }
       page_list.each { |pg| pg[:Parent] = pages_object_reference; page_object_kids << ({ referenced_object: pg, is_reference_only: true }) }
@@ -218,7 +218,7 @@ module CombinePDF
         return { referenced_object: { Names: dic }, is_reference_only: true }
       end
       @names ||= @names[:referenced_object]
-      new_names = { Type: :Names }.dup
+      new_names = { Type: :Names }
       POSSIBLE_NAME_TREES.each do |ntree|
         if @names[ntree]
           new_names[ntree] = rebuild_names(@names[ntree], base)
