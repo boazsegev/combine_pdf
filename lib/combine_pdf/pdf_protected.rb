@@ -78,8 +78,8 @@ module CombinePDF
       page_list.concat(with_pages) unless with_pages.empty?
 
       # duplicate any non-unique pages - This is a special case to resolve Adobe Acrobat Reader issues (see issues #19 and #81)
-      uniqueness = {}
-      page_list.each { |page| page = page[:referenced_object] || page; page = page.dup if uniqueness[page.object_id]; uniqueness[page.object_id] = page }
+      uniqueness = {}.compare_by_identity
+      page_list.each { |page| page = page[:referenced_object] || page; page = page.dup if uniqueness[page]; uniqueness[page] = page }
       page_list.clear
       page_list = uniqueness.values
       uniqueness.clear
