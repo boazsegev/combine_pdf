@@ -21,19 +21,19 @@ module CombinePDF
     # this is used for internal operations, such as injectng data using the << operator.
     def add_referenced()
       # an existing object map
-      resolved = {}
+      resolved = {}.compare_by_identity
       existing = {}
       should_resolve = []
       #set all existing objects as resolved and register their children for future resolution
-      @objects.each { |obj| existing[obj] = obj ; resolved[obj.object_id] = obj; should_resolve << obj.values}
+      @objects.each { |obj| existing[obj] = obj ; resolved[obj] = obj; should_resolve << obj.values}
       # loop until should_resolve is empty
       while should_resolve.any?
         obj = should_resolve.pop
-        next if resolved[obj.object_id] # the object exists
+        next if resolved[obj] # the object exists
         if obj.is_a?(Hash)
           referenced = obj[:referenced_object]
           if referenced && referenced.any?
-            tmp = resolved[referenced.object_id]
+            tmp = resolved[referenced]
             if !tmp && referenced[:raw_stream_content]
               tmp = existing[referenced[:raw_stream_content]]
               # Avoid endless recursion by limiting it to a number of layers (default == 2)
@@ -42,18 +42,18 @@ module CombinePDF
             if tmp
               obj[:referenced_object] = tmp
             else
-              resolved[obj.object_id] = referenced
+              resolved[obj] = referenced
               #        existing[referenced] = referenced
               existing[referenced[:raw_stream_content]] = referenced
               should_resolve << referenced
               @objects << referenced
             end
           else
-            resolved[obj.object_id] = obj
-            obj.keys.each { |k| should_resolve << obj[k] unless !obj[k].is_a?(Enumerable) || resolved[obj[k].object_id] }
+            resolved[obj] = obj
+            obj.keys.each { |k| should_resolve << obj[k] unless !obj[k].is_a?(Enumerable) || resolved[obj[k]] }
           end
         elsif obj.is_a?(Array)
-          resolved[obj.object_id] = obj
+          resolved[obj] = obj
           should_resolve.concat obj
         end
       end
