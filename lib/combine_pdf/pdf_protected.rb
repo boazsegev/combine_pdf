@@ -373,7 +373,7 @@ module CombinePDF
     private
 
     def equal_layers obj1, obj2, layer = CombinePDF.eq_depth_limit
-      return true if obj1.object_id == obj2.object_id
+      return true if obj1.equal?(obj2)
       if obj1.is_a? Hash
         return false unless obj2.is_a? Hash
         return false unless obj1.length == obj2.length
