@@ -1,5 +1,11 @@
 # Change Log
 
+#### Change log v.1.0.27 (2024-11-10)
+
+**Performance**: fix performance issues with `object_id` usage in Ruby 3+. Credit to @amomchilov (Alexander Momchilov) for PR #241.
+
+**Performance**: use frozen string literals. Credit to @casperisfine (Jean byroot Boussier) for PR #239.
+
 #### Change log v.1.0.26 (2023-12-22)
 
 **Performance**: possible performance bump. Credit to @denislavski (Denislav Naydenov) for opening PR #235.
