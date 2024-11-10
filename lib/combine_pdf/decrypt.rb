@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+# frozen_string_literal: true
 ########################################################
 ## Thoughts from reading the ISO 32000-1:2008
 ## this file is part of the CombinePDF library and the code
@@ -137,7 +138,7 @@ module CombinePDF
       object_key = @key.dup
       object_key << [encrypted_id].pack('i')[0..2]
       object_key << [encrypted_generation].pack('i')[0..1]
-      object_key << 'sAlT'.force_encoding(Encoding::ASCII_8BIT)
+      object_key << 'sAlT'.b
       key_length = object_key.length < 16 ? object_key.length : 16
 
       begin

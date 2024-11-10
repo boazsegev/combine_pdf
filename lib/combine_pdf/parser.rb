@@ -262,7 +262,7 @@ module CombinePDF
         ##########################################
         elsif @scanner.scan(/\(/)
           # warn "Found a literal string"
-          str = ''.force_encoding(Encoding::ASCII_8BIT)
+          str = ''.b
           count = 1
           while count > 0 && @scanner.rest?
             scn = @scanner.scan_until(/[\(\)]/)
@@ -377,9 +377,9 @@ module CombinePDF
           end
           length = @scanner.pos - (old_pos + 9)
           length = 0 if(length < 0)
-          length -= 1 if(@scanner.string[old_pos + length - 1] == "\n")
-          length -= 1 if(@scanner.string[old_pos + length - 1] == "\r")
-          str = (length > 0) ? @scanner.string.slice(old_pos, length) : ''
+          length -= 1 if(@scanner.string[old_pos + length - 1] == "\n") 
+          length -= 1 if(@scanner.string[old_pos + length - 1] == "\r") 
+          str = (length > 0) ? @scanner.string.slice(old_pos, length) : +''
 
           # warn "CombinePDF parser: detected Stream #{str.length} bytes long #{str[0..3]}...#{str[-4..-1]}"
 

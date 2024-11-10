@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+# frozen_string_literal: true
 ########################################################
 ## Thoughts from reading the ISO 32000-1:2008
 ## this file is part of the CombinePDF library and the code
@@ -186,6 +187,7 @@ module CombinePDF
     POSSIBLE_NAME_TREES = [:Dests, :AP, :Pages, :IDS, :Templates, :URLS, :JavaScript, :EmbeddedFiles, :AlternatePresentations, :Renditions].to_set.freeze
 
     def rebuild_names(name_tree = nil, base = 'CombinePDF_0000000')
+      base = +base
       if name_tree
         return nil unless name_tree.is_a?(Hash)
         name_tree = name_tree[:referenced_object] || name_tree
