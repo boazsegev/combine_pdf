@@ -789,7 +789,7 @@ module CombinePDF
           # add to array
           if out.last.nil? || out.last[0] != fonts[i]
             out.last[1] << '>' unless out.last.nil?
-            out << [fonts[i], '<', 0, 0]
+            out << [fonts[i], (+'<'), 0, 0]
           end
           out.last[1] << (fonts_array[i].cmap.nil? ? (c.unpack('H*')[0]) : fonts_array[i].cmap[c])
           if fonts_array[i].metrics[c]
