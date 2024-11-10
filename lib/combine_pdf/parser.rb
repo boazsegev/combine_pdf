@@ -369,7 +369,7 @@ module CombinePDF
           # the following was dicarded because some PDF files didn't have an EOL marker as required
           # str = @scanner.scan_until(/(\r\n|\r|\n)endstream/)
           # instead, a non-strict RegExp is used:
-          
+
 
           # raise error if the stream doesn't end.
           unless @scanner.skip_until(/endstream/)
@@ -632,17 +632,17 @@ module CombinePDF
     #
     def serialize_objects_and_references
       obj_dir = {}
-      objid_cache = {}
+      objid_cache = {}.compare_by_identity
       # create a dictionary for referenced objects (no value resolution at this point)
       # at the same time, delete duplicates and old versions when objects have multiple versions
       @parsed.uniq!
       @parsed.length.times do |i|
         o = @parsed[i]
-        objid_cache[o.object_id] = i
+        objid_cache[o] = i
         tmp_key = [o[:indirect_reference_id], o[:indirect_generation_number]]
         if tmp_found = obj_dir[tmp_key]
           tmp_found.clear
-          @parsed[objid_cache[tmp_found.object_id]] = nil
+          @parsed[objid_cache[tmp_found]] = nil
         end
         obj_dir[tmp_key] = o
       end
@@ -765,9 +765,9 @@ module CombinePDF
     # end
 
     # # run block of code on evey PDF object (PDF objects are class Hash)
-    # def each_object(object, limit_references = true, already_visited = {}, &block)
+    # def each_object(object, limit_references = true, already_visited = {}.compare_by_identity, &block)
     # 	unless limit_references
-    # 		already_visited[object.object_id] = true
+    # 		already_visited[object] = true
     # 	end
     # 	case
     # 	when object.is_a?(Array)
@@ -776,7 +776,7 @@ module CombinePDF
     # 		yield(object)
     # 		unless limit_references && object[:is_reference_only]
     # 			object.each do |k,v|
-    # 				each_object(v, limit_references, already_visited, &block) unless already_visited[v.object_id]
+    # 				each_object(v, limit_references, already_visited, &block) unless already_visited[v]
     # 			end
     # 		end
     # 	end
