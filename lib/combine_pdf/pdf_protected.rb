@@ -21,19 +21,19 @@ module CombinePDF
     # this is used for internal operations, such as injectng data using the << operator.
     def add_referenced()
       # an existing object map
-      resolved = {}.dup
-      existing = {}.dup
-      should_resolve = [].dup
+      resolved = {}.compare_by_identity
+      existing = {}
+      should_resolve = []
       #set all existing objects as resolved and register their children for future resolution
-      @objects.each { |obj| existing[obj] = obj ; resolved[obj.object_id] = obj; should_resolve << obj.values}
+      @objects.each { |obj| existing[obj] = obj ; resolved[obj] = obj; should_resolve << obj.values}
       # loop until should_resolve is empty
       while should_resolve.any?
         obj = should_resolve.pop
-        next if resolved[obj.object_id] # the object exists
+        next if resolved[obj] # the object exists
         if obj.is_a?(Hash)
           referenced = obj[:referenced_object]
           if referenced && referenced.any?
-            tmp = resolved[referenced.object_id]
+            tmp = resolved[referenced]
             if !tmp && referenced[:raw_stream_content]
               tmp = existing[referenced[:raw_stream_content]]
               # Avoid endless recursion by limiting it to a number of layers (default == 2)
@@ -42,18 +42,18 @@ module CombinePDF
             if tmp
               obj[:referenced_object] = tmp
             else
-              resolved[obj.object_id] = referenced
+              resolved[obj] = referenced
               #        existing[referenced] = referenced
               existing[referenced[:raw_stream_content]] = referenced
               should_resolve << referenced
               @objects << referenced
             end
           else
-            resolved[obj.object_id] = obj
-            obj.keys.each { |k| should_resolve << obj[k] unless !obj[k].is_a?(Enumerable) || resolved[obj[k].object_id] }
+            resolved[obj] = obj
+            obj.keys.each { |k| should_resolve << obj[k] unless !obj[k].is_a?(Enumerable) || resolved[obj[k]] }
           end
         elsif obj.is_a?(Array)
-          resolved[obj.object_id] = obj
+          resolved[obj] = obj
           should_resolve.concat obj
         end
       end
@@ -78,14 +78,14 @@ module CombinePDF
       page_list.concat(with_pages) unless with_pages.empty?
 
       # duplicate any non-unique pages - This is a special case to resolve Adobe Acrobat Reader issues (see issues #19 and #81)
-      uniqueness = {}.dup
-      page_list.each { |page| page = page[:referenced_object] || page; page = page.dup if uniqueness[page.object_id]; uniqueness[page.object_id] = page }
+      uniqueness = {}.compare_by_identity
+      page_list.each { |page| page = page[:referenced_object] || page; page = page.dup if uniqueness[page]; uniqueness[page] = page }
       page_list.clear
       page_list = uniqueness.values
       uniqueness.clear
 
       # build new Pages object
-      page_object_kids = [].dup
+      page_object_kids = []
       pages_object = { Type: :Pages, Count: page_list.length, Kids: page_object_kids }
       pages_object_reference = { referenced_object: pages_object, is_reference_only: true }
       page_list.each { |pg| pg[:Parent] = pages_object_reference; page_object_kids << ({ referenced_object: pg, is_reference_only: true }) }
@@ -192,11 +192,11 @@ module CombinePDF
         dic = []
         # map a names tree and return a valid name tree. Do not recourse.
         should_resolve = [name_tree[:Kids], name_tree[:Names]]
-        resolved = [].to_set
+        resolved = Set.new.compare_by_identity
         while should_resolve.any?
           pos = should_resolve.pop
           if pos.is_a? Array
-            next if resolved.include?(pos.object_id)
+            next if resolved.include?(pos)
             if pos[0].is_a? String
               (pos.length / 2).times do |i|
                 dic << (pos[i * 2].clear << base.next!)
@@ -209,16 +209,16 @@ module CombinePDF
             end
           elsif pos.is_a? Hash
             pos = pos[:referenced_object] || pos
-            next if resolved.include?(pos.object_id)
+            next if resolved.include?(pos)
             should_resolve << pos[:Kids] if pos[:Kids]
             should_resolve << pos[:Names] if pos[:Names]
           end
-          resolved << pos.object_id
+          resolved << pos
         end
         return { referenced_object: { Names: dic }, is_reference_only: true }
       end
       @names ||= @names[:referenced_object]
-      new_names = { Type: :Names }.dup
+      new_names = { Type: :Names }
       POSSIBLE_NAME_TREES.each do |ntree|
         if @names[ntree]
           new_names[ntree] = rebuild_names(@names[ntree], base)
@@ -373,7 +373,7 @@ module CombinePDF
     private
 
     def equal_layers obj1, obj2, layer = CombinePDF.eq_depth_limit
-      return true if obj1.object_id == obj2.object_id
+      return true if obj1.equal?(obj2)
       if obj1.is_a? Hash
         return false unless obj2.is_a? Hash
         return false unless obj1.length == obj2.length
