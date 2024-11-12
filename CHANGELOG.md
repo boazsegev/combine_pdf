@@ -1,5 +1,9 @@
 # Change Log
 
+#### Change log v.1.0.28 (2024-11-12)
+
+**Fix**: use `require` to load code (instead of `load`). Credit to @casperisfine (Jean byroot Boussier) for PR #216.
+
 #### Change log v.1.0.27 (2024-11-10)
 
 **Performance**: fix performance issues with `object_id` usage in Ruby 3+. Credit to @amomchilov (Alexander Momchilov) for PR #241.
