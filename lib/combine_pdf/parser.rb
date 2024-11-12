@@ -34,6 +34,7 @@ module CombinePDF
     attr_reader :info_object, :root_object, :names_object, :forms_object, :outlines_object, :metadata
 
     attr_reader :allow_optional_content, :raise_on_encrypted
+    attr_reader :check_stream_length
     # when creating a parser, it is important to set the data (String) we wish to parse.
     #
     # <b>the data is required and it is not possible to set the data at a later stage</b>
@@ -59,6 +60,7 @@ module CombinePDF
       @scanner = nil
       @allow_optional_content = options[:allow_optional_content]
       @raise_on_encrypted = options[:raise_on_encrypted]
+      @check_stream_length = options[:check_stream_length]
     end
 
     # parse the data in the new parser (the data already set through the initialize / new method)
@@ -363,7 +365,11 @@ module CombinePDF
           # advance by the publshed stream length (if any)
           old_pos = @scanner.pos
           if(out.last.is_a?(Hash) && out.last[:Length].is_a?(Integer) && out.last[:Length] > 2)
-            @scanner.pos += out.last[:Length] - 2
+            if @check_stream_length
+              advance_pos_with_length_check(@scanner, out.last[:Length], out.last)
+            else
+              @scanner.pos += out.last[:Length] - 2
+            end
           end
 
           # the following was dicarded because some PDF files didn't have an EOL marker as required
@@ -506,6 +512,29 @@ module CombinePDF
     end
 
     protected
+
+    def advance_pos_with_length_check(scanner, length, obj)
+      endstream = 'endstream'
+      orig_pos = scanner.pos
+      if scanner.rest_size > length
+        scanner.pos += length
+        if scanner.check(endstream)
+          scanner.pos -= 2
+          return
+        end
+        warn "Invalid length no #{endstream} found - object: #{obj}!"
+      else
+        warn "Invalid length in stream points out of the file - object: #{obj}!"
+      end
+      scanner.pos = orig_pos
+      skipped = scanner.skip_until(/endstream/)
+      if skipped
+        correct_len = skipped - endstream.length
+        scanner.pos -= endstream.length + 2
+      else
+        raise ParsingError, "Parsing Error: PDF file error - a stream object with invalid length of #{length} for object #{out} and no #{endstream} found after, to work around it"
+      end
+    end
 
     # resets cataloging and pages
     def catalog_pages(catalogs = nil, inheritance_hash = {})
