@@ -159,6 +159,14 @@ module CombinePDF
       @forms_data.nil? || @forms_data.clear
     end
 
+    def form?
+      !@forms_data.nil?
+    end
+
+    def xfa_form?
+      form? && !@forms_data.dig(:referenced_object, :XFA).nil?
+    end
+
     # Save the PDF to file.
     #
     # file_name:: is a string or path object for the output.
