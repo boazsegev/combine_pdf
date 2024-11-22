@@ -410,5 +410,136 @@ module CombinePDF
       when Hash
       end
     end
+
+    # @private
+    # This method runs the process to add a new outline entry to the current
+    # (referenced) outline grouper (the grouper is the parent in the tree
+    # hierarchy). This method take 2 parameters:
+    #
+    # page:: the page object to which the outline will point.
+    # title:: the title for the outline.
+    def add_outline_node(page, title)
+      new_outline = new_outline_node(page, title)
+      insert_outline_node(new_outline)
+      update_children_count(actual_object(new_outline)[:Parent])
+      new_outline
+    end
+
+    # @private
+    # This method generates and returns a new outline object. This method takes
+    # 2 parameters:
+    #
+    # page:: the page to which the outline will point.
+    # title:: the title for the outline.
+    def new_outline_node(page, title)
+      {
+        is_reference_only: true,
+        referenced_object: {
+          Count: 0,
+          Title: title,
+          Dest: [
+            { is_reference_only: true, referenced_object: page },
+            :XYZ, nil, nil, nil
+          ],
+          Parent: {
+            is_reference_only: true,
+            referenced_object: @current_outline_grouper
+          }
+        }
+      }
+    end
+
+    # @private
+    # This method inserts a new outline node to the current (referenced)
+    # outline grouper (the grouper is the parent in the tree hierarchy). This
+    # method takes 1 parameter:
+    #
+    # outline_node:: the outline node to be inserted in the current outline grouper
+    def insert_outline_node(outline_node)
+      if outline_grouper_without_children?
+        insert_first_outline_child(outline_node)
+      elsif outline_grouper_with_only_one_child?
+        insert_second_outline_child(outline_node)
+      else
+        insert_last_outline_child(outline_node)
+      end
+    end
+
+    # @private
+    # This method inserts the first outline node in the current (referenced)
+    # outline grouper (the grouper is the parent in the tree hierarchy). This
+    # method takes 1 parameter:
+    #
+    # outline_node:: the outline node to be inserted in the current outline grouper
+    def insert_first_outline_child(outline_node)
+      @current_outline_grouper[:First] = outline_node
+      @current_outline_grouper[:Last] = outline_node
+    end
+
+    # @private
+    # This method inserts the second outline node in the current (referenced)
+    # outline grouper (the grouper is the parent in the tree hierarchy). This
+    # method takes 1 parameter:
+    #
+    # outline_node:: the outline node to be inserted in the current outline grouper
+    def insert_second_outline_child(outline_node)
+      actual_object(@current_outline_grouper[:First])[:Next] = outline_node
+      actual_object(outline_node)[:Prev] = @current_outline_grouper[:First]
+      @current_outline_grouper[:Last] = outline_node
+    end
+
+    # @private
+    # This method inserts one more outline node in the current (referenced)
+    # outline grouper (the grouper is the parent in the tree hierarchy), this
+    # means that the current grouper has more than 1 outline-child node. This
+    # method takes 1 parameter:
+    #
+    # outline_node:: the outline node to be inserted in the current outline grouper
+    def insert_last_outline_child(outline_node)
+      actual_object(@current_outline_grouper[:Last])[:Next] = outline_node
+      actual_object(outline_node)[:Prev] = @current_outline_grouper[:Last]
+      @current_outline_grouper[:Last] = outline_node
+    end
+
+    # @private
+    # This method is executed recursively to update the children count for the
+    # ascendant parents in the tree hierarchy of the outlines. This method takes
+    # 1 parameter:
+    #
+    # outline_grouper:: the outlien grouper to be updated in its children count.
+    def update_children_count(outline_grouper)
+      if actual_object(outline_grouper)[:Count].nil?
+        actual_object(outline_grouper)[:Count] = 0
+      end
+      actual_object(outline_grouper)[:Count] += 1
+      return if outline_root?(outline_grouper)
+
+      update_children_count(actual_object(outline_grouper)[:Parent])
+    end
+
+    # @private
+    # This method checks if the received outline node is the outline root of
+    # PDF document. This method takes 1 parameter:
+    #
+    # outline_node:: the outline object to be evaluated.
+    def outline_root?(outline_node)
+      actual_object(outline_node)[:Parent].nil?
+    end
+
+    # @private
+    # This method returns true if the current (referenced) outline grouper (the
+    # grouper is the parent in the tree hierarchy) has no outline-children
+    # nodes.
+    def outline_grouper_without_children?
+      @current_outline_grouper.exclude?(:First)
+    end
+
+    # @private
+    # This method returns true if the current (referenced) outline grouper (the
+    # grouper is the parent in the tree hierarchy) has only one outline-child
+    # node.
+    def outline_grouper_with_only_one_child?
+      @current_outline_grouper[:First].eql?(@current_outline_grouper[:Last])
+    end
   end
 end

@@ -106,6 +106,7 @@ module CombinePDF
       @names = parser.names_object || {}
       @forms_data = parser.forms_object || {}
       @outlines = parser.outlines_object || {}
+      @current_outline_grouper = @outlines
       # rebuild the catalog, to fix wkhtmltopdf's use of static page numbers
       rebuild_catalog
 
@@ -515,5 +516,68 @@ module CombinePDF
     # 	end
     # 	nil
     # end
+
+    # This method adds a new node to the Outlines dictionary and references it
+    # as the current outline grouper, this means that new feature outline nodes
+    # are going to be added as children of this one. This method takes
+    # 2 parameters:
+    #
+    # page:: the page to which the outline will point.
+    # title:: the title for the outline.
+    def add_outline_grouper(page, title)
+      # The page param must be a Hash "Page" object
+      unless page.is_a?(Hash) && actual_object(page)[:Type] == :Page
+        warn "Shouldn't point object from outline unless it is a PDF page."
+        return false
+      end
+
+      # The title param must be a string object
+      unless title.is_a?(String)
+        warn 'Title for outline should be a String object'
+        return false
+      end
+
+      # Reference the new outline node as the current outline grouper in
+      # the tree hierarchy
+      @current_outline_grouper = actual_object(add_outline_node(page, title))
+    end
+
+    # This method adds a new node to the Outlines dictionary in the current
+    # outline grouper. This method takes 2 parameters:
+    #
+    # page:: the page to which the outline will point.
+    # title:: the title for the outline.
+    def add_outline_item(page, title)
+      # The page param must be a Hash "Page" object
+      unless page.is_a?(Hash) && actual_object(page)[:Type] == :Page
+        warn "Shouldn't point object from outline unless it is a PDF page."
+        return false
+      end
+
+      # The title param must be a string object
+      unless title.is_a?(String)
+        warn 'Title for outline should be a String object'
+        return false
+      end
+
+      add_outline_node(page, title)
+    end
+
+    # This method takes the current outline grouper out one level in the tree
+    # hierarchy of the Outlines.
+    def go_out_outline_grouping_level
+      return if @current_outline_grouper.nil? || outline_root?(@current_outline_grouper)
+
+      @current_outline_grouper = actual_object(@current_outline_grouper[:Parent])
+    end
+
+    # This method takes the current outline grouper to the root level in the
+    # tree hierarchy of the Outlines.
+    def go_outline_root
+      return if @current_outline_grouper.nil? || outline_root?(@current_outline_grouper)
+
+      go_out_outline_grouping_level
+      go_outline_root
+    end
   end
 end
