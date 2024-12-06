@@ -1,5 +1,9 @@
 # Change Log
 
+#### Change log v.1.0.29 (2024-12-07)
+
+**Fix**: frozen string literal support fix. Credit to @francescob (Francesco) for PR #245.
+
 #### Change log v.1.0.28 (2024-11-12)
 
 **Fix**: use `require` to load code (instead of `load`). Credit to @casperisfine (Jean byroot Boussier) for PR #216.
