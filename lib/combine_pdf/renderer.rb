@@ -101,7 +101,7 @@ module CombinePDF
         end
         object[:indirect_reference_id] ||= 0
         object[:indirect_generation_number] ||= 0
-        return "#{object[:indirect_reference_id]} #{object[:indirect_generation_number]} R".force_encoding(Encoding::ASCII_8BIT)
+        return "#{object[:indirect_reference_id]} #{object[:indirect_generation_number]} R".b.force_encoding(Encoding::ASCII_8BIT)
       end
 
       # if the object is indirect...
@@ -109,7 +109,7 @@ module CombinePDF
       if object[:indirect_reference_id]
         object[:indirect_reference_id] ||= 0
         object[:indirect_generation_number] ||= 0
-        out << "#{object[:indirect_reference_id]} #{object[:indirect_generation_number]} obj\n".force_encoding(Encoding::ASCII_8BIT)
+        out << "#{object[:indirect_reference_id]} #{object[:indirect_generation_number]} obj\n".b.force_encoding(Encoding::ASCII_8BIT)
         if object[:indirect_without_dictionary]
           out << object_to_pdf(object[:indirect_without_dictionary])
           out << "\nendobj\n"
@@ -126,11 +126,11 @@ module CombinePDF
       # (using LESS-THAN SIGNs (3Ch) and GREATER-THAN SIGNs (3Eh)).
       out << "<<\n".b
       object.each do |key, value|
-        out << "#{object_to_pdf key} #{object_to_pdf value}\n".force_encoding(Encoding::ASCII_8BIT) unless PDF::PRIVATE_HASH_KEYS.include? key
+        out << "#{object_to_pdf key} #{object_to_pdf value}\n".b.force_encoding(Encoding::ASCII_8BIT) unless PDF::PRIVATE_HASH_KEYS.include? key
       end
       object.delete :Length
       out << '>>'.b
-      out << "\nstream\n#{object[:raw_stream_content]}\nendstream".force_encoding(Encoding::ASCII_8BIT) if object[:raw_stream_content]
+      out << "\nstream\n#{object[:raw_stream_content]}\nendstream".b.force_encoding(Encoding::ASCII_8BIT) if object[:raw_stream_content]
       out << "\nendobj\n" if object[:indirect_reference_id]
       out.join.force_encoding(Encoding::ASCII_8BIT)
     end
