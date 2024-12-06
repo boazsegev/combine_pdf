@@ -36,7 +36,7 @@ module CombinePDF
     # mediabox:: the PDF page size in PDF points. defaults to [0, 0, 612.0, 792.0] (US Letter)
     def initialize(mediabox = [0, 0, 612.0, 792.0])
       # indirect_reference_id, :indirect_generation_number
-      @contents = ''
+      @contents = String.new
       @base_font_name = 'Writer' + SecureRandom.hex(7) + 'PDF'
       self[:Type] = :Page
       self[:indirect_reference_id] = 0
