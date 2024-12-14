@@ -87,8 +87,10 @@ module CombinePDF
     attr_reader :outlines
     # Access the Names PDF object Hash (or reference). Use with care.
     attr_reader :names
+    # For preserve original names
+    attr_reader :preserve_names
 
-    def initialize(parser = nil)
+    def initialize(parser = nil, options = {})
       # default before setting
       @objects = []
       @version = 0
@@ -106,6 +108,10 @@ module CombinePDF
       @names = parser.names_object || {}
       @forms_data = parser.forms_object || {}
       @outlines = parser.outlines_object || {}
+
+      # Default is to change all names
+      @preserve_names = options[:preserve_names] || false
+
       # rebuild the catalog, to fix wkhtmltopdf's use of static page numbers
       rebuild_catalog
 
@@ -316,6 +322,7 @@ module CombinePDF
     def insert(location, data)
       pages_to_add = nil
       if data.is_a? PDF
+        @preserve_names = data.preserve_names
         @version = [@version, data.version].max
         pages_to_add = data.pages
         actual_value(@names ||= {}.dup).update data.names, &HASH_MERGE_NEW_NO_PAGE
