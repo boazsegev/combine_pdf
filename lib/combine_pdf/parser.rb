@@ -724,7 +724,7 @@ module CombinePDF
 
     # All Strings are one String
     def unify_string(str)
-      str.force_encoding(Encoding::ASCII_8BIT)
+      str = str.b
       @strings_dictionary[str] ||= str
     end
 
