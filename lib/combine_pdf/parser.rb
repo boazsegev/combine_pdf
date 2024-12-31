@@ -402,7 +402,7 @@ module CombinePDF
           end
           fresh = true
           # fix wkhtmltopdf use of PDF 1.1 Dest using symbols instead of strings
-          out.last[:Dest] = unify_string(+out.last[:Dest].to_s) if out.last[:Dest] && out.last[:Dest].is_a?(Symbol)
+          out.last[:Dest] = unify_string(+(out.last[:Dest].to_s)) if out.last[:Dest] && out.last[:Dest].is_a?(Symbol)
         # puts "!!!!!!!!! Error with :indirect_reference_id\n\nObject #{out.last}  :indirect_reference_id = #{out.last[:indirect_reference_id]}" unless out.last[:indirect_reference_id].is_a?(Numeric)
         ##########################################
         ## Parse an Object Reference
@@ -485,7 +485,7 @@ module CombinePDF
               out << { indirect_without_dictionary: out.pop, indirect_generation_number: out.pop, indirect_reference_id: out.pop }
             end
             # fix wkhtmltopdf use of PDF 1.1 Dest using symbols instead of strings
-            out.last[:Dest] = unify_string(+out.last[:Dest].to_s) if out.last[:Dest] && out.last[:Dest].is_a?(Symbol)
+            out.last[:Dest] = unify_string(+(out.last[:Dest].to_s)) if out.last[:Dest] && out.last[:Dest].is_a?(Symbol)
             warn "'endobj' keyword was missing for Object ID: #{out.last[:indirect_reference_id]}, trying to auto-fix issue, but might fail."
 
             out << keep.pop
@@ -614,7 +614,7 @@ module CombinePDF
             if catalogs[:Dests] # convert PDF 1.1 Dests to PDF 1.2+ Dests
               dests_arry = (@names_object[:Dests] ||= {})
               dests_arry = ((dests_arry[:referenced_object] || dests_arry)[:Names] ||= [])
-              ((catalogs[:Dests][:referenced_object] || catalogs[:Dests])[:referenced_object] || (catalogs[:Dests][:referenced_object] || catalogs[:Dests])).each {|k,v| next if CombinePDF::PDF::PRIVATE_HASH_KEYS.include?(k); dests_arry << unify_string(+k.to_s); dests_arry << v; }
+              ((catalogs[:Dests][:referenced_object] || catalogs[:Dests])[:referenced_object] || (catalogs[:Dests][:referenced_object] || catalogs[:Dests])).each {|k,v| next if CombinePDF::PDF::PRIVATE_HASH_KEYS.include?(k); dests_arry << unify_string(+(k.to_s)); dests_arry << v; }
             end
             catalog_pages(catalogs[:Pages], inheritance_hash.dup) unless catalogs[:Pages].nil?
           end
