@@ -52,7 +52,7 @@ module CombinePDF
       if object.length == 0 || obj_bytes.min <= 31 || obj_bytes.max >= 127 # || (obj_bytes[0] != 68  object.match(/[^D\:\d\+\-Z\']/))
         # A hexadecimal string shall be written as a sequence of hexadecimal digits (0-9 and either A-F or a-f)
         # encoded as ASCII characters and enclosed within angle brackets (using LESS-THAN SIGN (3Ch) and GREATER- THAN SIGN (3Eh)).
-        "<#{object.unpack('H*')[0]}>".force_encoding(Encoding::ASCII_8BIT)
+        "<#{object.unpack('H*')[0]}>"
       else
         # a good fit for a Literal String or the string is a date (MUST be literal)
         ('(' + ([].tap { |out| obj_bytes.each { |byte| out.concat(STRING_REPLACEMENT_ARRAY[byte]) } } ).pack('C*') + ')').force_encoding(Encoding::ASCII_8BIT)
@@ -101,7 +101,7 @@ module CombinePDF
         end
         object[:indirect_reference_id] ||= 0
         object[:indirect_generation_number] ||= 0
-        return "#{object[:indirect_reference_id]} #{object[:indirect_generation_number]} R".force_encoding(Encoding::ASCII_8BIT)
+        return "#{object[:indirect_reference_id]} #{object[:indirect_generation_number]} R"
       end
 
       # if the object is indirect...
@@ -109,7 +109,7 @@ module CombinePDF
       if object[:indirect_reference_id]
         object[:indirect_reference_id] ||= 0
         object[:indirect_generation_number] ||= 0
-        out << "#{object[:indirect_reference_id]} #{object[:indirect_generation_number]} obj\n".force_encoding(Encoding::ASCII_8BIT)
+        out << "#{object[:indirect_reference_id]} #{object[:indirect_generation_number]} obj\n"
         if object[:indirect_without_dictionary]
           out << object_to_pdf(object[:indirect_without_dictionary])
           out << "\nendobj\n"
@@ -126,11 +126,11 @@ module CombinePDF
       # (using LESS-THAN SIGNs (3Ch) and GREATER-THAN SIGNs (3Eh)).
       out << "<<\n".b
       object.each do |key, value|
-        out << "#{object_to_pdf key} #{object_to_pdf value}\n".force_encoding(Encoding::ASCII_8BIT) unless PDF::PRIVATE_HASH_KEYS.include? key
+        out << "#{object_to_pdf key} #{object_to_pdf value}\n" unless PDF::PRIVATE_HASH_KEYS.include? key
       end
       object.delete :Length
       out << '>>'.b
-      out << "\nstream\n#{object[:raw_stream_content]}\nendstream".force_encoding(Encoding::ASCII_8BIT) if object[:raw_stream_content]
+      out << "\nstream\n#{object[:raw_stream_content]}\nendstream" if object[:raw_stream_content]
       out << "\nendobj\n" if object[:indirect_reference_id]
       out.join.force_encoding(Encoding::ASCII_8BIT)
     end
