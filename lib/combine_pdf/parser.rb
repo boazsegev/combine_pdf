@@ -358,23 +358,25 @@ module CombinePDF
         ##########################################
         ## parse a Stream
         ##########################################
-        elsif @scanner.scan(/stream[ \t]*[\r\n]/)
-          @scanner.pos += 1 if @scanner.peek(1) == "\n".freeze && @scanner.matched[-1] != "\n".freeze
+        elsif @scanner.scan(/stream[ \t]*\r?\n?/)
           # advance by the publshed stream length (if any)
           old_pos = @scanner.pos
-          if(out.last.is_a?(Hash) && out.last[:Length].is_a?(Integer) && out.last[:Length] > 2)
-            @scanner.pos += out.last[:Length] - 2
+          if(out.last.is_a?(Hash) && out.last[:Length].is_a?(Integer) && out.last[:Length])
+            @scanner.pos += out.last[:Length]
+            unless(@scanner.skip(/\r?\n?endstream/))
+              @scanner.pos = old_pos 
+              # raise error if the stream doesn't end.
+              unless @scanner.skip_until(/endstream/)
+                raise ParsingError, "Parsing Error: PDF file error - a stream object wasn't properly closed using 'endstream'!"
+              end
+            end
+          else
+            # raise error if the stream doesn't end.
+            unless @scanner.skip_until(/endstream/)
+              raise ParsingError, "Parsing Error: PDF file error - a stream object wasn't properly closed using 'endstream'!"
+            end
           end
 
-          # the following was dicarded because some PDF files didn't have an EOL marker as required
-          # str = @scanner.scan_until(/(\r\n|\r|\n)endstream/)
-          # instead, a non-strict RegExp is used:
-
-
-          # raise error if the stream doesn't end.
-          unless @scanner.skip_until(/endstream/)
-            raise ParsingError, "Parsing Error: PDF file error - a stream object wasn't properly closed using 'endstream'!"
-          end
           length = @scanner.pos - (old_pos + 9)
           length = 0 if(length < 0)
           length -= 1 if(@scanner.string[old_pos + length - 1] == "\n") 
