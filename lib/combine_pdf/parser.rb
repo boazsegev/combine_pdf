@@ -41,7 +41,7 @@ module CombinePDF
     # string:: the data to be parsed, as a String object.
     def initialize(string, options = {})
       raise TypeError, "couldn't parse data, expecting type String" unless string.is_a? String
-      @string_to_parse = string.force_encoding(Encoding::ASCII_8BIT)
+      @string_to_parse = (string.frozen? ? string.dup : string).force_encoding(Encoding::ASCII_8BIT)
       @literal_strings = [].dup
       @hex_strings = [].dup
       @streams = [].dup
