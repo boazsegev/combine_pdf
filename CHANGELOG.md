@@ -1,5 +1,15 @@
 # Change Log
 
+#### Change log v.1.0.31 (2025-04-03)
+
+**Fix**: frozen string literal lingering issues. Credit to @pauline-koch, @qdegraeve, @isaporto, @ncreuschling, @francescob, @@anthonykaufman and @ma-matsui for their input on this issue. Credit to @anthonykaufman for offering one possible solution and @Markus-Munk-Shipmondo for pushing on this.
+
+**Fix**: possible permission issues. Credit to @davidwessman, @visini, @sander-deryckere, and @LindseySaari for exploring this.
+
+**Fix**: calling CombinePDF.parse with a frozen string literal. Credit to @lovro-bikic for offering one possible solution.
+
+**Fix**: Ruby 3.4 warning. Credit to @chaadow for offering one possible solution.
+
 #### Change log v.1.0.29 (2024-12-07)
 
 **Fix**: frozen string literal support fix. Credit to @francescob (Francesco) for PR #245.
