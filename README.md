@@ -33,9 +33,9 @@ Quick rundown:
 
 * When combining PDF Forms, form data might be unified. I couldn't fix this because this is how PDF forms work (filling a field fills in the data in any field with the same name), but frankly, I kinda liked the issue... it's almost a feature.
 
-* When unifying the same TOC data more then once, one of the references will be unified with the other (meaning that if the pages look the same, both references will link to the same page instead of linking to two different pages). You can fix this by adding content to the pages before merging the PDF files (i.e. add empty text boxes to all the pages).
+* When unifying the same TOC data more than once, one of the references will be unified with the other (meaning that if the pages look the same, both references will link to the same page instead of linking to two different pages). You can fix this by adding content to the pages before merging the PDF files (i.e. add empty text boxes to all the pages).
 
-* Some links and data (URL links and PDF "Named Destinations") are stored at the root of a PDF and they aren't linked back to from the page. Keeping this information requires merging the PDF objects rather then their pages.
+* Some links and data (URL links and PDF "Named Destinations") are stored at the root of a PDF and they aren't linked back to the page. Keeping this information requires merging the PDF objects rather than their pages.
 
     Some links will be lost when ripping pages out of PDF files and merging them with another PDF.
 
@@ -47,7 +47,7 @@ Quick rundown:
 
 CombinePDF is written natively in Ruby and should (presumably) work on all Ruby platforms that follow Ruby 2.0 compatibility.
 
-However, PDF files are quite complex creatures and no guaranty is provided.
+However, PDF files are quite complex creatures and no guarantee is provided.
 
 For example, PDF Forms are known to have issues and form data might be lost when attempting to combine PDFs with filled form data (also, forms are global objects, not page specific, so one should combine the whole of the PDF for any data to have any chance of being preserved).
 
@@ -84,7 +84,7 @@ end
 pdf.save "even_pages.pdf"
 ```
 
-notice that adding all the pages one by one is slower then adding the whole file.
+notice that adding all the pages one by one is slower than adding the whole file.
 ## Add content to existing pages (Stamp / Watermark)
 
 To add content to existing PDF pages, first import the new content from an existing PDF file. After that, add the content to each of the pages in your existing PDF.
@@ -100,7 +100,7 @@ pdf.save "content_with_logo.pdf"
 
 Notice the << operator is on a page and not a PDF object. The << operator acts differently on PDF objects and on Pages.
 
-The << operator defaults to secure injection by renaming references to avoid conflics. For overlaying pages using compressed data that might not be editable (due to limited filter support), you can use:
+The << operator defaults to secure injection by renaming references to avoid conflicts. For overlaying pages using compressed data that might not be editable (due to limited filter support), you can use:
 
 ```ruby
 pdf.pages(nil, false).each {|page| page << stamp_page}
@@ -116,7 +116,7 @@ pdf.number_pages
 pdf.save "file_with_numbering.pdf"
 ```
 
-Numbering can be done with many different options, with different formating, with or without a box object, and even with opacity values - [see documentation](https://www.rubydoc.info/github/boazsegev/combine_pdf/CombinePDF/PDF#number_pages-instance_method).
+Numbering can be done with many different options, with different formatting, with or without a box object, and even with opacity values - [see documentation](https://www.rubydoc.info/github/boazsegev/combine_pdf/CombinePDF/PDF#number_pages-instance_method).
 
 For example, should you prefer to place the page number on the bottom right side of all PDF pages, do:
 
@@ -163,7 +163,7 @@ Loading data from a file is easy:
 pdf = CombinePDF.load("file.pdf")
 ```
 
-You can also parse PDF files from memory. Loading from the memory is especially effective for importing PDF data recieved through the internet or from a different authoring library such as Prawn:
+You can also parse PDF files from memory. Loading from the memory is especially effective for importing PDF data received through the internet or from a different authoring library such as Prawn:
 
 ```ruby
 pdf_data = prawn_pdf_document.render # Import PDF data from Prawn
@@ -232,9 +232,9 @@ Comments and file structure
 
 If you want to help with the code, please be aware:
 
-I'm a self learned hobbiest at heart. The documentation is lacking and the comments in the code are poor guidlines.
+I'm a self learned hobbyist at heart. The documentation is lacking and the comments in the code are poor guidelines.
 
-The code itself should be very straight forward, but feel free to ask whatever you want.
+The code itself should be very straightforward, but feel free to ask whatever you want.
 
 Credit
 ======
@@ -245,7 +245,7 @@ Caige Nichols wrote an amazing RC4 gem which I used in my code.
 
 I wanted to install the gem, but I had issues with the internet and ended up copying the code itself into the combine_pdf_decrypt class file.
 
-Credit to his wonderful is given here. Please respect his license and copyright... and mine.
+Credit for his wonderful work is given here. Please respect his license and copyright... and mine.
 
 License
 =======
