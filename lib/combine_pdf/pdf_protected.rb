@@ -200,8 +200,16 @@ module CombinePDF
           if pos.is_a? Array
             next if resolved.include?(pos)
             if pos[0].is_a? String
+
+              # Names should sorted in ascending,
+              # so re-sort is needed if preserving names.
+              pos = pos.group_by.with_index{|_, i| i/2 }.values.sort_by(&:first).flatten(1) if @preserve_names
+
               (pos.length / 2).times do |i|
-                dic << (pos[i * 2].clear << base.next!)
+                # According preserve_names value decide changing or not
+                pos[i * 2].clear << base.next! unless @preserve_names
+                dic << pos[i * 2]
+
                 pos[(i * 2) + 1][0] = {is_reference_only: true, referenced_object: pages[pos[(i * 2) + 1][0]]} if(pos[(i * 2) + 1].is_a?(Array) && pos[(i * 2) + 1][0].is_a?(Numeric))
                 dic << (pos[(i * 2) + 1].is_a?(Array) ? { is_reference_only: true, referenced_object: { indirect_without_dictionary: pos[(i * 2) + 1] } } : pos[(i * 2) + 1])
                 # dic << pos[(i * 2) + 1]
