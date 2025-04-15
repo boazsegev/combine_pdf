@@ -106,6 +106,70 @@ The << operator defaults to secure injection by renaming references to avoid con
 pdf.pages(nil, false).each {|page| page << stamp_page}
 ```
 
+## Add outline entries pointing to existing pages
+
+You can add outline entries pointing to pages loaded or parsed from existing PDF files. The outlines dictionary allows you to create tree hierarchy.
+
+To create outline entries for PDF files:
+
+```ruby
+pdf = CombinePDF.new
+i = 1
+CombinePDF.load("file.pdf").pages.each do |page|
+  pdf.add_outline_item(page, "Page #{i}")
+  pdf << page
+  i += 1
+end
+pdf.save "outlines.pdf"
+```
+
+You also can create a tree hierarchy:
+
+```ruby
+pdf = CombinePDF.new
+i = 1
+CombinePDF.load("file.pdf").pages.each do |page|
+  if i.eql? 1
+    pdf.add_outline_grouper(page, 'Section 1')
+    pdf.add_outline_grouper(page, 'Subsection 1.1')
+  elsif i.eql? 3
+    pdf.go_out_outline_grouping_level
+    pdf.add_outline_grouper(page, 'Subsection 1.2')
+  elsif i.eql? 4
+    pdf.go_outline_root
+    pdf.add_outline_grouper(page, 'Section 2')
+  elsif i.eql? 5
+    pdf.go_out_outline_grouping_level
+  end
+
+  pdf.add_outline_item(page, "Page #{i}")
+
+  pdf << page
+  i += 1
+end
+pdf.save "outlines.pdf"
+```
+
+This will generate something like:
+
+```
+Section 1
+  Subsection 1.1
+    Page 1
+    Page 2
+  Subsection 1.2
+    Page 3
+Section 2
+  Page 4
+Page 5
+Page 6
+```
+
+Notice that if you add an outline_grouper (`add_outline_grouper`) all the future outline entries (`add_outline_item`) will be added under the last outline_grouper until you manually exit the grouping level (`go_out_grouping_level` and `go_outline_root`).
+
+`go_out_grouping_level`: exit one level in the tree hierarchy.
+`go_outline_root`: exit to the root in the tree hierarchy.
+
 ## Page Numbering
 
 adding page numbers to a PDF object or file is as simple as can be:
