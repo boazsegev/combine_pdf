@@ -362,7 +362,19 @@ module CombinePDF
           # advance by the publshed stream length (if any)
           old_pos = @scanner.pos
           if(out.last.is_a?(Hash) && out.last[:Length].is_a?(Integer) && out.last[:Length])
-            @scanner.pos += out.last[:Length]
+            begin
+              # Check if the position would be valid before setting it
+              new_pos = @scanner.pos + out.last[:Length]
+              if new_pos <= @scanner.string.length
+                @scanner.pos = new_pos
+              else
+                warn "CombinePDF: Stream length #{out.last[:Length]} would exceed string bounds, using endstream search instead"
+                @scanner.pos = old_pos
+              end
+            rescue RangeError => e
+              warn "CombinePDF: RangeError when setting scanner position (#{e.message}), using endstream search instead"
+              @scanner.pos = old_pos
+            end
             unless(@scanner.skip(/\r?\n?endstream/))
               @scanner.pos = old_pos 
               # raise error if the stream doesn't end.
