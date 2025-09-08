@@ -364,7 +364,7 @@ module CombinePDF
           if(out.last.is_a?(Hash) && out.last[:Length].is_a?(Integer) && out.last[:Length])
             @scanner.pos += out.last[:Length]
             unless(@scanner.skip(/\r?\n?endstream/))
-              @scanner.pos = old_pos 
+              @scanner.pos = old_pos
               # raise error if the stream doesn't end.
               unless @scanner.skip_until(/endstream/)
                 raise ParsingError, "Parsing Error: PDF file error - a stream object wasn't properly closed using 'endstream'!"
@@ -379,8 +379,8 @@ module CombinePDF
 
           length = @scanner.pos - (old_pos + 9)
           length = 0 if(length < 0)
-          length -= 1 if(@scanner.string[old_pos + length - 1] == "\n") 
-          length -= 1 if(@scanner.string[old_pos + length - 1] == "\r") 
+          length -= 1 if(@scanner.string[old_pos + length - 1] == "\n")
+          length -= 1 if(@scanner.string[old_pos + length - 1] == "\r")
           str = (length > 0) ? @scanner.string.slice(old_pos, length) : +''
 
           # warn "CombinePDF parser: detected Stream #{str.length} bytes long #{str[0..3]}...#{str[-4..-1]}"
@@ -546,7 +546,12 @@ module CombinePDF
             inheritance_hash[:Rotate] = catalogs[:Rotate] if catalogs[:Rotate]
             if catalogs[:Resources]
               inheritance_hash[:Resources] ||= { referenced_object: {}, is_reference_only: true }.dup
-              (inheritance_hash[:Resources][:referenced_object] || inheritance_hash[:Resources]).update((catalogs[:Resources][:referenced_object] || catalogs[:Resources]), &HASH_UPDATE_PROC_FOR_OLD)
+              # compute effective page resources: start from page, fill only missing keys from parent
+              page_res = (catalogs[:Resources][:referenced_object] || catalogs[:Resources] || {}).dup
+              parent_res = (inheritance_hash[:Resources][:referenced_object] || inheritance_hash[:Resources] || {})
+
+              page_res.update(parent_res, &HASH_UPDATE_PROC_FOR_OLD)  # child/page keeps its values
+              catalogs[:Resources] = page_res
             end
             if catalogs[:ProcSet].is_a?(Array)
               if(inheritance_hash[:ProcSet])
@@ -734,8 +739,29 @@ module CombinePDF
     # @private
     # this method reviews a Hash and updates it by merging Hash data,
     # preffering the old over the new.
-    HASH_UPDATE_PROC_FOR_OLD = Proc.new do |_key, old_data, new_data|
-      if old_data.is_a? Hash
+    HASH_UPDATE_PROC_FOR_OLD = proc do |key, old_data, new_data|
+      # 1) If both sides are the same object, stop.
+      return old_data if old_data.equal?(new_data)
+
+      # 2) If both are CombinePDF indirects pointing to the same object, stop.
+      if old_data.is_a?(Hash) && new_data.is_a?(Hash)
+        a = old_data[:referenced_object] || old_data
+        b = new_data[:referenced_object] || new_data
+        if a.is_a?(Hash) && b.is_a?(Hash) &&
+           a[:indirect_reference_id] && a[:indirect_generation_number] &&
+           a[:indirect_reference_id] == b[:indirect_reference_id] &&
+           a[:indirect_generation_number] == b[:indirect_generation_number]
+          return old_data
+        end
+      end
+
+      # 3) Treat reference-only wrappers as leaves to avoid digging into XObject/Form cycles
+      if old_data.is_a?(Hash) && (old_data[:is_reference_only] || old_data[:referenced_object])
+        return old_data
+      end
+
+      # 4) Normal deep merge
+      if old_data.is_a?(Hash) && new_data.is_a?(Hash)
         old_data.merge(new_data, &HASH_UPDATE_PROC_FOR_OLD)
       else
         old_data
