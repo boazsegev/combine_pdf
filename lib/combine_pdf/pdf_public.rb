@@ -397,22 +397,32 @@ module CombinePDF
       # some common computations can be done only once.
       from_height = opt[:margin_from_height]
       from_side = opt[:margin_from_side]
-      left_position = from_side
 
       (opt[:page_range] ? pages[opt[:page_range]] : pages).each do |page|
-        # Get page dimensions
-        mediabox = page[:CropBox] || page[:MediaBox] || [0, 0, 595.3, 841.9]
+        # Get page dimensions, resolving indirect references and falling back to A4.
+        # `cropbox`/`mediabox` already follow `:referenced_object`; the extra
+        # `:indirect_without_dictionary` step covers boxes that come straight
+        # from the parser without being inlined.
+        mediabox = page.cropbox || page.mediabox || [0, 0, 595.3, 841.9]
+        mediabox = mediabox[:indirect_without_dictionary] if mediabox.is_a?(Hash) && mediabox[:indirect_without_dictionary]
+        # The MediaBox/CropBox is [x0, y0, x1, y1] and may have a non-zero origin,
+        # so the actual page width/height must subtract the origin and any
+        # absolute position must be offset by it.
+        page_x_offset = mediabox[0]
+        page_y_offset = mediabox[1]
+        page_width = mediabox[2] - page_x_offset
+        page_height = mediabox[3] - page_y_offset
         # set stamp text
         text = opt[:number_format] % (Array.new(format_repeater) { page_number })
         if opt[:location].include? :center
           add_opt = {}
           if opt[:margin_from_height] && !opt[:height] && !opt[:y]
-            add_opt[:height] = mediabox[3] - mediabox[1] - (2 * opt[:margin_from_height].to_f)
-            add_opt[:y] = opt[:margin_from_height]
+            add_opt[:height] = page_height - (2 * opt[:margin_from_height].to_f)
+            add_opt[:y] = page_y_offset + opt[:margin_from_height]
           end
           if opt[:margin_from_side] && !opt[:width] && !opt[:x]
-            add_opt[:width] = mediabox[2] - mediabox[0] - (2 * opt[:margin_from_side].to_f)
-            add_opt[:x] = opt[:margin_from_side]
+            add_opt[:width] = page_width - (2 * opt[:margin_from_side].to_f)
+            add_opt[:x] = page_x_offset + opt[:margin_from_side]
           end
           page.textbox text, opt.merge(add_opt)
         end
@@ -423,16 +433,19 @@ module CombinePDF
           text_dimantions = Fonts.dimensions_of(text, opt[:font], small_font_size)
           box_width = text_dimantions[0] * 1.2
           box_height = text_dimantions[1] * 2
-          page_width = mediabox[2]
-          page_height = mediabox[3]
 
           add_opt[:width] ||= box_width
           add_opt[:height] ||= box_height
 
-          center_position = (page_width - box_width) / 2
-          right_position = page_width - from_side - box_width
-          top_position = page_height - from_height
-          bottom_position = from_height + box_height
+          # All positions below are the y of the BOTTOM of the box (textbox uses :y as
+          # the box bottom). They are computed so that the resulting box has a margin
+          # of `from_side`/`from_height` from the corresponding page edge, regardless
+          # of the page format (A4, Letter, ...) or any non-zero MediaBox origin.
+          left_position = page_x_offset + from_side
+          right_position = page_x_offset + page_width - from_side - box_width
+          center_position = page_x_offset + ((page_width - box_width) / 2)
+          top_position = page_y_offset + page_height - from_height - box_height
+          bottom_position = page_y_offset + from_height
 
           if opt[:location].include? :top
             page.textbox text, { x: center_position, y: top_position }.merge(add_opt)
