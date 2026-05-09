@@ -1,5 +1,9 @@
 # Change Log
 
+#### Change log unreleased
+
+**Fix**: `PDF#number_pages` no longer assumes the page format. The stamp box is now placed at exactly `margin_from_height`/`margin_from_side` from the page edge, regardless of page format (A4, Letter, …) and `MediaBox`/`CropBox` origin offset. The previous behaviour added the box height to the bottom margin (and dropped it from the top margin), so on A4 and similar non-Letter formats the page number visibly drifted away from the page edge. Indirect `MediaBox`/`CropBox` references are now resolved as well.
+
 #### Change log v.1.0.31 (2025-04-08)
 
 **Fix**: RangeError: index out of range errors occurred with some malformed PDFs, when the number of bytes in a PDF `stream` didn't match the number of bytes expected according to the `Length` property. Credit to @Laykou and others for opening multiple issues (i.e., #205), as well as @julitrows, @mtwzim, and @Kaiito630, for pushing on this.
