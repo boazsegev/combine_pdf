@@ -55,7 +55,7 @@ module CombinePDF
 
         cfilter = actual_object(@encryption_dictionary[:CF])[@encryption_dictionary[:StrF]]
         raise_encrypted_error unless cfilter
-        raise_encrypted_error unless (cfilter[:AuthEvent] == :DocOpen)
+        raise_encrypted_error unless (cfilter[:AuthEvent] || :DocOpen) == :DocOpen
         if (cfilter[:CFM] == :V2)
           _perform_decrypt_proc_ @objects, method(:decrypt_RC4)
         elsif (cfilter[:CFM] == :AESV2)
