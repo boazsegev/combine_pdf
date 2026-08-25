@@ -1,5 +1,5 @@
 # -*- encoding : utf-8 -*-
-## frozen_string_literal: true
+# frozen_string_literal: true
 #######################################################
 ## Thoughts from reading the ISO 32000-1:2008
 ## this file is part of the CombinePDF library and the code

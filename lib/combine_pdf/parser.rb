@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+# frozen_string_literal: true
 ########################################################
 ## Thoughts from reading the ISO 32000-1:2008
 ## this file is part of the CombinePDF library and the code
@@ -41,7 +42,7 @@ module CombinePDF
     # string:: the data to be parsed, as a String object.
     def initialize(string, options = {})
       raise TypeError, "couldn't parse data, expecting type String" unless string.is_a? String
-      @string_to_parse = (string.frozen? ? string.dup : string).force_encoding(Encoding::ASCII_8BIT)
+      @string_to_parse = string.dup.force_encoding(Encoding::ASCII_8BIT)
       @literal_strings = [].dup
       @hex_strings = [].dup
       @streams = [].dup
@@ -209,7 +210,6 @@ module CombinePDF
     # this is an internal function, but it was left exposed for posible future features.
     def _parse_
       out = []
-      str = ''
       fresh = true
       while @scanner.rest?
         # last ||= 0
