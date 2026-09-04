@@ -387,7 +387,7 @@ module CombinePDF
       elsif obj1.is_a? Array
         return false unless obj2.is_a? Array
         return false unless obj1.length == obj2.length
-        (obj1-obj2).any? || (obj2-obj1).any?
+        obj1.each_with_index.all? { |item, i| equal_layers(item, obj2[i], layer) }
       else
         obj1 == obj2
       end
