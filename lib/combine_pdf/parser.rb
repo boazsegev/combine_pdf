@@ -734,8 +734,14 @@ module CombinePDF
     # @private
     # this method reviews a Hash and updates it by merging Hash data,
     # preffering the old over the new.
+    #
+    # Merging an object with itself is a no-op and is skipped: PDF resources may
+    # reference themselves (Resources -> XObject -> Resources), which would
+    # otherwise recurse until the stack overflows.
     HASH_UPDATE_PROC_FOR_OLD = Proc.new do |_key, old_data, new_data|
-      if old_data.is_a? Hash
+      if old_data.equal?(new_data)
+        old_data
+      elsif old_data.is_a? Hash
         old_data.merge(new_data, &HASH_UPDATE_PROC_FOR_OLD)
       else
         old_data
@@ -753,7 +759,9 @@ module CombinePDF
     # this method reviews a Hash an updates it by merging Hash data,
     # preffering the new over the old.
     HASH_UPDATE_PROC_FOR_NEW = Proc.new do |_key, old_data, new_data|
-      if old_data.is_a? Hash
+      if old_data.equal?(new_data)
+        new_data
+      elsif old_data.is_a? Hash
         old_data.merge(new_data, &HASH_UPDATE_PROC_FOR_NEW)
       else
         new_data
