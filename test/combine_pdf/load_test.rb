@@ -45,4 +45,22 @@ describe 'CombinePDF.load' do
       end
     end
   end
+
+  describe 'with page resources that reference themselves' do
+    # e.g. LibreOffice transparency groups: Resources -> XObject -> Resources,
+    # shared by the Pages node and the Page (see issue #242)
+    let(:file) { 'self_referencing_resources.pdf' }
+
+    it('parses without a SystemStackError') do
+      assert_instance_of CombinePDF::PDF, subject
+      assert_equal 1, subject.pages.count
+    end
+
+    it('can be merged and rendered') do
+      pdf = CombinePDF.new
+      pdf << subject
+      pdf << CombinePDF.load('test/fixtures/files/sample_pdf.pdf')
+      assert_equal 2, CombinePDF.parse(pdf.to_pdf).pages.count
+    end
+  end
 end
