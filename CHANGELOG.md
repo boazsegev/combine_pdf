@@ -1,5 +1,9 @@
 # Change Log
 
+#### Change log v.1.0.32 (unreleased)
+
+**Fix**: RangeError: index out of range was still raised for a `stream` whose `Length` property points beyond the end of the file (or before its start). The v.1.0.31 fix covered wrong lengths that stay inside the file; these now fall back to searching for `endstream` as well.
+
 #### Change log v.1.0.31 (2025-04-08)
 
 **Fix**: RangeError: index out of range errors occurred with some malformed PDFs, when the number of bytes in a PDF `stream` didn't match the number of bytes expected according to the `Length` property. Credit to @Laykou and others for opening multiple issues (i.e., #205), as well as @julitrows, @mtwzim, and @Kaiito630, for pushing on this.

@@ -362,7 +362,9 @@ module CombinePDF
           # advance by the publshed stream length (if any)
           old_pos = @scanner.pos
           if(out.last.is_a?(Hash) && out.last[:Length].is_a?(Integer) && out.last[:Length])
-            @scanner.pos += out.last[:Length]
+            # a published length that points outside the data can't be trusted any more than one that
+            # misses `endstream` - skip the jump (it would raise a RangeError) and search for `endstream`.
+            @scanner.pos += out.last[:Length] if out.last[:Length].between?(0, @scanner.rest_size)
             unless(@scanner.skip(/\r?\n?endstream/))
               @scanner.pos = old_pos 
               # raise error if the stream doesn't end.
