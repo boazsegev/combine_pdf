@@ -90,7 +90,7 @@ module CombinePDF
       # # if document metadata is not being encrypted, add 4 bytes with the value 0xFFFFFFFF.
       if actual_object(@encryption_dictionary[:R]) >= 4
         if actual_object(@encryption_dictionary)[:EncryptMetadata] == false
-          key << "\xFF\xFF\xFF\xFF".force_encoding(Encoding::ASCII_8BIT)
+          key << "\xFF\xFF\xFF\xFF".b
         end
       end
       # 5) pass everything as a MD5 hash

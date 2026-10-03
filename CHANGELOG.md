@@ -1,5 +1,9 @@
 # Change Log
 
+#### Change log v.1.0.32 (unreleased)
+
+**Fix**: PDFs encrypted with the standard security handler revision 4 (AES-128 / RC4-128) and `EncryptMetadata false` raised `EncryptionError` ("File is encrypted - not supported") even when they open with an empty user password. Building the file key appended `0xFFFFFFFF` by calling `force_encoding` on a frozen string literal, and the resulting `FrozenError` was reported as an unsupported encryption.
+
 #### Change log v.1.0.31 (2025-04-08)
 
 **Fix**: RangeError: index out of range errors occurred with some malformed PDFs, when the number of bytes in a PDF `stream` didn't match the number of bytes expected according to the `Length` property. Credit to @Laykou and others for opening multiple issues (i.e., #205), as well as @julitrows, @mtwzim, and @Kaiito630, for pushing on this.
