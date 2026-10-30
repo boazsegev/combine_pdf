@@ -8,13 +8,11 @@ require 'matrix'
 require 'set'
 require 'digest'
 
-# require the RC4 Gem
-require 'rc4'
-
 require 'combine_pdf/api'
 require 'combine_pdf/renderer'
 require 'combine_pdf/page_methods'
 require 'combine_pdf/basic_writer'
+require 'combine_pdf/rc4'
 require 'combine_pdf/decrypt'
 require 'combine_pdf/fonts'
 require 'combine_pdf/filter'
@@ -122,7 +120,7 @@ require 'combine_pdf/version'
 #
 # == Credit
 #
-# Caige Nichols wrote an amazing RC4 gem which I reference in my code.
+# Caige Nichols wrote an amazing RC4 gem which I adapted in combine_pdf/rc4.rb.
 # Credit to his wonderful is given here. Please respect his license and copyright... and mine.
 #
 # == License
