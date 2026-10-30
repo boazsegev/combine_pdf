@@ -241,9 +241,7 @@ Credit
 
 Stefan Leitner (@sLe1tner) wrote the outline merging code supporting PDFs which contain a ToC.
 
-Caige Nichols wrote an amazing RC4 gem which I used in my code.
-
-I wanted to install the gem, but I had issues with the internet and ended up copying the code itself into the combine_pdf_decrypt class file.
+Caige Nichols wrote an amazing RC4 gem which I adapted in my code (`lib/combine_pdf/rc4.rb`).
 
 Credit to his wonderful is given here. Please respect his license and copyright... and mine.
 
