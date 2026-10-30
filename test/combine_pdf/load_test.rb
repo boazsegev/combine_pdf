@@ -45,4 +45,26 @@ describe 'CombinePDF.load' do
       end
     end
   end
+
+  describe 'RC4 encrypted files' do
+    def page_content(pdf)
+      contents = pdf.pages[0][:Contents]
+      contents = contents[:referenced_object] || contents
+      Zlib::Inflate.inflate(contents[:raw_stream_content])
+    end
+
+    let(:expected_content) { page_content(CombinePDF.load('test/fixtures/files/sample_pdf.pdf')) }
+
+    %w[
+      sample_rc4_40_encrypted_pdf.pdf
+      sample_rc4_128_encrypted_pdf.pdf
+      sample_rc4_128_v4_encrypted_pdf.pdf
+    ].each do |rc4_file|
+      describe rc4_file do
+        let(:file) { rc4_file }
+
+        it('decrypts the page content') { assert_equal expected_content, page_content(subject) }
+      end
+    end
+  end
 end
